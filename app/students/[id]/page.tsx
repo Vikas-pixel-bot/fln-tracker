@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getStudentProfile } from "@/app/actions";
 import { User, BookOpen, Calculator, MapPin, Calendar, Lightbulb, GraduationCap, Flame, ArrowRight } from "lucide-react";
 import Link from "next/link";

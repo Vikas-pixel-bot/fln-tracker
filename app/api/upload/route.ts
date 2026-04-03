@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/db';
 import * as xlsx from 'xlsx';
-
-const prisma = new PrismaClient();
 
 // Matching the logic used in seed to parse levels correctly
 function parseLiteracyLevel(val: string) {
