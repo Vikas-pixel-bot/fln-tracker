@@ -96,13 +96,13 @@ export async function getDashboardStats(filters: { divisionId?: string, projectO
   const totalSchools = await prisma.school.count({ where: schoolWhere });
 
   const literacies = await prisma.assessment.groupBy({
-    by: ['term', 'literacyLevel'],
+    by: ['term', 'literacyLevel'] as any,
     where: assessmentWhere,
     _count: { studentId: true }
   });
   
   const numeracies = await prisma.assessment.groupBy({
-    by: ['term', 'numeracyLevel'],
+    by: ['term', 'numeracyLevel'] as any,
     where: assessmentWhere,
     _count: { studentId: true }
   });
@@ -178,7 +178,7 @@ export async function createAssessment(data: { studentId: string, assessorName: 
 // -- CMS SETTINGS --
 
 export async function getSettings() {
-  const records = await prisma.systemSetting.findMany();
+  const records = await (prisma as any).systemSetting.findMany();
   const settings: Record<string, string> = {};
   records.forEach((r: any) => settings[r.key] = r.value);
   return settings;
@@ -186,7 +186,7 @@ export async function getSettings() {
 
 export async function saveSettings(payload: Record<string, string>) {
   for (const [key, value] of Object.entries(payload)) {
-    await prisma.systemSetting.upsert({
+    await (prisma as any).systemSetting.upsert({
       where: { key },
       update: { value },
       create: { key, value }
