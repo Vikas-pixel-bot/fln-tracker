@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Division {
+  id             String          @id @default(cuid())
+  name           String
+  projectOffices ProjectOffice[]
+}
+
+model ProjectOffice {
+  id         String   @id @default(cuid())
+  name       String
+  divisionId String
+  division   Division @relation(fields: [divisionId], references: [id])
+  schools    School[]
+}
+
+model School {
+  id              String        @id @default(cuid())
+  name            String
+  udiseCode       String        @unique
+  location        String?
+  medium          String?
+  projectOfficeId String
+  projectOffice   ProjectOffice @relation(fields: [projectOfficeId], references: [id])
+  students        Student[]
+}
+
+model Student {
+  id          String       @id @default(cuid())
+  name        String
+  class       Int          // 1 to 8
+  gender      String       // Male / Female / Other
+  age         Int?
+  schoolId    String
+  school      School       @relation(fields: [schoolId], references: [id])
+  assessments Assessment[]
+}
+
+model Assessment {
+  id              String   @id @default(cuid())
+  date            DateTime @default(now())
+  term            String   @default("Baseline") // Baseline, Midline, Endline
+  assessorName    String
+  literacyLevel   Int      // 0 to 4
+  numeracyLevel   Int      // 0 to 3 (Beginner, 1-9, 10-99, 100-999)
+  
+  addition        Boolean  @default(false)
+  subtraction     Boolean  @default(false)
+  multiplication  Boolean  @default(false)
+  division        Boolean  @default(false)
+
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id])
+}
+
+model SystemSetting {
+  key   String @id
+  value String
+}
