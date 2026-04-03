@@ -167,7 +167,7 @@ export async function createAssessment(data: { studentId: string, assessorName: 
       multiplication: data.multiplication || false,
       division: data.division || false,
       date: new Date()
-    }
+    } as any
   });
 
   revalidatePath('/assessments/new');
