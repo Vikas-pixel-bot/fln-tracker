@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getHierarchy, getSettings } from "@/app/actions";
 import LiveTrackerClient from "./client-page";
 

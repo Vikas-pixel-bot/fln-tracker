@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getHierarchy, getStudentsList } from "@/app/actions";
 import RosterClient from "./RosterClient";
 

@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getDashboardStats, getHierarchy } from "@/app/actions";
 import DashboardClient from "./DashboardClient";
 import Link from "next/link";
