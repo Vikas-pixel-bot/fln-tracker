@@ -1,6 +1,7 @@
 "use server";
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
+import { auth } from "@/auth";
 
 // -- READS --
 
@@ -192,4 +193,28 @@ export async function saveSettings(payload: Record<string, string>) {
       create: { key, value }
     });
   }
+}
+
+// -- ADMIN --
+
+async function requireAdmin() {
+  const session = await auth();
+  if (session?.user?.role !== "admin") throw new Error("Unauthorized");
+}
+
+export async function getUsers() {
+  await requireAdmin();
+  const users = await prisma.user.findMany({
+    orderBy: { createdAt: "desc" },
+    include: {
+      _count: { select: { sessions: true } },
+    },
+  });
+  return users;
+}
+
+export async function setUserRole(userId: string, role: "user" | "admin") {
+  await requireAdmin();
+  await prisma.user.update({ where: { id: userId }, data: { role } });
+  revalidatePath("/admin/users");
 }

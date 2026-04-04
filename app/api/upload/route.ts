@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import * as xlsx from 'xlsx';
+import { auth } from '@/auth';
 
 // Matching the logic used in seed to parse levels correctly
 function parseLiteracyLevel(val: string) {
@@ -30,6 +31,11 @@ function parseNumeracyLevel(val: string) {
 }
 
 export async function POST(req: Request) {
+  const session = await auth();
+  if (session?.user?.role !== 'admin') {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const formData = await req.formData();
     const file = formData.get('file') as File;
