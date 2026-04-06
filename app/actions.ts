@@ -293,28 +293,40 @@ export async function seedHierarchy() {
 
   let divCount = 0, poCount = 0, schoolCount = 0;
 
+  // Fetch all existing records in one shot
+  const existingDivisions = await prisma.division.findMany();
+  const existingPOs = await prisma.projectOffice.findMany();
+  const existingSchools = await prisma.school.findMany({ select: { udiseCode: true } });
+
+  const divMap = new Map(existingDivisions.map(d => [d.name, d.id]));
+  const poMap = new Map(existingPOs.map(p => [`${p.name}__${p.divisionId}`, p.id]));
+  const schoolSet = new Set(existingSchools.map(s => s.udiseCode));
+
   for (const [divName, pos] of Object.entries(HIERARCHY_DATA)) {
-    let division = await prisma.division.findFirst({ where: { name: divName } });
-    if (!division) {
-      division = await prisma.division.create({ data: { name: divName } });
+    if (!divMap.has(divName)) {
+      const div = await prisma.division.create({ data: { name: divName } });
+      divMap.set(divName, div.id);
       divCount++;
     }
+    const divId = divMap.get(divName)!;
 
     for (const [poName, schools] of Object.entries(pos as any)) {
-      let po = await prisma.projectOffice.findFirst({ where: { name: poName, divisionId: division.id } });
-      if (!po) {
-        po = await prisma.projectOffice.create({ data: { name: poName, divisionId: division.id } });
+      const poKey = `${poName}__${divId}`;
+      if (!poMap.has(poKey)) {
+        const po = await prisma.projectOffice.create({ data: { name: poName, divisionId: divId } });
+        poMap.set(poKey, po.id);
         poCount++;
       }
+      const poId = poMap.get(poKey)!;
 
-      for (const school of schools as any[]) {
-        const exists = await prisma.school.findUnique({ where: { udiseCode: school.udise } });
-        if (!exists) {
-          await prisma.school.create({
-            data: { name: school.name, udiseCode: school.udise, projectOfficeId: po.id },
-          });
-          schoolCount++;
-        }
+      const newSchools = (schools as any[]).filter(s => !schoolSet.has(s.udise));
+      if (newSchools.length > 0) {
+        await prisma.school.createMany({
+          data: newSchools.map(s => ({ name: s.name, udiseCode: s.udise, projectOfficeId: poId })),
+          skipDuplicates: true,
+        });
+        newSchools.forEach(s => schoolSet.add(s.udise));
+        schoolCount += newSchools.length;
       }
     }
   }
