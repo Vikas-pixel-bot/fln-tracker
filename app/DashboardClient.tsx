@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { BookOpen, Calculator, Users, GraduationCap, School, Filter, TrendingUp } from 'lucide-react';
+import { BookOpen, Calculator, Users, GraduationCap, School, Filter, TrendingUp, LayoutDashboard, GanttChartSquare } from 'lucide-react';
 import { getDashboardStats } from "@/app/actions";
+import CohortBenchmarking from "@/components/CohortBenchmarking";
 
 const LEVEL_LABELS_LIT = ['Beginner', 'Letter', 'Word', 'Paragraph', 'Story'];
 const LEVEL_LABELS_NUM = ['Beginner', 'Num 1-9', 'Num 10-99', 'Num 100-999'];
@@ -24,6 +25,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
   const [poId, setPoId] = useState("");
   const [schoolId, setSchoolId] = useState("");
   const [term, setTerm] = useState("");
+  const [activeTab, setActiveTab] = useState<'overview' | 'cohort'>('overview');
 
   // Process Literacy/Numeracy into Clustered Formats
   const formatClusteredData = (dataArray: any[], type: 'lit'|'num') => {
@@ -110,7 +112,33 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
         {isPending && <div className="text-sm font-bold text-blue-500 animate-pulse px-4 whitespace-nowrap">Updating...</div>}
       </div>
 
-      <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 transition-opacity duration-300 ${isPending ? 'opacity-50' : 'opacity-100'}`}>
+      {/* Tabs */}
+      <div className="flex p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-2xl w-fit mb-8 border border-slate-200 dark:border-slate-800">
+        <button
+          onClick={() => setActiveTab('overview')}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            activeTab === 'overview' 
+              ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' 
+              : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+          }`}
+        >
+          <LayoutDashboard className="w-4 h-4" /> Overview
+        </button>
+        <button
+          onClick={() => setActiveTab('cohort')}
+          className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all ${
+            activeTab === 'cohort' 
+              ? 'bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm' 
+              : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+          }`}
+        >
+          <GanttChartSquare className="w-4 h-4" /> Progress Trajectory
+        </button>
+      </div>
+
+      {activeTab === 'overview' ? (
+        <>
+          <div className={`grid grid-cols-1 md:grid-cols-3 gap-6 transition-opacity duration-300 ${isPending ? 'opacity-50' : 'opacity-100'}`}>
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-md border-l-4 border-l-blue-500 border border-slate-100 dark:border-slate-800">
           <p className="text-sm font-semibold text-slate-500 mb-1">Total Students Filtered</p>
           <h3 className="text-4xl font-black text-slate-800 dark:text-slate-100">{stats.totalStudents || 0}</h3>
@@ -190,8 +218,14 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
             </ResponsiveContainer>
           </div>
         </div>
-
-      </div>
+          </div>
+      </>
+      ) : (
+        <CohortBenchmarking 
+          filters={{ divisionId: divId, projectOfficeId: poId, schoolId: schoolId }} 
+          hierarchy={hierarchy} 
+        />
+      )}
     </div>
   );
 }

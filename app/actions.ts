@@ -133,6 +133,71 @@ export async function getDashboardStats(filters: { divisionId?: string, projectO
   };
 }
 
+export async function getCohortStats(filters: { divisionId?: string, projectOfficeId?: string, schoolId?: string, startTerm: string, endTerm: string }) {
+  const whereFilter: any = {};
+  if (filters.schoolId) {
+    whereFilter.schoolId = filters.schoolId;
+  } else if (filters.projectOfficeId) {
+    whereFilter.school = { projectOfficeId: filters.projectOfficeId };
+  } else if (filters.divisionId) {
+    whereFilter.school = { projectOffice: { divisionId: filters.divisionId } };
+  }
+
+  // Get all students matching the filters
+  const students = await prisma.student.findMany({
+    where: whereFilter,
+    include: {
+      assessments: {
+        where: {
+          term: { in: [filters.startTerm, filters.endTerm] }
+        }
+      }
+    }
+  });
+
+  // Calculate transitions
+  const litTransitions: Record<string, number> = {};
+  const numTransitions: Record<string, number> = {};
+  const opsTransitions: Record<string, any> = {
+    addition: { gained: 0, maintained: 0, regressed: 0, stagnant: 0 },
+    subtraction: { gained: 0, maintained: 0, regressed: 0, stagnant: 0 },
+    multiplication: { gained: 0, maintained: 0, regressed: 0, stagnant: 0 },
+    division: { gained: 0, maintained: 0, regressed: 0, stagnant: 0 }
+  };
+
+  students.forEach(student => {
+    const startAssessment = student.assessments.find(a => a.term === filters.startTerm);
+    const endAssessment = student.assessments.find(a => a.term === filters.endTerm);
+
+    if (startAssessment && endAssessment) {
+      // Literacy transition
+      const litKey = `${startAssessment.literacyLevel}to${endAssessment.literacyLevel}`;
+      litTransitions[litKey] = (litTransitions[litKey] || 0) + 1;
+
+      // Numeracy transition
+      const numKey = `${startAssessment.numeracyLevel}to${endAssessment.numeracyLevel}`;
+      numTransitions[numKey] = (numTransitions[numKey] || 0) + 1;
+
+      // Operations transitions
+      ['addition', 'subtraction', 'multiplication', 'division'].forEach(op => {
+         const start = (startAssessment as any)[op];
+         const end = (endAssessment as any)[op];
+         if (!start && end) opsTransitions[op].gained++;
+         else if (start && end) opsTransitions[op].maintained++;
+         else if (start && !end) opsTransitions[op].regressed++;
+         else if (!start && !end) opsTransitions[op].stagnant++;
+      });
+    }
+  });
+
+  return { 
+    litTransitions, 
+    numTransitions, 
+    opsTransitions,
+    totalCohort: students.filter(s => s.assessments.length >= 2).length 
+  };
+}
+
 
 // -- WRITES --
 

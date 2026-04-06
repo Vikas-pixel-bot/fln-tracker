@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { getStudentProfile } from "@/app/actions";
-import { User, BookOpen, Calculator, MapPin, Calendar, Lightbulb, GraduationCap, Flame, ArrowRight } from "lucide-react";
+import { User, BookOpen, Calculator, MapPin, Calendar, Lightbulb, GraduationCap, Flame, ArrowRight, Clock, ShieldCheck, TrendingUp, Minus, TrendingDown } from "lucide-react";
 import Link from "next/link";
 
 const LEVEL_LABELS_LIT = ['Beginner', 'Letter', 'Word', 'Paragraph', 'Story'];
@@ -115,42 +115,71 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
               </div>
            </div>
 
-           {/* History Table */}
-           <div className="mt-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
-              <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-                <h3 className="text-lg font-bold flex items-center gap-2"><Calendar className="w-5 h-5 text-slate-400"/> Score History</h3>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-sm">
-                      <th className="p-4 font-semibold">Date</th>
-                      <th className="p-4 font-semibold">Assessor</th>
-                      <th className="p-4 font-semibold">Literacy Score</th>
-                      <th className="p-4 font-semibold">Numeracy Score</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {student.assessments.map((a: any) => (
-                      <tr key={a.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
-                        <td className="p-4 text-sm font-medium">{new Date(a.date).toLocaleDateString()}</td>
-                        <td className="p-4 text-sm text-slate-500">{a.assessorName}</td>
-                        <td className="p-4">
-                          <span className="bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 px-3 py-1 rounded-md text-xs font-bold">
-                            {LEVEL_LABELS_LIT[a.literacyLevel]}
-                          </span>
-                        </td>
-                        <td className="p-4">
-                          <span className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-3 py-1 rounded-md text-xs font-bold">
-                            {LEVEL_LABELS_NUM[a.numeracyLevel]}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-           </div>
+            {/* Audit Trail Timeline */}
+            <div className="mt-12 space-y-6">
+               <div className="flex items-center justify-between px-2">
+                 <h3 className="text-xl font-bold flex items-center gap-2">
+                    <ShieldCheck className="w-6 h-6 text-blue-500"/> Assessment Audit Trail
+                 </h3>
+                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Reliability Feed</span>
+               </div>
+
+               <div className="relative ml-4 pl-8 border-l-2 border-slate-100 dark:border-slate-800 space-y-8 py-4">
+                  {student.assessments.map((a: any, idx: number) => {
+                    const prevA = student.assessments[idx + 1];
+                    const litGrowth = prevA ? a.literacyLevel - prevA.literacyLevel : 0;
+                    const numGrowth = prevA ? a.numeracyLevel - prevA.numeracyLevel : 0;
+
+                    return (
+                      <div key={a.id} className="relative group">
+                         {/* Timeline Dot */}
+                         <div className="absolute -left-[41px] top-4 w-4 h-4 bg-white dark:bg-slate-900 border-4 border-blue-500 rounded-full z-10 group-hover:scale-125 transition-transform"></div>
+                         
+                         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                               <div className="space-y-1">
+                                  <div className="flex items-center gap-2">
+                                     <span className="bg-blue-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter">{a.term}</span>
+                                     <span className="text-slate-900 dark:text-white font-bold">{a.assessorName}</span>
+                                  </div>
+                                  <div className="flex items-center gap-3 text-xs text-slate-400 font-medium">
+                                     <span className="flex items-center gap-1"><Calendar className="w-3 h-3"/> {new Date(a.date).toLocaleDateString()}</span>
+                                     <span className="flex items-center gap-1"><Clock className="w-3 h-3"/> {new Date(a.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                  </div>
+                               </div>
+                               <div className="flex items-center gap-4">
+                                  {/* Literacy Result */}
+                                  <div className="flex flex-col items-end">
+                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Literacy</span>
+                                     <div className="flex items-center gap-2">
+                                        <span className="bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400 px-3 py-1 rounded-lg text-xs font-black">
+                                           {LEVEL_LABELS_LIT[a.literacyLevel]}
+                                        </span>
+                                        {litGrowth > 0 && <TrendingUp className="w-4 h-4 text-emerald-500" />}
+                                        {litGrowth === 0 && idx < student.assessments.length - 1 && <Minus className="w-4 h-4 text-slate-300" />}
+                                        {litGrowth < 0 && <TrendingDown className="w-4 h-4 text-red-500" />}
+                                     </div>
+                                  </div>
+                                  {/* Numeracy Result */}
+                                  <div className="flex flex-col items-end border-l border-slate-100 dark:border-slate-800 pl-4">
+                                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Numeracy</span>
+                                     <div className="flex items-center gap-2">
+                                        <span className="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-3 py-1 rounded-lg text-xs font-black">
+                                           {LEVEL_LABELS_NUM[a.numeracyLevel]}
+                                        </span>
+                                        {numGrowth > 0 && <TrendingUp className="w-4 h-4 text-emerald-500" />}
+                                        {numGrowth === 0 && idx < student.assessments.length - 1 && <Minus className="w-4 h-4 text-slate-300" />}
+                                        {numGrowth < 0 && <TrendingDown className="w-4 h-4 text-red-500" />}
+                                     </div>
+                                  </div>
+                               </div>
+                            </div>
+                         </div>
+                      </div>
+                    );
+                  })}
+               </div>
+            </div>
 
          </div>
        ) : (
