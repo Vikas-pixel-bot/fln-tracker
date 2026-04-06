@@ -2,34 +2,12 @@ export const dynamic = 'force-dynamic';
 import { getStudentProfile } from "@/app/actions";
 import { User, BookOpen, Calculator, MapPin, Calendar, Lightbulb, GraduationCap, Flame, ArrowRight, Clock, ShieldCheck, TrendingUp, Minus, TrendingDown } from "lucide-react";
 import Link from "next/link";
+import { LITERACY_ACTIVITIES, NUMERACY_ACTIVITIES, TaRLActivity } from "@/lib/tarl_data";
 
 const LEVEL_LABELS_LIT = ['Beginner', 'Letter', 'Word', 'Paragraph', 'Story'];
 const LEVEL_LABELS_NUM = ['Beginner', 'Num 1-9', 'Num 10-99', 'Num 100-999', 'Addition', 'Subtraction', 'Multiplication', 'Division'];
 
-function getLiteracyActivity(level: number) {
-  switch (level) {
-    case 0: return { title: "Picture Reading & Sounds", desc: "Use storytelling and picture cards. Ask the student to point to familiar objects and practice recognizing native environmental sounds." };
-    case 1: return { title: "Letter Tracing", desc: "Use sand or finger-tracing for Letters. Engage in mind-mapping where the child connects a recognized letter to 3 physical objects." };
-    case 2: return { title: "Word Building Games", desc: "Play 'Read-around-the-circle'. Use basic word tiles to form simple 3-letter combinations and practice rhyming words." };
-    case 3: return { title: "Stop-and-Ask Reading", desc: "Have the student read short paragraphs aloud. Implement 'Stop-and-Ask' to check their active comprehension instead of just reading speed." };
-    case 4: return { title: "Independent Library", desc: "The student is advanced! Assign independent reading time and have them write or vocalize short moral summaries of the stories." };
-    default: return { title: "Testing Required", desc: "Please conduct an assessment to generate TaRL activities." };
-  }
-}
-
-function getNumeracyActivity(level: number) {
-  switch (level) {
-    case 0: return { title: "Physical Object Counting", desc: "Use stones, sticks, or seeds. Have the student group them and sing number songs to build foundational quantity concepts." };
-    case 1: return { title: "Number Flashcards 1-9", desc: "Use visual flashcards. Ask the student to draw lines matching the written number to the correct amount of drawn dots." };
-    case 2: return { title: "Bundle Counting (Tens)", desc: "Introduce the concept of '10s' by physically tying 10 sticks into a bundle. Practice jumping on a drawn number line." };
-    case 3: return { title: "Expanded Form (Hundreds)", desc: "Use currency play (fake money). Teach them that 125 is one 100-note, two 10-notes, and five 1-coins." };
-    case 4: return { title: "Carry-over Games", desc: "Practice addition using visual carry-over grids. Use word problems involving buying fruits to make it practical." };
-    case 5: return { title: "Borrowing Roleplay", desc: "Set up a fake shop. Introduce subtraction borrowing mechanics visually using the sticks and bundles from Level 2." };
-    case 6: return { title: "Repeated Grouping", desc: "Teach multiplication as repeated addition. Arrange stones in arrays (e.g. 3 rows of 4) and practice table recitation." };
-    case 7: return { title: "Equal Sharing Challenges", desc: "The student is advanced! Play games where they must divide a large pile of items equally among 4 friends." };
-    default: return { title: "Testing Required", desc: "Please conduct an assessment to generate TaRL activities." };
-  }
-}
+// Data now comes from lib/tarl_data.ts
 
 export default async function StudentProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -41,8 +19,8 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
   const litLevel = latestAssessment?.literacyLevel ?? -1;
   const numLevel = latestAssessment?.numeracyLevel ?? -1;
 
-  const litTaRL = getLiteracyActivity(litLevel);
-  const numTaRL = getNumeracyActivity(numLevel);
+  const litActivities = LITERACY_ACTIVITIES[litLevel] || [];
+  const numActivities = NUMERACY_ACTIVITIES[numLevel] || [];
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 pb-12 animate-in fade-in zoom-in-95 duration-500">
@@ -78,42 +56,62 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
        {/* TaRL Interventions */}
        {latestAssessment ? (
          <div className="space-y-6">
-           <div className="flex items-center gap-3 px-2">
-             <Lightbulb className="w-6 h-6 text-yellow-500"/>
-             <h2 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100">Recommended TaRL Activities</h2>
-           </div>
+            <div className="flex items-center gap-3 px-2">
+              <Lightbulb className="w-6 h-6 text-yellow-500"/>
+              <h2 className="text-2xl font-extrabold text-slate-800 dark:text-slate-100">Recommended TaRL Activities</h2>
+            </div>
 
-           <div className="grid md:grid-cols-2 gap-6">
-              {/* Literacy Recommendation */}
-              <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-slate-900 dark:to-slate-900 border border-orange-100 dark:border-slate-800 rounded-3xl p-8 relative overflow-hidden group">
-                 <div className="flex items-center gap-3 text-orange-600 dark:text-orange-400 mb-6 font-bold uppercase tracking-wider text-sm">
-                   <BookOpen className="w-5 h-5"/> Literacy Intervention
-                 </div>
-                 <div className="space-y-4">
-                   <div className="flex items-baseline gap-2">
-                     <span className="text-slate-500 font-medium">Current Level:</span>
-                     <span className="text-xl font-black text-slate-800 dark:text-white bg-white dark:bg-slate-800 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700">{LEVEL_LABELS_LIT[litLevel]}</span>
-                   </div>
-                   <h3 className="text-2xl font-bold text-orange-700 dark:text-orange-300 pt-4">{litTaRL.title}</h3>
-                   <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{litTaRL.desc}</p>
-                 </div>
-              </div>
+            <div className="grid md:grid-cols-2 gap-8">
+               {/* Literacy Recommendation */}
+               <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-orange-600 dark:text-orange-400 font-black uppercase tracking-[0.2em] text-xs px-2 mb-2">
+                    <BookOpen className="w-4 h-4"/> Literacy Focus: {LEVEL_LABELS_LIT[litLevel]}
+                  </div>
+                  {litActivities.length > 0 ? litActivities.map((act, i) => (
+                    <div key={i} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                       <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                          <BookOpen className="w-12 h-12" />
+                       </div>
+                       <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">{act.title}</h3>
+                       <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-4">{act.description}</p>
+                       <div className="flex flex-wrap gap-2">
+                          {act.materials.map((m, j) => (
+                            <span key={j} className="text-[10px] font-bold bg-slate-50 dark:bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full uppercase">{m}</span>
+                          ))}
+                       </div>
+                    </div>
+                  )) : (
+                    <div className="p-8 text-center text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700">
+                       No specific activities mapped for this level yet.
+                    </div>
+                  )}
+               </div>
 
-              {/* Numeracy Recommendation */}
-              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-900 dark:to-slate-900 border border-emerald-100 dark:border-slate-800 rounded-3xl p-8 relative overflow-hidden group">
-                 <div className="flex items-center gap-3 text-emerald-600 dark:text-emerald-400 mb-6 font-bold uppercase tracking-wider text-sm">
-                   <Calculator className="w-5 h-5"/> Numeracy Intervention
-                 </div>
-                 <div className="space-y-4">
-                   <div className="flex items-baseline gap-2">
-                     <span className="text-slate-500 font-medium">Current Level:</span>
-                     <span className="text-xl font-black text-slate-800 dark:text-white bg-white dark:bg-slate-800 px-3 py-1 rounded-lg border border-slate-200 dark:border-slate-700">{LEVEL_LABELS_NUM[numLevel]}</span>
-                   </div>
-                   <h3 className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 pt-4">{numTaRL.title}</h3>
-                   <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{numTaRL.desc}</p>
-                 </div>
-              </div>
-           </div>
+               {/* Numeracy Recommendation */}
+               <div className="space-y-4">
+                  <div className="flex items-center gap-3 text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-[0.2em] text-xs px-2 mb-2">
+                    <Calculator className="w-4 h-4"/> Numeracy Focus: {LEVEL_LABELS_NUM[numLevel]}
+                  </div>
+                  {numActivities.length > 0 ? numActivities.map((act, i) => (
+                    <div key={i} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[32px] p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+                       <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                          <Calculator className="w-12 h-12" />
+                       </div>
+                       <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">{act.title}</h3>
+                       <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-4">{act.description}</p>
+                       <div className="flex flex-wrap gap-2">
+                          {act.materials.map((m, j) => (
+                            <span key={j} className="text-[10px] font-bold bg-slate-50 dark:bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full uppercase">{m}</span>
+                          ))}
+                       </div>
+                    </div>
+                  )) : (
+                    <div className="p-8 text-center text-slate-400 bg-slate-50 dark:bg-slate-800/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700">
+                       No specific activities mapped for this level yet.
+                    </div>
+                  )}
+               </div>
+            </div>
 
             {/* Audit Trail Timeline */}
             <div className="mt-12 space-y-6">

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { UserPlus, ClipboardPlus, BarChart3, LogIn, LogOut, ShieldCheck, Users, Database } from 'lucide-react';
+import { UserPlus, ClipboardPlus, BarChart3, LogIn, LogOut, ShieldCheck, Users, Database, GraduationCap } from 'lucide-react';
 import { auth, signIn, signOut } from '@/auth';
 
 export default async function Navbar() {
@@ -19,6 +19,9 @@ export default async function Navbar() {
             <div className="hidden sm:ml-10 sm:flex sm:space-x-8">
               <Link href="/dashboard" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">
                 Dashboards
+              </Link>
+              <Link href="/resources" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors gap-2">
+                <GraduationCap className="w-4 h-4" /> Training Hub
               </Link>
             </div>
           </div>
