@@ -2,6 +2,7 @@
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
+import bcrypt from "bcryptjs";
 
 // -- READS --
 
@@ -456,4 +457,68 @@ export async function cleanupSchools() {
 
   revalidatePath("/");
   return { count: result.count };
+}
+
+// -- SCHOOL LOGINS --
+
+function toSlug(str: string): string {
+  return str
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/gi, '')
+    .trim()
+    .replace(/\s+/g, '.');
+}
+
+export async function generateSchoolLogins(): Promise<{ created: number; skipped: number }> {
+  await requireAdmin();
+
+  const DEFAULT_PASSWORD = "Pratham@2025";
+  const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
+
+  const schools = await prisma.school.findMany({
+    include: { projectOffice: true }
+  });
+
+  let created = 0;
+  let skipped = 0;
+
+  for (const school of schools) {
+    const poSlug = toSlug(school.projectOffice.name);
+    const schoolSlug = toSlug(school.name);
+    const email = `${poSlug}.${schoolSlug}@flnhub.in`;
+
+    const existing = await (prisma as any).user.findUnique({ where: { email } });
+    if (existing) { skipped++; continue; }
+
+    await (prisma as any).user.create({
+      data: {
+        email,
+        name: school.name,
+        role: "user",
+        schoolId: school.id,
+        passwordHash,
+      }
+    });
+    created++;
+  }
+
+  revalidatePath("/admin/users");
+  return { created, skipped };
+}
+
+export async function getSchoolCredentials(): Promise<{ school: string; po: string; email: string; password: string }[]> {
+  await requireAdmin();
+
+  const users = await (prisma as any).user.findMany({
+    where: { email: { endsWith: "@flnhub.in" }, schoolId: { not: null } },
+    include: { school: { include: { projectOffice: true } } },
+    orderBy: { email: 'asc' },
+  });
+
+  return users.map((u: any) => ({
+    po: u.school?.projectOffice?.name ?? '',
+    school: u.school?.name ?? '',
+    email: u.email,
+    password: 'Pratham@2025',
+  }));
 }

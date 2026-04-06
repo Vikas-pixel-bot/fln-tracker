@@ -76,6 +76,7 @@ model User {
   role          String    @default("user")  // "admin" | "user"
   schoolId      String?
   school        School?   @relation(fields: [schoolId], references: [id])
+  passwordHash  String?
   createdAt     DateTime  @default(now())
   lastLoginAt   DateTime?
   accounts      Account[]

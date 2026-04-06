@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { ClipboardPlus, BarChart3, LogIn, LogOut, ShieldCheck, Users, Database, GraduationCap } from 'lucide-react';
-import { auth, signIn, signOut } from '@/auth';
+import { ClipboardPlus, BarChart3, LogIn, LogOut, ShieldCheck, Users, Database, GraduationCap, KeyRound } from 'lucide-react';
+import { auth, signOut } from '@/auth';
 
 export default async function Navbar() {
   const session = await auth();
@@ -42,6 +42,9 @@ export default async function Navbar() {
                 <Link href="/admin/data" className="flex items-center gap-1.5 text-gray-400 hover:text-blue-600 px-3 py-2 rounded-xl text-sm font-medium transition-all">
                   <Database className="w-4 h-4" /> Data
                 </Link>
+                <Link href="/admin/logins" className="flex items-center gap-1.5 text-gray-400 hover:text-blue-600 px-3 py-2 rounded-xl text-sm font-medium transition-all">
+                  <KeyRound className="w-4 h-4" /> Logins
+                </Link>
                 <Link href="/admin/settings" className="text-gray-400 hover:text-blue-600 px-3 py-2 rounded-xl text-sm font-medium transition-all">
                   CMS
                 </Link>
@@ -74,11 +77,9 @@ export default async function Navbar() {
                 </form>
               </div>
             ) : (
-              <form action={async () => { 'use server'; await signIn('google'); }}>
-                <button type="submit" className="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 px-3 py-2 rounded-xl hover:bg-blue-50 transition-all">
-                  <LogIn className="w-4 h-4" /> Sign In
-                </button>
-              </form>
+              <Link href="/signin" className="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 px-3 py-2 rounded-xl hover:bg-blue-50 transition-all">
+                <LogIn className="w-4 h-4" /> Sign In
+              </Link>
             )}
           </div>
         </div>

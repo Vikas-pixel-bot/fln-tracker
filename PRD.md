@@ -1,41 +1,47 @@
-# Product Requirements Document (PRD): Pratham FLN Tracker
+# Product Requirements Document (PRD): Pratham FLN Hub
 
-## 1. Executive Summary
-**FLN Tracker** is a high-performance digital assessment platform designed to track and accelerate Foundational Literacy and Numeracy (FLN) outcomes in primary schools. Aligned with the Pratham/TaRL methodology, it enables longitudinal growth tracking across Baseline, Midline, and Endline assessments with real-time administrative control and field-ready performance.
+## 1. Executive Summary & Vision
+**FLN Hub** is a comprehensive pedagogical support system designed to accelerate Foundational Literacy and Numeracy (FLN) through daily interactive engagement. Moving beyond a simple "assessment tracker," the platform serves as a **Daily Interaction Engine** for teachers and students, implementing the Pratham/TaRL methodology at scale.
 
-## 2. Target Audience
-- **Field Assessors**: Front-line teachers and volunteers conducting child-wise evaluations on tablets/mobiles in low-connectivity areas.
-- **Project Administrators**: Decision-makers monitoring school-wise and project-wise progress and configuring testing assets.
-- **Reporting Officers (POs)**: Monitoring regional trends and isolation data points (Division/Project Office).
+## 2. Core Value Propositions (USPs)
+1. **Level-Based Customized Support**: Automatically providing pedagogical tools and games tailored to a student's exact current ASER/FLN level.
+2. **Live Data Integration**: High-performance dashboarding that turns uploaded spreadsheet data into actionable real-time student insights.
+3. **90-Minute Daily Flow**: A structured, independent sequence of activities (Activity → Game → Battle) for classroom implementation.
+4. **Interactive AI Intelligence**: A natural-language data interface allowing users to "ask" their dashboard for deep insights (e.g., "Where is growth stalling?").
 
-## 3. Core Features & Functional Requirements
+## 3. Target Audience
+- **School Teachers**: Managing daily classroom flows and local competitions.
+- **Students**: Engaging in high-energy, level-matched 2v2 battles.
+- **Administrators & POs**: Monitoring regional growth via AI-powered longitudinal dashboards.
 
-### 3.1 Advanced Assessment Engine
-- **Sequential Math Flow**: Re-engineered logic that presents Addition, Subtraction, Multiplication, and Division operations one-by-one to reduce cognitive load and improve assessment precision.
-- **Literacy Levels**: 5-tier evaluation tracking (Beginner, Letter, Word, Paragraph, Story).
-- **On-the-Fly Student Creation**: Ability to register new students (Name, Gender, Class) directly within the testing wizard to handle un-rostered children without administrative bottlenecks.
+## 4. Functional Requirements
 
-### 3.2 Longitudinal Dashboard
-- **Term-Based Isolation**: Global filters to toggle dashboard data between Baseline, Midline, and Endline windows.
-- **Growth Comparison**: Automated ordering of testing terms (`Baseline → Midline → Endline`) to visualize learning trajectories.
-- **Cascading Hierarchy Filters**: High-performance "narrowing" filters (Division → Project Office → School) to manage thousands of data points efficiently.
+### 4.1 The 90-Minute Daily Flow
+A structured daily curriculum for literacy and numeracy:
+- **30m Exploration**: Individual interaction with level-wise digital manipulatives.
+- **30m Group Activity**: Teacher-led interactive games (e.g., Fish Game, Number River).
+- **30m Competition**: The school-level battle arena.
 
-### 3.3 Administrative CMS
-- **Asset Management Portal**: Real-time editor for testing assets (Words, Paragraphs, Math Problems) without requiring code redeployments.
-- **Production Bulk Uploader**: Specialized High-Speed Ingestion engine capable of processing thousands of student records and historical Excel results in under 2 seconds.
+### 4.2 The 2v2 Battle Arena (Authenticated)
+- **School Logins**: Every school has a dedicated account.
+- **Class Context**: Teachers select the specific class (1-8) before starting.
+- **Level-Matched Matchmaking**: After a group activity, the system **randomly selects 2 students of the same level** for a 2v2 versus game.
+- **Database Closure**: Winning results are automatically updated to the student's longitudinal record to track engagement and performance.
 
-## 4. Technical Architecture
-- **Framework**: Next.js 15 (App Router / Turbopack).
-- **Database**: PostgreSQL (Prisma ORM) for production-grade reliability and complex hierarchy queries.
-- **Hosting**: Vercel (Frontend/API) + Supabase (Database).
-- **Hardening**: Singleton Pattern for database connections to ensure stability in serverless/cloud environments.
+### 4.3 AI-Powered Dashboards
+- **Natural Language Query (NLQ)**: A search-bar interface where users can ask: 
+    - *"Show me students with zero progress in the last 30 days."*
+    - *"Which schools are most active in 2v2 battles?"*
+    - *"Generate a summary of Grade 3 literacy trends in the North Division."*
+- **Live Spreadsheet Syncing**: The dashboard remains dynamic, reflecting both live game results and periodic bulk uploads.
 
-## 5. Design & User Experience (UX)
-- **Official Palette**: Government-official "Traffic Light" scheme (Red/Orange/Green) for performance visualization.
-- **Field-First UI**: Minimalist, button-heavy interface optimized for tablet touch targets and high-glare field conditions.
-- **Cascading Selectors**: Replaced heavy drop-downs with hierarchal logic to ensure the interface remains light on low-end hardware.
+## 5. Technical Requirements & Architecture
+- **Framework**: Next.js 15 (App Router).
+- **Data Layer**: Prisma ORM (PostgreSQL) with specialized models for `BattleRecords` and `GrowthSnapshots`.
+- **Authentication**: Role-based access (Admin, PO, School, Teacher).
+- **UI Architecture**: High-speed, touch-optimized React components for low-latency field interactions on mobile/tablet devices.
 
 ## 6. Success Metrics
-- **Assessor Speed**: Reduce time-per-assessment to under 3 minutes.
-- **Data Integrity**: Zero loss of data during "on-the-fly" student registration.
-- **System Stability**: 100% build success rate on Vercel and sub-2s processing for large Excel uploads.
+- **Engagement Depth**: Percentage of students participating in at least 3 "Battles" per week.
+- **Growth Velocity**: Reduction in time taken for a student to move from "Letter" to "Word" via the customized support flow.
+- **Data Actionability**: Percentage of Administrative questions successfully answered by the AI Dashboard interface.
