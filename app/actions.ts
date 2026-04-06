@@ -22,18 +22,25 @@ export async function getStudentsBySchool(schoolId: string) {
 export async function getStudentsList(query: string = "", page: number = 1, divId?: string, poId?: string, schoolId?: string) {
   const take = 20;
   const skip = (page - 1) * take;
-  
+
+  // Scope to the logged-in user's school if they have one (teacher login)
+  const session = await auth();
+  const userSchoolId = (session?.user as any)?.schoolId;
+
   const whereFilter: any = {};
-  if (query) whereFilter.name = { contains: query };
-  
-  if (schoolId) {
+  if (query) whereFilter.name = { contains: query, mode: 'insensitive' };
+
+  if (userSchoolId) {
+    // Teacher: always locked to their school, ignore other filters
+    whereFilter.schoolId = userSchoolId;
+  } else if (schoolId) {
     whereFilter.schoolId = schoolId;
   } else if (poId) {
     whereFilter.school = { projectOfficeId: poId };
   } else if (divId) {
     whereFilter.school = { projectOffice: { divisionId: divId } };
   }
-  
+
   const students = await prisma.student.findMany({
     where: whereFilter,
     include: { school: true },
@@ -41,19 +48,29 @@ export async function getStudentsList(query: string = "", page: number = 1, divI
     take,
     skip
   });
-  
+
   const total = await prisma.student.count({ where: whereFilter });
   return { students, total, pages: Math.ceil(total / take) };
 }
 
 export async function getStudentProfile(studentId: string) {
-  return await prisma.student.findUnique({
+  const session = await auth();
+  const userSchoolId = (session?.user as any)?.schoolId;
+
+  const student = await prisma.student.findUnique({
     where: { id: studentId },
     include: {
       school: { include: { projectOffice: { include: { division: true } } } },
       assessments: { orderBy: { date: 'desc' } }
     }
   });
+
+  // Non-admin users scoped to a school can only view their own students
+  if (student && userSchoolId && student.schoolId !== userSchoolId) {
+    throw new Error("Access denied");
+  }
+
+  return student;
 }
 
 // -- ANALYTICS --
@@ -273,6 +290,7 @@ export async function getUsers(): Promise<any[]> {
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { sessions: true } },
+      school: { select: { id: true, name: true } },
     },
   });
   return users;
@@ -281,6 +299,15 @@ export async function getUsers(): Promise<any[]> {
 export async function setUserRole(userId: string, role: "user" | "admin") {
   await requireAdmin();
   await (prisma as any).user.update({ where: { id: userId }, data: { role } });
+  revalidatePath("/admin/users");
+}
+
+export async function assignUserSchool(userId: string, schoolId: string | null) {
+  await requireAdmin();
+  await (prisma as any).user.update({
+    where: { id: userId },
+    data: { schoolId: schoolId || null },
+  });
   revalidatePath("/admin/users");
 }
 

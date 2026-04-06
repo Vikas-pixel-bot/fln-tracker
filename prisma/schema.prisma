@@ -31,6 +31,7 @@ model School {
   projectOfficeId String
   projectOffice   ProjectOffice @relation(fields: [projectOfficeId], references: [id])
   students        Student[]
+  users           User[]
 }
 
 model Student {
@@ -72,7 +73,9 @@ model User {
   email         String    @unique
   emailVerified DateTime?
   image         String?
-  role          String    @default("user")
+  role          String    @default("user")  // "admin" | "user"
+  schoolId      String?
+  school        School?   @relation(fields: [schoolId], references: [id])
   createdAt     DateTime  @default(now())
   lastLoginAt   DateTime?
   accounts      Account[]
