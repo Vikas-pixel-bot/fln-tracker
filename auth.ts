@@ -33,15 +33,21 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user, trigger }) {
+      // On first sign-in, populate token from user object
       if (user) {
         const u = user as any;
         token.role = u.role ?? "user";
         token.schoolId = u.schoolId ?? null;
         token.id = u.id;
+        return token;
       }
-      // Refresh from DB on update trigger
-      if (trigger === "update" && token.id) {
-        const fresh = await (prisma as any).user.findUnique({ where: { id: token.id } });
+      // On every subsequent request, refresh role+schoolId from DB
+      // so that admin grants and school assignments take effect immediately
+      if (token.id) {
+        const fresh = await (prisma as any).user.findUnique({
+          where: { id: token.id as string },
+          select: { role: true, schoolId: true },
+        });
         if (fresh) {
           token.role = fresh.role;
           token.schoolId = fresh.schoolId ?? null;

@@ -10,7 +10,7 @@ export function proxy(req: NextRequest) {
       req.cookies.get("__Secure-authjs.session-token");
 
     if (!sessionToken) {
-      const signInUrl = new URL("/api/auth/signin", req.url);
+      const signInUrl = new URL("/signin", req.url);
       signInUrl.searchParams.set("callbackUrl", req.url);
       return NextResponse.redirect(signInUrl);
     }
