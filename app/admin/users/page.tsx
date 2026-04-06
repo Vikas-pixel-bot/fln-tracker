@@ -61,7 +61,7 @@ export default async function AdminUsersPage() {
                   <select
                     name="schoolId"
                     defaultValue={user.schoolId ?? ''}
-                    onChange="this.form.requestSubmit()"
+                    onChange={e => (e.target.form as HTMLFormElement)?.requestSubmit()}
                     className="text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-1.5 w-full max-w-[200px] focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
                     <option value="">— No school —</option>
