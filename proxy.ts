@@ -1,24 +1,23 @@
-import { auth } from "@/auth";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export default auth((req) => {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
-  const isLoggedIn = !!req.auth;
-  const isAdmin = req.auth?.user?.role === "admin";
 
   if (pathname.startsWith("/admin")) {
-    if (!isLoggedIn) {
+    const sessionToken =
+      req.cookies.get("authjs.session-token") ??
+      req.cookies.get("__Secure-authjs.session-token");
+
+    if (!sessionToken) {
       const signInUrl = new URL("/api/auth/signin", req.url);
       signInUrl.searchParams.set("callbackUrl", req.url);
       return NextResponse.redirect(signInUrl);
     }
-    if (!isAdmin) {
-      return NextResponse.redirect(new URL("/?error=unauthorized", req.url));
-    }
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/admin/:path*"],
