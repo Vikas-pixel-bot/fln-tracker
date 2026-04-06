@@ -99,38 +99,35 @@ export async function getDashboardStats(filters: { divisionId?: string, projectO
   } else if (filters.divisionId) {
     whereFilter.school = { projectOffice: { divisionId: filters.divisionId } };
   }
-  
+
   const assessmentWhere: any = { student: whereFilter };
   if (filters.term) assessmentWhere.term = filters.term;
 
-  const totalStudents = await prisma.student.count({ where: whereFilter });
-  const totalAssessments = await prisma.assessment.count({ 
-     where: assessmentWhere 
-  });
-  
   const schoolWhere: any = {};
   if (filters.schoolId) schoolWhere.id = filters.schoolId;
   else if (filters.projectOfficeId) schoolWhere.projectOfficeId = filters.projectOfficeId;
   else if (filters.divisionId) schoolWhere.projectOffice = { divisionId: filters.divisionId };
-  const totalSchools = await prisma.school.count({ where: schoolWhere });
 
-  const literacies = await prisma.assessment.groupBy({
-    by: ['term', 'literacyLevel'] as any,
-    where: assessmentWhere,
-    _count: { studentId: true }
-  });
-  
-  const numeracies = await prisma.assessment.groupBy({
-    by: ['term', 'numeracyLevel'] as any,
-    where: assessmentWhere,
-    _count: { studentId: true }
-  });
+  const [totalStudents, totalAssessments, totalSchools, literacies, numeracies, rawOps] = await Promise.all([
+    prisma.student.count({ where: whereFilter }),
+    prisma.assessment.count({ where: assessmentWhere }),
+    prisma.school.count({ where: schoolWhere }),
+    prisma.assessment.groupBy({
+      by: ['term', 'literacyLevel'] as any,
+      where: assessmentWhere,
+      _count: { studentId: true }
+    }),
+    prisma.assessment.groupBy({
+      by: ['term', 'numeracyLevel'] as any,
+      where: assessmentWhere,
+      _count: { studentId: true }
+    }),
+    prisma.assessment.findMany({
+      where: assessmentWhere,
+      select: { term: true, addition: true, subtraction: true, multiplication: true, division: true }
+    }),
+  ]);
 
-  const rawOps = await prisma.assessment.findMany({
-    where: assessmentWhere,
-    select: { term: true, addition: true, subtraction: true, multiplication: true, division: true }
-  });
-  
   const operations = rawOps.reduce((acc: any, curr: any) => {
     if (!acc[curr.term]) acc[curr.term] = { addition: 0, subtraction: 0, multiplication: 0, division: 0, total: 0 };
     acc[curr.term].total += 1;
@@ -141,13 +138,64 @@ export async function getDashboardStats(filters: { divisionId?: string, projectO
     return acc;
   }, {});
 
+  // --- GROWTH STATS: compare first vs latest assessment per student ---
+  const studentsWithAssessments = await prisma.student.findMany({
+    where: whereFilter,
+    select: {
+      assessments: {
+        select: { literacyLevel: true, numeracyLevel: true, date: true },
+        orderBy: { date: 'asc' }
+      }
+    }
+  });
+
+  let litImproved = 0, litDeclined = 0, litSame = 0;
+  let numImproved = 0, numDeclined = 0, numSame = 0;
+  let studentsWithGrowthData = 0;
+
+  // Level-wise improvement breakdown (how many moved from each level to a higher one)
+  const litGrowthByLevel: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+  const numGrowthByLevel: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0 };
+
+  for (const student of studentsWithAssessments) {
+    if (student.assessments.length < 2) continue;
+    studentsWithGrowthData++;
+    const first = student.assessments[0];
+    const last = student.assessments[student.assessments.length - 1];
+
+    if (last.literacyLevel > first.literacyLevel) { litImproved++; litGrowthByLevel[first.literacyLevel]++; }
+    else if (last.literacyLevel < first.literacyLevel) litDeclined++;
+    else litSame++;
+
+    if (last.numeracyLevel > first.numeracyLevel) { numImproved++; numGrowthByLevel[first.numeracyLevel]++; }
+    else if (last.numeracyLevel < first.numeracyLevel) numDeclined++;
+    else numSame++;
+  }
+
+  // Latest level distribution (most recent assessment per student)
+  const litDistribution: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+  const numDistribution: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0 };
+
+  for (const student of studentsWithAssessments) {
+    if (student.assessments.length === 0) continue;
+    const latest = student.assessments[student.assessments.length - 1];
+    if (litDistribution[latest.literacyLevel] !== undefined) litDistribution[latest.literacyLevel]++;
+    if (numDistribution[latest.numeracyLevel] !== undefined) numDistribution[latest.numeracyLevel]++;
+  }
+
   return {
     totalStudents,
     totalAssessments,
     totalSchools,
     literacies,
     numeracies,
-    operations
+    operations,
+    growth: {
+      studentsWithGrowthData,
+      literacy: { improved: litImproved, declined: litDeclined, same: litSame, byLevel: litGrowthByLevel },
+      numeracy: { improved: numImproved, declined: numDeclined, same: numSame, byLevel: numGrowthByLevel },
+    },
+    latestDistribution: { literacy: litDistribution, numeracy: numDistribution },
   };
 }
 
