@@ -1,13 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { UploadCloud, File, Activity, Building, CheckCircle2 } from "lucide-react";
+import { useState, useTransition } from "react";
+import { UploadCloud, File, Activity, Building, CheckCircle2, Database } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { seedHierarchy } from "@/app/actions";
 
 export default function AdminUploadPage() {
   const router = useRouter();
   const [file, setFile] = useState<File | null>(null);
   const [term, setTerm] = useState("Baseline");
+  const [seedResult, setSeedResult] = useState<{ divCount: number; poCount: number; schoolCount: number } | null>(null);
+  const [isSeedPending, startSeedTransition] = useTransition();
+
+  function handleSeed() {
+    startSeedTransition(async () => {
+      const result = await seedHierarchy();
+      setSeedResult(result);
+    });
+  }
   const [isUploading, setIsUploading] = useState(false);
   const [result, setResult] = useState<{success: boolean; count?: number; error?: string} | null>(null);
 
@@ -111,6 +121,23 @@ export default function AdminUploadPage() {
                       <b>Upload Failed:</b> {result.error}
                     </div>
                   )}
+
+                  {/* Seed Hierarchy */}
+                  <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center gap-2">
+                      <Database className="w-4 h-4 text-indigo-500" /> Load Default Schools &amp; Divisions
+                    </p>
+                    <p className="text-xs text-slate-500 mb-3">Populates all 4 divisions, 29 project offices, and 497 schools from the master mapping. Safe to run multiple times.</p>
+                    {seedResult && (
+                      <p className="text-xs text-green-600 font-semibold mb-2">
+                        ✓ Added {seedResult.divCount} divisions, {seedResult.poCount} project offices, {seedResult.schoolCount} schools
+                      </p>
+                    )}
+                    <button onClick={handleSeed} disabled={isSeedPending}
+                      className="py-2 px-5 text-sm font-bold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50 flex items-center gap-2">
+                      {isSeedPending ? <Activity className="animate-spin w-4 h-4" /> : 'Load Schools'}
+                    </button>
+                  </div>
 
                   <div className="mt-auto pt-6 flex justify-end">
                     <button onClick={handleUpload} disabled={!file || isUploading}

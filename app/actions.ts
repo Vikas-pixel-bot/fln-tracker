@@ -285,3 +285,41 @@ export async function clearAllData() {
   revalidatePath("/");
   revalidatePath("/students");
 }
+
+export async function seedHierarchy() {
+  await requireAdmin();
+
+  const { HIERARCHY_DATA } = await import("@/prisma/hierarchy-data");
+
+  let divCount = 0, poCount = 0, schoolCount = 0;
+
+  for (const [divName, pos] of Object.entries(HIERARCHY_DATA)) {
+    let division = await prisma.division.findFirst({ where: { name: divName } });
+    if (!division) {
+      division = await prisma.division.create({ data: { name: divName } });
+      divCount++;
+    }
+
+    for (const [poName, schools] of Object.entries(pos as any)) {
+      let po = await prisma.projectOffice.findFirst({ where: { name: poName, divisionId: division.id } });
+      if (!po) {
+        po = await prisma.projectOffice.create({ data: { name: poName, divisionId: division.id } });
+        poCount++;
+      }
+
+      for (const school of schools as any[]) {
+        const exists = await prisma.school.findUnique({ where: { udiseCode: school.udise } });
+        if (!exists) {
+          await prisma.school.create({
+            data: { name: school.name, udiseCode: school.udise, projectOfficeId: po.id },
+          });
+          schoolCount++;
+        }
+      }
+    }
+  }
+
+  revalidatePath("/");
+  revalidatePath("/admin/upload");
+  return { divCount, poCount, schoolCount };
+}
