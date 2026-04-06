@@ -272,3 +272,16 @@ export async function clearAllAssessments(term?: string) {
   revalidatePath("/admin/data");
   revalidatePath("/");
 }
+
+export async function clearAllData() {
+  await requireAdmin();
+  // Must delete in order due to foreign key constraints
+  await prisma.assessment.deleteMany();
+  await prisma.student.deleteMany();
+  await prisma.school.deleteMany();
+  await prisma.projectOffice.deleteMany();
+  await prisma.division.deleteMany();
+  revalidatePath("/admin/data");
+  revalidatePath("/");
+  revalidatePath("/students");
+}

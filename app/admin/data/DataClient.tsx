@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateAssessment, deleteAssessment, clearAllAssessments } from "@/app/actions";
+import { updateAssessment, deleteAssessment, clearAllAssessments, clearAllData } from "@/app/actions";
 import { Trash2, Pencil, X, Check, AlertTriangle, Filter } from "lucide-react";
 
 const LIT_LABELS = ["Beginner", "Letter", "Word", "Paragraph", "Story"];
@@ -44,6 +44,7 @@ export default function DataClient({
   const [editForm, setEditForm] = useState<any>(null);
   const [clearConfirm, setClearConfirm] = useState(false);
   const [clearTerm, setClearTerm] = useState("");
+  const [clearMode, setClearMode] = useState<"assessments" | "all">("assessments");
   const [filterTerm, setFilterTerm] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -89,7 +90,11 @@ export default function DataClient({
 
   function handleClear() {
     startTransition(async () => {
-      await clearAllAssessments(clearTerm || undefined);
+      if (clearMode === "all") {
+        await clearAllData();
+      } else {
+        await clearAllAssessments(clearTerm || undefined);
+      }
       setClearConfirm(false);
       setAssessments([]);
     });
@@ -130,17 +135,43 @@ export default function DataClient({
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-3 text-red-600 mb-4">
               <AlertTriangle className="w-6 h-6" />
-              <h2 className="text-xl font-bold">Clear Assessment Data</h2>
+              <h2 className="text-xl font-bold">Clear Data</h2>
             </div>
-            <p className="text-slate-500 mb-6">This will permanently delete assessments. Choose a specific term or clear everything.</p>
-            <select
-              value={clearTerm}
-              onChange={(e) => setClearTerm(e.target.value)}
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 mb-6 text-sm font-medium outline-none"
-            >
-              <option value="">All terms (everything)</option>
-              {TERMS.map((t) => <option key={t} value={t}>{t} only</option>)}
-            </select>
+            <p className="text-slate-500 mb-4">Choose what to delete. This cannot be undone.</p>
+
+            {/* Mode selector */}
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setClearMode("assessments")}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all ${clearMode === "assessments" ? "bg-red-50 border-red-300 text-red-700" : "border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
+              >
+                Assessments only
+              </button>
+              <button
+                onClick={() => setClearMode("all")}
+                className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border transition-all ${clearMode === "all" ? "bg-red-50 border-red-300 text-red-700" : "border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
+              >
+                Everything (students + schools too)
+              </button>
+            </div>
+
+            {clearMode === "assessments" && (
+              <select
+                value={clearTerm}
+                onChange={(e) => setClearTerm(e.target.value)}
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 mb-4 text-sm font-medium outline-none"
+              >
+                <option value="">All terms</option>
+                {TERMS.map((t) => <option key={t} value={t}>{t} only</option>)}
+              </select>
+            )}
+
+            {clearMode === "all" && (
+              <p className="text-xs text-red-500 bg-red-50 dark:bg-red-900/20 rounded-xl px-4 py-3 mb-4">
+                This will delete all assessments, all students, all schools, all project offices, and all divisions. The entire database will be empty.
+              </p>
+            )}
+
             <div className="flex gap-3">
               <button
                 onClick={() => setClearConfirm(false)}
