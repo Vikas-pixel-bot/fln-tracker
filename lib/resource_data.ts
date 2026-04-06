@@ -66,7 +66,7 @@ export const SIMULATIONS: Resource[] = [
     level: "1-9",
     description: "Match visual counts to number symbols. Perfect for students at the 'Beginner' level.",
     id: "NumberHunter",
-    link: "/resources/simulations/number-hunter"
+    link: "/resources/simulations"
   },
   {
     title: "Bundle Builder",
@@ -82,7 +82,7 @@ export const SIMULATIONS: Resource[] = [
     level: "Operations",
     description: "Solve two-digit addition problems by physically re-bundling sticks.",
     id: "AdditionMaster",
-    link: "/resources/simulations/addition"
+    link: "/resources/simulations"
   },
   {
     title: "Sound Explorer",
@@ -90,7 +90,7 @@ export const SIMULATIONS: Resource[] = [
     level: "Letter",
     description: "Phonics matching game. Match the sound to the correct letter.",
     id: "SoundExplorer",
-    link: "/resources/simulations/sound-explorer"
+    link: "/resources/simulations"
   },
   {
     title: "Word Builder",
@@ -98,7 +98,7 @@ export const SIMULATIONS: Resource[] = [
     level: "Word",
     description: "Drag Letters to build words. Categorized by phonetic sounds.",
     id: "WordBuilder",
-    link: "/resources/simulations/word-builder"
+    link: "/resources/simulations"
   },
   {
     title: "Sentence Architect",
@@ -106,7 +106,7 @@ export const SIMULATIONS: Resource[] = [
     level: "Para/Story",
     description: "Sequence stories and paragraphs to build reading comprehension.",
     id: "SentenceArchitect",
-    link: "/resources/simulations/sentence-architect"
+    link: "/resources/simulations"
   },
   {
     title: "Flash Math Sprint",
