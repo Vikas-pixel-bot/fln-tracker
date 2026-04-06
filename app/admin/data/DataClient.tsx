@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { updateAssessment, deleteAssessment, clearAllAssessments } from "@/app/actions";
-import { Trash2, Pencil, X, Check, AlertTriangle } from "lucide-react";
+import { Trash2, Pencil, X, Check, AlertTriangle, Filter } from "lucide-react";
 
 const LIT_LABELS = ["Beginner", "Letter", "Word", "Paragraph", "Story"];
 const NUM_LABELS = ["Beginner", "1–9", "10–99", "100–999"];
@@ -37,12 +38,22 @@ export default function DataClient({
   pages: number;
   currentPage: number;
 }) {
+  const router = useRouter();
   const [assessments, setAssessments] = useState(initialAssessments);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>(null);
   const [clearConfirm, setClearConfirm] = useState(false);
   const [clearTerm, setClearTerm] = useState("");
+  const [filterTerm, setFilterTerm] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  function applyFilter(term: string) {
+    setFilterTerm(term);
+    const params = new URLSearchParams();
+    if (term) params.set("term", term);
+    params.set("page", "1");
+    router.push(`/admin/data?${params.toString()}`);
+  }
 
   function startEdit(a: Assessment) {
     setEditingId(a.id);
@@ -92,12 +103,25 @@ export default function DataClient({
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Assessment Data</h1>
           <p className="text-slate-500 text-sm mt-1">{total} records total</p>
         </div>
-        <button
-          onClick={() => setClearConfirm(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-sm transition-all shadow-sm"
-        >
-          <Trash2 className="w-4 h-4" /> Clear Data
-        </button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2">
+            <Filter className="w-4 h-4 text-slate-400" />
+            <select
+              value={filterTerm}
+              onChange={(e) => applyFilter(e.target.value)}
+              className="bg-transparent text-sm font-medium text-slate-700 dark:text-slate-200 outline-none"
+            >
+              <option value="">All Terms</option>
+              {TERMS.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <button
+            onClick={() => setClearConfirm(true)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-sm transition-all shadow-sm"
+          >
+            <Trash2 className="w-4 h-4" /> Clear Data
+          </button>
+        </div>
       </div>
 
       {/* Clear Confirm Modal */}

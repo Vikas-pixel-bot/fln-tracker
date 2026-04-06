@@ -263,6 +263,7 @@ export async function deleteAssessment(id: string) {
   await requireAdmin();
   await prisma.assessment.delete({ where: { id } });
   revalidatePath("/admin/data");
+  revalidatePath("/");
 }
 
 export async function clearAllAssessments(term?: string) {
