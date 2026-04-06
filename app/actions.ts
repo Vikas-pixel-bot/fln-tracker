@@ -218,3 +218,56 @@ export async function setUserRole(userId: string, role: "user" | "admin") {
   await prisma.user.update({ where: { id: userId }, data: { role } });
   revalidatePath("/admin/users");
 }
+
+export async function getAssessmentsAdmin(page: number = 1, schoolId?: string, term?: string) {
+  await requireAdmin();
+  const take = 50;
+  const skip = (page - 1) * take;
+  const where: any = {};
+  if (term) where.term = term;
+  if (schoolId) where.student = { schoolId };
+
+  const [assessments, total] = await Promise.all([
+    prisma.assessment.findMany({
+      where,
+      orderBy: { date: "desc" },
+      take,
+      skip,
+      include: {
+        student: {
+          include: { school: { include: { projectOffice: { include: { division: true } } } } }
+        }
+      }
+    }),
+    prisma.assessment.count({ where })
+  ]);
+  return { assessments, total, pages: Math.ceil(total / take) };
+}
+
+export async function updateAssessment(id: string, data: {
+  assessorName: string;
+  literacyLevel: number;
+  numeracyLevel: number;
+  term: string;
+  addition: boolean;
+  subtraction: boolean;
+  multiplication: boolean;
+  division: boolean;
+}) {
+  await requireAdmin();
+  await prisma.assessment.update({ where: { id }, data });
+  revalidatePath("/admin/data");
+}
+
+export async function deleteAssessment(id: string) {
+  await requireAdmin();
+  await prisma.assessment.delete({ where: { id } });
+  revalidatePath("/admin/data");
+}
+
+export async function clearAllAssessments(term?: string) {
+  await requireAdmin();
+  await prisma.assessment.deleteMany(term ? { where: { term } } : undefined);
+  revalidatePath("/admin/data");
+  revalidatePath("/");
+}

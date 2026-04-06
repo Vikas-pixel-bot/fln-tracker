@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { UserPlus, ClipboardPlus, BarChart3, LogIn, LogOut, ShieldCheck, Users } from 'lucide-react';
+import { UserPlus, ClipboardPlus, BarChart3, LogIn, LogOut, ShieldCheck, Users, Database } from 'lucide-react';
 import { auth, signIn, signOut } from '@/auth';
 
 export default async function Navbar() {
@@ -35,6 +35,9 @@ export default async function Navbar() {
                 </Link>
                 <Link href="/admin/users" className="flex items-center gap-1.5 text-gray-400 hover:text-blue-600 px-3 py-2 rounded-xl text-sm font-medium transition-all">
                   <Users className="w-4 h-4" /> Users
+                </Link>
+                <Link href="/admin/data" className="flex items-center gap-1.5 text-gray-400 hover:text-blue-600 px-3 py-2 rounded-xl text-sm font-medium transition-all">
+                  <Database className="w-4 h-4" /> Data
                 </Link>
                 <Link href="/admin/settings" className="text-gray-400 hover:text-blue-600 px-3 py-2 rounded-xl text-sm font-medium transition-all">
                   CMS
