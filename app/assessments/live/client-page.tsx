@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { School, User, CheckCircle2, Navigation, Check, X, FileText, ChevronRight, UserPlus } from "lucide-react";
+import { useState, useTransition, useEffect } from "react";
+import { School, User, CheckCircle2, Navigation, Check, X, FileText, UserPlus, WifiOff } from "lucide-react";
 import { createAssessment, createStudent, getStudentsBySchool } from "@/app/actions";
 import { useRouter } from "next/navigation";
+import { addToQueue, saveHierarchyCache, getHierarchyCache } from "@/lib/offline-queue";
 
 const DEFAULT_ASSETS = {
   Letters: "क   म   ल   प   र",
@@ -19,9 +20,29 @@ const DEFAULT_ASSETS = {
   DivProblem: "84 ÷ 4 = ?"
 };
 
-export default function LiveTrackerClient({ hierarchy, settings }: { hierarchy: any[], settings: Record<string, string> }) {
+export default function LiveTrackerClient({ hierarchy: serverHierarchy, settings }: { hierarchy: any[], settings: Record<string, string> }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [isOnline, setIsOnline] = useState(true);
+  const [hierarchy, setHierarchy] = useState(serverHierarchy);
+
+  // Cache hierarchy for offline use, track online status
+  useEffect(() => {
+    if (serverHierarchy?.length > 0) {
+      saveHierarchyCache(serverHierarchy);
+      setHierarchy(serverHierarchy);
+    } else {
+      // Offline: load from cache
+      const cached = getHierarchyCache();
+      if (cached.length > 0) setHierarchy(cached);
+    }
+    setIsOnline(navigator.onLine);
+    const up = () => setIsOnline(true);
+    const down = () => setIsOnline(false);
+    window.addEventListener("online", up);
+    window.addEventListener("offline", down);
+    return () => { window.removeEventListener("online", up); window.removeEventListener("offline", down); };
+  }, [serverHierarchy]);
 
   const getAsset = (key: keyof typeof DEFAULT_ASSETS) => settings[key] || DEFAULT_ASSETS[key];
 
@@ -122,30 +143,40 @@ export default function LiveTrackerClient({ hierarchy, settings }: { hierarchy: 
 
   const finishTest = (divisionPass: boolean) => {
     setStep('submitting');
+
+    const assessmentData = {
+      assessorName,
+      literacyLevel: litLevel as number,
+      numeracyLevel: numLevel as number,
+      addition: ops.add,
+      subtraction: ops.sub,
+      multiplication: ops.mul,
+      division: divisionPass,
+    };
+
+    // Save offline if no network
+    if (!isOnline) {
+      const selectedSchool = hierarchy.flatMap((d: any) => d.projectOffices).flatMap((p: any) => p.schools).find((s: any) => s.id === schoolId);
+      addToQueue({
+        studentId: studentId === "NEW" ? null : studentId,
+        newStudent: studentId === "NEW" ? { name: newStudentName, classNum: parseInt(newStudentClass) || 3, gender: newStudentGender, schoolId } : undefined,
+        studentName: studentId === "NEW" ? newStudentName : students.find(s => s.id === studentId)?.name,
+        schoolName: selectedSchool?.name,
+        ...assessmentData,
+      });
+      window.dispatchEvent(new Event("fln_queue_updated"));
+      setStep('setup');
+      alert(`Saved offline! It will sync automatically when you're back online.`);
+      return;
+    }
+
     startTransition(async () => {
       let finalStudentId = studentId;
-
-      // Bootstrap Student if dynamically requested
       if (studentId === "NEW") {
-         const newS = await createStudent({
-            name: newStudentName,
-            classNum: parseInt(newStudentClass) || 3,
-            gender: newStudentGender,
-            schoolId: schoolId
-         });
-         finalStudentId = newS.id;
+        const newS = await createStudent({ name: newStudentName, classNum: parseInt(newStudentClass) || 3, gender: newStudentGender, schoolId });
+        finalStudentId = newS.id;
       }
-
-      await createAssessment({
-        studentId: finalStudentId,
-        assessorName,
-        literacyLevel: litLevel as number,
-        numeracyLevel: numLevel as number,
-        addition: ops.add,
-        subtraction: ops.sub,
-        multiplication: ops.mul,
-        division: divisionPass
-      });
+      await createAssessment({ studentId: finalStudentId, ...assessmentData });
       router.push(`/students/${finalStudentId}`);
     });
   };
@@ -164,6 +195,12 @@ export default function LiveTrackerClient({ hierarchy, settings }: { hierarchy: 
         
         {step === 'setup' && (
           <div className="p-8 space-y-8 animate-in fade-in zoom-in duration-300">
+            {!isOnline && (
+              <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-amber-700 dark:text-amber-300 px-4 py-3 rounded-2xl text-sm font-semibold">
+                <WifiOff className="w-4 h-4 flex-shrink-0" />
+                You are offline. Assessments will be saved locally and synced when back online.
+              </div>
+            )}
             <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 text-center">Assessor Testing Terminal</h2>
             
             <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100 dark:border-slate-800">
