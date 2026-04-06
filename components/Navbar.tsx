@@ -60,7 +60,7 @@ export default async function Navbar() {
                     alt={session.user.name ?? 'User'}
                     width={32}
                     height={32}
-                    className="rounded-full ring-2 ring-blue-100"
+                    className="rounded-full ring-2 ring-blue-100 object-cover w-8 h-8"
                   />
                 ) : (
                   <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
