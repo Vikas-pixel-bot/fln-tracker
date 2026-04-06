@@ -267,7 +267,7 @@ async function requireAdmin() {
   if (session?.user?.role !== "admin") throw new Error("Unauthorized");
 }
 
-export async function getUsers() {
+export async function getUsers(): Promise<any[]> {
   await requireAdmin();
   const users = await (prisma as any).user.findMany({
     orderBy: { createdAt: "desc" },

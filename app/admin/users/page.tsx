@@ -21,7 +21,7 @@ export default async function AdminUsersPage() {
         </div>
 
         <div className="divide-y divide-slate-100 dark:divide-slate-800">
-          {users.map((user) => (
+          {(users as any[]).map((user: any) => (
             <div key={user.id} className="grid grid-cols-4 items-center px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
               <div className="flex items-center gap-3 min-w-0">
                 {user.image ? (
