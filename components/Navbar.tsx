@@ -75,7 +75,7 @@ export default async function Navbar() {
                 </form>
               </div>
             ) : (
-              <form action={async () => { 'use server'; await signIn('github'); }}>
+              <form action={async () => { 'use server'; await signIn('google'); }}>
                 <button type="submit" className="flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 px-3 py-2 rounded-xl hover:bg-blue-50 transition-all">
                   <LogIn className="w-4 h-4" /> Sign In
                 </button>
