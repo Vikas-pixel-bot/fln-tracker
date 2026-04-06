@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateAssessment, deleteAssessment, clearAllAssessments, clearAllData } from "@/app/actions";
-import { Trash2, Pencil, X, Check, AlertTriangle, Filter } from "lucide-react";
+import { updateAssessment, deleteAssessment, clearAllAssessments, clearAllData, cleanupSchools } from "@/app/actions";
+import { Trash2, Pencil, X, Check, AlertTriangle, Filter, ShieldCheck } from "lucide-react";
 
 const LIT_LABELS = ["Beginner", "Letter", "Word", "Paragraph", "Story"];
 const NUM_LABELS = ["Beginner", "1–9", "10–99", "100–999"];
@@ -100,6 +100,15 @@ export default function DataClient({
     });
   }
 
+  function handleSanitize() {
+    if (!confirm("This will delete all schools, students, and assessments NOT matching the official 497 master list. Proceed?")) return;
+    startTransition(async () => {
+      const result = await cleanupSchools();
+      alert(`Sanitization complete! Deleted ${result.count} invalid schools and their related data.`);
+      router.refresh();
+    });
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -121,8 +130,15 @@ export default function DataClient({
             </select>
           </div>
           <button
+            onClick={handleSanitize}
+            disabled={isPending}
+            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-bold rounded-xl text-sm transition-all shadow-sm"
+          >
+            <ShieldCheck className="w-4 h-4" /> Sanitize Schools
+          </button>
+          <button
             onClick={() => setClearConfirm(true)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-sm transition-all shadow-sm"
+            className="flex items-center gap-2 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-sm transition-all shadow-sm"
           >
             <Trash2 className="w-4 h-4" /> Clear Data
           </button>

@@ -48,109 +48,81 @@ export async function POST(req: Request) {
     const rows: any[] = xlsx.utils.sheet_to_json(sheet, { defval: '' });
     if (!rows || rows.length === 0) return NextResponse.json({ error: "File contains no data." }, { status: 400 });
 
-    // --- PHASE 1: PRE-ANALYZE EXCEL (EXTRACT KEYS) ---
-    const divNames = new Set<string>();
-    const poNames = new Set<string>();
-    const schoolNames = new Set<string>();
+    // --- PHASE 1: FETCH MASTER LIST FOR LOOKUP ---
+    const allDivisions = await prisma.division.findMany();
+    const allPOs = await prisma.projectOffice.findMany();
+    const allSchools = await prisma.school.findMany({
+      include: { projectOffice: { include: { division: true } } }
+    });
 
-    for (const row of rows) {
-      divNames.add((row['Please select Division'] || 'Unknown Division').trim());
-      poNames.add((row['Please select project office'] || 'Unknown PO').trim());
-      schoolNames.add((row['School Name'] || row['Marathi (मराठी)'] || 'Unknown School').trim());
-    }
+    // Lookup Maps
+    const divMap = new Map(allDivisions.map(d => [d.name.trim(), d.id]));
+    const poMap = new Map(allPOs.map(p => [`${p.divisionId}-${p.name.trim()}`, p.id]));
+    const schoolMap = new Map();
+    allSchools.forEach(s => {
+      const key = `${s.projectOffice.division.name.trim()}-${s.projectOffice.name.trim()}-${s.name.trim()}`;
+      schoolMap.set(key, s.id);
+    });
 
-    // --- PHASE 2: SELECTIVE FETCH ---
-    const allDivisions = await prisma.division.findMany({ where: { name: { in: Array.from(divNames) } } });
-    const divMap = new Map(allDivisions.map(d => [d.name, d.id]));
-
-    // Build PO Search Keys
-    const allPOs = await prisma.projectOffice.findMany({ where: { name: { in: Array.from(poNames) } } });
-    const poMap = new Map(allPOs.map(p => [`${p.divisionId}-${p.name}`, p.id]));
-
-    // Build School Search Keys (using UDISE codes constructed from names in memory)
-    const schoolHierarchyKeys = new Set<string>();
-    for (const row of rows) {
-      const dName = (row['Please select Division'] || 'Unknown Division').trim();
-      const pName = (row['Please select project office'] || 'Unknown PO').trim();
-      const sName = (row['School Name'] || row['Marathi (मराठी)'] || 'Unknown School').trim();
-      const dId = divMap.get(dName);
-      if (dId) {
-        const pId = poMap.get(`${dId}-${pName}`);
-        if (pId) schoolHierarchyKeys.add(`UDISE-${sName}-${pId}`.substring(0, 50));
-      }
-    }
-
-    const allSchools = await prisma.school.findMany({ where: { udiseCode: { in: Array.from(schoolHierarchyKeys) } } });
-    const schoolMap = new Map(allSchools.map(s => [s.udiseCode, s.id]));
-
-    // --- PHASE 3: RESOLVE / ENSURE ORGANIZATIONAL HIERARCHY ---
-    for (const row of rows) {
-      const divName = (row['Please select Division'] || 'Unknown Division').trim();
-      const poName = (row['Please select project office'] || 'Unknown PO').trim();
-      const schoolName = (row['School Name'] || row['Marathi (मराठी)'] || 'Unknown School').trim();
-
-      if (!divMap.has(divName)) {
-        const d = await prisma.division.create({ data: { name: divName } });
-        divMap.set(divName, d.id);
-      }
-      const dId = divMap.get(divName)!;
-      const poKey = `${dId}-${poName}`;
-
-      if (!poMap.has(poKey)) {
-        const p = await prisma.projectOffice.create({ data: { name: poName, divisionId: dId } });
-        poMap.set(poKey, p.id);
-      }
-      const pId = poMap.get(poKey)!;
-      const fakeUdise = `UDISE-${schoolName}-${pId}`.substring(0, 50);
-
-      if (!schoolMap.has(fakeUdise)) {
-        const s = await prisma.school.create({ data: { name: schoolName, udiseCode: fakeUdise, projectOfficeId: pId } });
-        schoolMap.set(fakeUdise, s.id);
-      }
-    }
-
-    // --- PHASE 4: BATCH STUDENT PREP & INGEST ---
+    const failedRows: any[] = [];
     const studentsToCreate: any[] = [];
+    const assessmentsToCreate: any[] = [];
     const seenStudents = new Set<string>();
-    const activeSchoolIds = Array.from(schoolMap.values());
 
-    for (const row of rows) {
-      const sName = (row['School Name'] || row['Marathi (मराठी)'] || 'Unknown School').trim();
-      const pName = (row['Please select project office'] || 'Unknown PO').trim();
-      const dId = divMap.get((row['Please select Division'] || 'Unknown Division').trim())!;
-      const pId = poMap.get(`${dId}-${pName}`)!;
-      const sId = schoolMap.get(`UDISE-${sName}-${pId}`.substring(0, 50))!;
+    // --- PHASE 2: VALIDATE & PREP DATA ---
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const dName = (row['Please select Division'] || '').trim();
+      const pName = (row['Please select project office'] || '').trim();
+      const sName = (row['School Name'] || row['Marathi (मराठी)'] || '').trim();
+      const stdName = (row['Write Student Name (विद्यार्थ्याचे नाव लिहा)'] || '').trim();
 
-      const stdName = (row['Write Student Name (विद्यार्थ्याचे नाव लिहा)'] || 'Unknown Student').trim();
-      if (!stdName || stdName === 'Unknown Student') continue;
+      if (!dName || !pName || !sName || !stdName) {
+        failedRows.push({ row: i + 2, error: "Missing required fields (Division/PO/School/Student)" });
+        continue;
+      }
+
+      // Check hierarchy match
+      const sId = schoolMap.get(`${dName}-${pName}-${sName}`);
+      if (!sId) {
+        failedRows.push({ row: i + 2, school: sName, error: "School not in Master List (Check for typos or PO/Division mismatch)" });
+        continue;
+      }
+
       const gender = (row['Please select student gender (कृपया विद्यार्थी लिंग निवडा)'] || 'Unknown').trim();
       const classStr = String(row['Please select assessment class (कृपया मूल्यांकन वर्ग निवडा)']);
       const classNum = classStr.match(/\d+/) ? parseInt(classStr.match(/\d+/)![0], 10) : 1;
 
-      const uniqueKey = `${sId}-${stdName}`;
-      if (!seenStudents.has(uniqueKey)) {
+      // Ensure student exists (unique by school + name in our simple model)
+      const studentKey = `${sId}-${stdName}`;
+      // Note: We'll create students first in the next phase
+      if (!seenStudents.has(studentKey)) {
         studentsToCreate.push({ name: stdName, class: classNum, gender, schoolId: sId });
-        seenStudents.add(uniqueKey);
+        seenStudents.add(studentKey);
       }
     }
 
-    // Chunked student creation to keep DB calls lightning fast
+    // --- PHASE 3: BATCH STUDENT INGEST ---
+    // Using skipDuplicates: true to handle overlapping students
     for (let i = 0; i < studentsToCreate.length; i += 500) {
       await (prisma.student as any).createMany({ data: studentsToCreate.slice(i, i + 500), skipDuplicates: true });
     }
 
-    // --- PHASE 5: BATCH ASSESSMENT PREP & INGEST ---
-    const scopedStudents = await prisma.student.findMany({ where: { schoolId: { in: activeSchoolIds } } });
-    const studentIdMap = new Map(scopedStudents.map(st => [`${st.schoolId}-${st.name}`, st.id]));
-    const assessmentsToCreate: any[] = [];
+    // --- PHASE 4: PREP ASSESSMENTS (Need Student IDs) ---
+    const allStudentsInScope = await prisma.student.findMany({ 
+      where: { schoolId: { in: Array.from(new Set(studentsToCreate.map(s => s.schoolId))) } } 
+    });
+    const studentIdMap = new Map(allStudentsInScope.map(st => [`${st.schoolId}-${st.name}`, st.id]));
 
     for (const row of rows) {
-      const sName = (row['School Name'] || row['Marathi (मराठी)'] || 'Unknown School').trim();
-      const pName = (row['Please select project office'] || 'Unknown PO').trim();
-      const dId = divMap.get((row['Please select Division'] || 'Unknown Division').trim())!;
-      const pId = poMap.get(`${dId}-${pName}`)!;
-      const sId = schoolMap.get(`UDISE-${sName}-${pId}`.substring(0, 50))!;
-      const stdName = (row['Write Student Name (विद्यार्थ्याचे नाव लिहा)'] || 'Unknown Student').trim();
+      const dName = (row['Please select Division'] || '').trim();
+      const pName = (row['Please select project office'] || '').trim();
+      const sName = (row['School Name'] || row['Marathi (मराठी)'] || '').trim();
+      const stdName = (row['Write Student Name (विद्यार्थ्याचे नाव लिहा)'] || '').trim();
+      
+      const sId = schoolMap.get(`${dName}-${pName}-${sName}`);
+      if (!sId) continue; // Already logged in failedRows
+      
       const sid = studentIdMap.get(`${sId}-${stdName}`);
       if (!sid) continue;
 
@@ -174,12 +146,16 @@ export async function POST(req: Request) {
       });
     }
 
-    // Chunked assessment creation
+    // Phase 5: Chunked assessment creation
     for (let i = 0; i < assessmentsToCreate.length; i += 500) {
       await (prisma.assessment as any).createMany({ data: assessmentsToCreate.slice(i, i + 500) });
     }
 
-    return NextResponse.json({ success: true, count: rows.length });
+    return NextResponse.json({ 
+      success: true, 
+      count: assessmentsToCreate.length,
+      failedRows: failedRows.length > 0 ? failedRows : undefined 
+    });
   } catch (error: any) {
     console.error(error);
     return NextResponse.json({ error: error.message }, { status: 500 });

@@ -269,7 +269,7 @@ async function requireAdmin() {
 
 export async function getUsers() {
   await requireAdmin();
-  const users = await prisma.user.findMany({
+  const users = await (prisma as any).user.findMany({
     orderBy: { createdAt: "desc" },
     include: {
       _count: { select: { sessions: true } },
@@ -280,7 +280,7 @@ export async function getUsers() {
 
 export async function setUserRole(userId: string, role: "user" | "admin") {
   await requireAdmin();
-  await prisma.user.update({ where: { id: userId }, data: { role } });
+  await (prisma as any).user.update({ where: { id: userId }, data: { role } });
   revalidatePath("/admin/users");
 }
 
@@ -399,4 +399,34 @@ export async function seedHierarchy() {
   revalidatePath("/");
   revalidatePath("/admin/upload");
   return { divCount, poCount, schoolCount };
+}
+
+export async function cleanupSchools() {
+  await requireAdmin();
+
+  const { HIERARCHY_DATA } = await import("@/prisma/hierarchy-data");
+
+  // 1. Extract valid UDISE codes from Master List
+  const validUdiseCodes = new Set<string>();
+  Object.values(HIERARCHY_DATA).forEach((pos: any) => {
+    Object.values(pos).forEach((schools: any) => {
+      schools.forEach((s: any) => validUdiseCodes.add(s.udise));
+    });
+  });
+
+  // 2. Find schools to delete
+  const allSchools = await prisma.school.findMany({ select: { id: true, udiseCode: true } });
+  const invalidSchoolIds = allSchools
+    .filter(s => !validUdiseCodes.has(s.udiseCode))
+    .map(s => s.id);
+
+  if (invalidSchoolIds.length === 0) return { count: 0 };
+
+  // 3. Batch delete
+  await prisma.assessment.deleteMany({ where: { student: { schoolId: { in: invalidSchoolIds } } } });
+  await prisma.student.deleteMany({ where: { schoolId: { in: invalidSchoolIds } } });
+  const result = await prisma.school.deleteMany({ where: { id: { in: invalidSchoolIds } } });
+
+  revalidatePath("/");
+  return { count: result.count };
 }
