@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { UserPlus, ClipboardPlus, BarChart3, LogIn, LogOut, ShieldCheck, Users, Database, GraduationCap } from 'lucide-react';
+import { ClipboardPlus, BarChart3, LogIn, LogOut, ShieldCheck, Users, Database, GraduationCap } from 'lucide-react';
 import { auth, signIn, signOut } from '@/auth';
 
 export default async function Navbar() {
@@ -48,11 +48,7 @@ export default async function Navbar() {
               </>
             )}
 
-            <Link href="/students/new" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 px-3 py-2 rounded-xl text-sm font-medium flex items-center gap-2 transition-all hover:bg-blue-50 dark:hover:bg-slate-800">
-              <UserPlus className="w-4 h-4" /> <span className="hidden sm:inline">Add Student</span>
-            </Link>
-
-            <Link href="/assessments/live" className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 px-4 sm:px-5 py-2 rounded-full text-sm font-semibold shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95">
+<Link href="/assessments/live" className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 px-4 sm:px-5 py-2 rounded-full text-sm font-semibold shadow-lg shadow-blue-500/30 flex items-center gap-2 transition-all transform hover:scale-105 active:scale-95">
               <ClipboardPlus className="w-4 h-4" /> <span className="hidden sm:inline">Record Score</span>
             </Link>
 
