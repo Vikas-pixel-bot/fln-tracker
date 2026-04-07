@@ -1,6 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Zap, Play, Trophy, Clock, CheckCircle2, ChevronRight, Swords, Sparkles, BookOpen, Calendar, Book, Calculator, Layout, Users } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { ArrowLeft, Zap, Play, Trophy, Clock, CheckCircle2, ChevronRight, Swords, Sparkles, BookOpen, Calendar, Book, Calculator, Layout, Users, Maximize2, Minimize2 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
 import { getMatchCandidates, getClassStats } from '@/app/actions';
@@ -15,6 +15,77 @@ import {
   SessionActivity
 } from '@/lib/session_content';
 
+// Simulations
+import BundleBuilder from "@/components/simulations/BundleBuilder";
+import NumberHunter from "@/components/simulations/NumberHunter";
+import AdditionMaster from "@/components/simulations/AdditionMaster";
+import SoundExplorer from "@/components/simulations/SoundExplorer";
+import WordBuilder from "@/components/simulations/WordBuilder";
+import SentenceArchitect from "@/components/simulations/SentenceArchitect";
+import MathSprint from "@/components/simulations/MathSprint";
+import SoundDuel from "@/components/simulations/SoundDuel";
+import LetterFlash from "@/components/simulations/LetterFlash";
+import WordRace from "@/components/simulations/WordRace";
+import SentenceFill from "@/components/simulations/SentenceFill";
+import MathDuel from "@/components/simulations/MathDuel";
+import NumberRace from "@/components/simulations/NumberRace";
+import PlaceValueBattle from "@/components/simulations/PlaceValueBattle";
+
+// Games
+import CountingStones from "@/components/games/CountingStones";
+import BiggerSmaller from "@/components/games/BiggerSmaller";
+import LetterPicker from "@/components/games/LetterPicker";
+import OddOneOut from "@/components/games/OddOneOut";
+import FishGame from "@/components/games/FishGame";
+import MissingLetter from "@/components/games/MissingLetter";
+import RhymeTime from "@/components/games/RhymeTime";
+import TrueFalse from "@/components/games/TrueFalse";
+import SentenceBuilder from "@/components/games/SentenceBuilder";
+import StorySequence from "@/components/games/StorySequence";
+import NumberTrain from "@/components/games/NumberTrain";
+import WeightMatcher from "@/components/games/WeightMatcher";
+import PlaceValue from "@/components/games/PlaceValue";
+import NumberBonds from "@/components/games/NumberBonds";
+import MarketMath from "@/components/games/MarketMath";
+import NumberRiver from "@/components/games/NumberRiver";
+import ClockReader from "@/components/games/ClockReader";
+import SortingHat from "@/components/games/SortingHat";
+
+const SIM_COMPONENTS: Record<string, any> = {
+  "bundle-builder": BundleBuilder,
+  "number-hunter": NumberHunter,
+  "addition-master": AdditionMaster,
+  "sound-explorer": SoundExplorer,
+  "word-builder": WordBuilder,
+  "sentence-arch": SentenceArchitect,
+  "math-sprint": MathSprint,
+  "sound-duel": SoundDuel,
+  "marathi-letters": LetterFlash,
+  "marathi-words": WordRace,
+  "marathi-sent": SentenceFill,
+  "math-duel-b": MathDuel,
+  "num-race-b": NumberRace,
+  "pv-battle-b": PlaceValueBattle,
+  "g-oddone": OddOneOut,
+  "g-letters": LetterPicker,
+  "g-missing": MissingLetter,
+  "g-fish": FishGame,
+  "g-rhyme": RhymeTime,
+  "g-sentence": SentenceBuilder,
+  "g-story": StorySequence,
+  "g-true": TrueFalse,
+  "g-bigger": BiggerSmaller,
+  "g-counting": CountingStones,
+  "g-train": NumberTrain,
+  "g-weights": WeightMatcher,
+  "g-place": PlaceValue,
+  "g-bonds": NumberBonds,
+  "g-market": MarketMath,
+  "g-river": NumberRiver,
+  "g-clock": ClockReader,
+  "g-sorting": SortingHat
+};
+
 export default function MissionControl() {
   const [step, setStep] = useState<'setup' | 'session' | 'summary'>('setup');
   const [classNum, setClassNum] = useState<number | null>(null);
@@ -22,6 +93,7 @@ export default function MissionControl() {
   const [dayNum, setDayNum] = useState<1 | 2>(1);
   const [classStats, setClassStats] = useState<any>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(false);
   
   // Session State
   const [sessionStructure, setSessionStructure] = useState<SessionStructure | null>(null);
@@ -29,6 +101,7 @@ export default function MissionControl() {
   const [timeLeft, setTimeLeft] = useState(0); 
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [showMatchmaker, setShowMatchmaker] = useState(false);
+  const [battleContext, setBattleContext] = useState<any>(null);
 
   useEffect(() => {
     if (classNum) {
@@ -70,6 +143,7 @@ export default function MissionControl() {
         return;
       }
       setTimeLeft(activity.duration * 60);
+      setBattleContext(null); // Clear previous battle context
     }
   }, [currentActivityIndex, sessionStructure, dayNum]);
 
@@ -79,7 +153,6 @@ export default function MissionControl() {
     if (isTimerRunning && timeLeft > 0) {
       interval = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
     } else if (timeLeft === 0 && isTimerRunning) {
-      // Auto-advance or alert could go here
       setIsTimerRunning(false);
     }
     return () => clearInterval(interval);
@@ -96,20 +169,32 @@ export default function MissionControl() {
     ? ((currentActivityIndex) / sessionStructure.activities.length) * 100 
     : 0;
 
+  const ActiveSimulation = useMemo(() => {
+    if (!currentActivity?.simulationId) return null;
+    return SIM_COMPONENTS[currentActivity.simulationId] || null;
+  }, [currentActivity]);
+
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-500 min-h-[90vh] flex flex-col">
+    <div className={cn(
+      "max-w-6xl mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-500 flex flex-col transition-all",
+      isFocusMode ? "max-w-full h-screen py-4 space-y-4" : "min-h-[90vh]"
+    )}>
       
       {/* HUD: Global Mission Progress */}
-      <div className="bg-slate-900 rounded-[40px] p-8 border border-slate-800 shadow-2xl relative overflow-hidden group">
+      <div className={cn(
+        "bg-slate-900 rounded-[40px] p-8 border border-slate-800 shadow-2xl relative overflow-hidden group transition-all",
+        isFocusMode ? "p-4 py-4 rounded-3xl" : ""
+      )}>
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-indigo-600/5 opacity-50" />
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
           
           <div className="flex items-center gap-6">
             <div className={cn(
-              "w-20 h-20 rounded-[32px] flex items-center justify-center shadow-2xl transition-all duration-500",
-              isTimerRunning ? "bg-orange-500 animate-pulse shadow-orange-500/20" : "bg-slate-800"
+              "rounded-[32px] flex items-center justify-center shadow-2xl transition-all duration-500",
+              isTimerRunning ? "bg-orange-500 animate-pulse shadow-orange-500/20" : "bg-slate-800",
+              isFocusMode ? "w-12 h-12 rounded-xl" : "w-20 h-20"
             )}>
-              <Clock className="w-10 h-10 text-white" />
+              <Clock className={cn("text-white", isFocusMode ? "w-6 h-6" : "w-10 h-10")} />
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -118,29 +203,40 @@ export default function MissionControl() {
                 </span>
                 {isTimerRunning && <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-ping" />}
               </div>
-              <h1 className="text-4xl font-black text-white tracking-tighter">
+              <h1 className={cn("font-black text-white tracking-tighter", isFocusMode ? "text-xl" : "text-4xl")}>
                 {step === 'setup' ? "Ready for Action?" : currentActivity?.name}
               </h1>
             </div>
           </div>
 
           {step !== 'setup' && (
-            <div className="flex items-center gap-8 bg-black/20 p-6 rounded-[32px] border border-white/5">
+            <div className={cn("flex items-center gap-8 bg-black/20 rounded-[32px] border border-white/5", isFocusMode ? "p-3 px-6 rounded-2xl gap-4" : "p-6")}>
                <div className="text-center">
                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Phase Time</p>
-                  <p className="text-4xl font-black text-white font-mono">{formatTime(timeLeft)}</p>
+                  <p className={cn("font-black text-white font-mono", isFocusMode ? "text-2xl" : "text-4xl")}>{formatTime(timeLeft)}</p>
                </div>
-               <div className="h-12 w-px bg-white/10" />
+               <div className="h-8 w-px bg-white/10" />
                <div className="text-center">
                   <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Activity</p>
-                  <p className="text-4xl font-black text-emerald-500">{currentActivityIndex + 1}/{sessionStructure?.activities.length}</p>
+                  <p className={cn("font-black text-emerald-500", isFocusMode ? "text-2xl" : "text-4xl")}>{currentActivityIndex + 1}/{sessionStructure?.activities.length}</p>
                </div>
+               {step === 'session' && (
+                 <>
+                   <div className="h-8 w-px bg-white/10" />
+                   <button 
+                     onClick={() => setIsFocusMode(!isFocusMode)}
+                     className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-400 hover:text-white"
+                   >
+                     {isFocusMode ? <Minimize2 className="w-6 h-6" /> : <Maximize2 className="w-6 h-6" />}
+                   </button>
+                 </>
+               )}
             </div>
           )}
         </div>
 
         {/* Global Progress Bar */}
-        {step !== 'setup' && (
+        {step !== 'setup' && !isFocusMode && (
           <div className="mt-8 h-3 bg-slate-800 rounded-full overflow-hidden">
             <div 
               className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 transition-all duration-1000"
@@ -151,7 +247,7 @@ export default function MissionControl() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         
         {step === 'setup' && (
           <div className="flex-1 flex flex-col items-center justify-center space-y-12 py-12">
@@ -267,55 +363,74 @@ export default function MissionControl() {
         )}
 
         {step === 'session' && currentActivity && (
-          <div className="flex-1 flex flex-col space-y-8 animate-in slide-in-from-bottom-8 duration-700">
-             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-4">
-                     <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-lg text-xs font-black uppercase tracking-widest border border-emerald-500/20">
-                        {currentActivity.type || "Activity"}
-                     </span>
-                     {currentActivity.daySpecific && (
-                        <span className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-lg text-xs font-black uppercase tracking-widest border border-blue-500/20">
-                           Day {currentActivity.daySpecific} Feature
-                        </span>
-                     )}
+          <div className={cn("flex-1 flex flex-col min-h-0 animate-in slide-in-from-bottom-8 duration-700", isFocusMode ? "space-y-4" : "space-y-8")}>
+             {!isFocusMode && (
+               <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center gap-4">
+                       <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-lg text-xs font-black uppercase tracking-widest border border-emerald-500/20">
+                          {currentActivity.type || "Activity"}
+                       </span>
+                       {currentActivity.daySpecific && (
+                          <span className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-lg text-xs font-black uppercase tracking-widest border border-blue-500/20">
+                             Day {currentActivity.daySpecific} Feature
+                          </span>
+                       )}
+                    </div>
+                    <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">
+                       {currentActivity.name}
+                    </h3>
+                    <p className="text-slate-500 text-lg font-medium max-w-3xl">
+                       {currentActivity.description}
+                    </p>
                   </div>
-                  <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">
-                     {currentActivity.name}
-                  </h3>
-                  <p className="text-slate-500 text-lg font-medium max-w-3xl">
-                     {currentActivity.description}
-                  </p>
-                </div>
-                
-                <div className="flex gap-4">
-                  <button 
-                    onClick={() => setIsTimerRunning(!isTimerRunning)}
-                    className={cn(
-                      "w-16 h-16 rounded-[24px] flex items-center justify-center transition-all shadow-lg",
-                      isTimerRunning ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white" : "bg-orange-500 text-white"
-                    )}
-                  >
-                    {isTimerRunning ? <Clock className="w-6 h-6" /> : <Play className="w-6 h-6 fill-current" />}
-                  </button>
-                </div>
-             </div>
+                  
+                  <div className="flex gap-4">
+                    <button 
+                      onClick={() => setIsTimerRunning(!isTimerRunning)}
+                      className={cn(
+                        "w-16 h-16 rounded-[24px] flex items-center justify-center transition-all shadow-lg",
+                        isTimerRunning ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white" : "bg-orange-500 text-white"
+                      )}
+                    >
+                      {isTimerRunning ? <Clock className="w-6 h-6" /> : <Play className="w-6 h-6 fill-current" />}
+                    </button>
+                  </div>
+               </div>
+             )}
 
-             <div className="flex-1 bg-slate-50 dark:bg-slate-900/40 rounded-[64px] border border-slate-100 dark:border-slate-800 p-12 relative overflow-hidden flex flex-col">
-                <div className="flex-1 relative z-10 flex flex-col items-center justify-center text-center space-y-12">
-                   {/* PPT Content Placeholder */}
-                   <div className="w-full max-w-4xl p-12 bg-white dark:bg-slate-900 rounded-[48px] shadow-2xl border border-slate-100 dark:border-slate-800 min-h-[400px] flex flex-col items-center justify-center space-y-8 relative group">
-                      <div className="absolute top-6 left-6">
-                         <Sparkles className="w-8 h-8 text-yellow-500" />
-                      </div>
+             <div className={cn(
+               "flex-1 bg-slate-50 dark:bg-slate-900/40 rounded-[64px] border border-slate-100 dark:border-slate-800 relative overflow-hidden flex flex-col min-h-0",
+               isFocusMode ? "rounded-3xl p-4" : "p-12"
+             )}>
+                <div className="flex-1 relative z-10 flex flex-col items-center justify-center min-h-0">
+                   
+                   {/* Main Content Area: Simulation or Activity */}
+                   <div className={cn(
+                     "w-full max-w-5xl bg-white dark:bg-slate-900 rounded-[48px] shadow-2xl border border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center relative group min-h-0 overflow-auto",
+                     isFocusMode ? "rounded-2xl p-4 h-full" : "p-12 min-h-[500px]"
+                   )}>
                       
-                      {/* Integrated Tools for specific activities */}
-                      {currentActivity.name === "Role Play" || currentActivity.name === "The Battle Arena" || currentActivity.name === "Play" ? (
-                         <div className="space-y-6">
+                      {ActiveSimulation ? (
+                        <div className="w-full h-full">
+                           <ActiveSimulation 
+                              player1={battleContext?.p1} 
+                              player2={battleContext?.p2}
+                              schoolId={battleContext?.schoolId || "mock-school-id"}
+                              classNum={classNum || 1}
+                              isAdmin={true}
+                              onComplete={() => {
+                                // Potentially auto-advance or just mark done
+                              }}
+                           />
+                        </div>
+                      ) : (currentActivity.name === "Role Play" || currentActivity.name === "The Battle Arena" || currentActivity.name === "Play") ? (
+                         <div className="space-y-6 text-center py-20">
                             <div className="w-24 h-24 bg-orange-100 rounded-3xl flex items-center justify-center text-orange-600 mx-auto">
                                <Swords className="w-12 h-12" />
                             </div>
-                            <h4 className="text-2xl font-black">Launch Competition</h4>
+                            <h4 className="text-2xl font-black">Launch Battle Arena</h4>
+                            <p className="text-slate-500 max-w-sm mx-auto">Select two students at the correct level to compete in a head-to-head TaRL challenge.</p>
                             <button 
                               onClick={() => setShowMatchmaker(true)}
                               className="px-8 py-4 bg-orange-500 text-white font-black rounded-2xl shadow-lg hover:scale-105 transition-all"
@@ -324,29 +439,31 @@ export default function MissionControl() {
                             </button>
                          </div>
                       ) : (
-                         <>
+                         <div className="text-center space-y-8">
                             <div className="w-32 h-32 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto opacity-20">
                                {subject === 'maths' ? <Calculator className="w-16 h-16" /> : <BookOpen className="w-16 h-16" />}
                             </div>
                             <div className="space-y-4">
-                               <h4 className="text-3xl font-black text-slate-900 dark:text-white italic">"Pedagogical Material Display"</h4>
-                               <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Waiting for specific Story/Image uploads for LEVEL {classStats?.majorityLevel ?? 'X'}</p>
+                               <h4 className="text-3xl font-black text-slate-900 dark:text-white italic">"Ready for Activity"</h4>
+                               <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Please use the Manual-Based Methodology for {currentActivity.name}</p>
                             </div>
-                         </>
+                         </div>
                       )}
                    </div>
 
                    {/* Quick Tips */}
-                   <div className="flex gap-4">
-                      {['Think', 'Talk', 'Act'].map(t => (
-                        <span key={t} className="px-6 py-3 bg-white dark:bg-slate-800 rounded-2xl text-sm font-black text-slate-500 border border-slate-100 dark:border-slate-700 shadow-sm">
-                           {t}
-                        </span>
-                      ))}
-                   </div>
+                   {!isFocusMode && (
+                     <div className="mt-8 flex gap-4">
+                        {['Think', 'Talk', 'Act'].map(t => (
+                          <span key={t} className="px-6 py-3 bg-white dark:bg-slate-800 rounded-2xl text-sm font-black text-slate-500 border border-slate-100 dark:border-slate-700 shadow-sm">
+                             {t}
+                          </span>
+                        ))}
+                     </div>
+                   )}
                 </div>
                 
-                <div className="mt-12 flex justify-between items-center relative z-10">
+                <div className={cn("flex justify-between items-center relative z-10", isFocusMode ? "mt-4 pt-2 border-t border-white/5" : "mt-12")}>
                   <div className="flex gap-2">
                     {sessionStructure?.activities.map((_, i) => (
                       <div 
@@ -360,7 +477,7 @@ export default function MissionControl() {
                   </div>
 
                   <div className="flex gap-4">
-                    {currentActivityIndex > 0 && (
+                    {currentActivityIndex > 0 && !isFocusMode && (
                        <button 
                          onClick={() => setCurrentActivityIndex(prev => prev - 1)}
                          className="px-8 py-5 bg-white dark:bg-slate-800 text-slate-500 font-black rounded-3xl shadow-lg hover:scale-105 transition-all border border-slate-100 dark:border-slate-700"
@@ -376,7 +493,10 @@ export default function MissionControl() {
                           setStep('summary');
                         }
                       }}
-                      className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl shadow-xl hover:scale-105 transition-all flex items-center gap-3"
+                      className={cn(
+                        "bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl shadow-xl hover:scale-105 transition-all flex items-center gap-3",
+                        isFocusMode ? "px-6 py-3 rounded-xl text-sm" : "px-10 py-5"
+                      )}
                     >
                       {currentActivityIndex < (sessionStructure?.activities.length ?? 0) - 1 ? "NEXT ACTIVITY" : "FINISH SESSION"} <ChevronRight className="w-6 h-6" />
                     </button>
@@ -390,7 +510,10 @@ export default function MissionControl() {
                   level={classStats?.majorityLevel ?? 1} 
                   gameTitle={currentActivity.name} 
                   isAdmin={true} 
-                  onMatchComplete={() => setShowMatchmaker(false)} 
+                  onMatchComplete={(p1, p2, schoolId, cNum) => {
+                    setBattleContext({ p1, p2, schoolId, classNum: cNum });
+                    setShowMatchmaker(false);
+                  }} 
                 />
              </div>
           </div>
@@ -419,7 +542,7 @@ export default function MissionControl() {
                  BACK TO DASHBOARD
                </Link>
                <button 
-                 onClick={() => { setStep('setup'); setClassNum(null); setSubject(null); }}
+                 onClick={() => { setStep('setup'); setClassNum(null); setSubject(null); setIsFocusMode(false); }}
                  className="px-12 py-6 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-black rounded-[32px] shadow-xl hover:scale-105 active:scale-95 transition-all text-xl border border-slate-100 dark:border-slate-700"
                >
                  NEW SESSION
