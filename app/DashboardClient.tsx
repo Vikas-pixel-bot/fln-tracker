@@ -351,7 +351,7 @@ function BarCard({ title, icon, data, percentage }: { title: string; icon: strin
                 tickFormatter={percentage ? (v: number) => `${v}%` : undefined}
                 domain={percentage ? [0, 100] : undefined} />
               <Tooltip cursor={{ fill: '#f8fafc' }}
-                formatter={percentage ? (value: number) => [`${value}%`] : undefined}
+                formatter={percentage ? (value: any) => [`${value}%`] : undefined}
                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '12px' }} />
               {TERMS.map(t => <Bar key={t} dataKey={t} fill={TERM_COLORS[t]} radius={[4, 4, 0, 0]} />)}
