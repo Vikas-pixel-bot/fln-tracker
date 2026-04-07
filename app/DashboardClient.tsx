@@ -220,7 +220,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
         <KPI label="Total Students" value={stats.totalStudents} icon={<Users className="w-5 h-5" />} color="blue" />
         <KPI label="Total Assessments" value={stats.totalAssessments} icon={<BookOpen className="w-5 h-5" />} color="indigo" />
         <KPI label="Learning Velocity" value={velocity?.velocity ?? 0} icon={<TrendingUp className="w-5 h-5" />} color="emerald" suffix="%" />
-        <KPI label="Active Schools" value={stats.totalSchools} icon={<School className="w-5 h-5" />} color="emerald" />
+        <KPI label="Arena Engagement" value={stats.totalArenaBattles ?? 0} icon={<Sparkles className="w-5 h-5" />} color="blue" suffix=" Battles" />
       </div>
 
       {/* STRUGGLING STUDENTS ALERT */}

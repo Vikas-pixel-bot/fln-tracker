@@ -108,10 +108,12 @@ export async function getDashboardStats(filters: { divisionId?: string, projectO
   else if (filters.projectOfficeId) schoolWhere.projectOfficeId = filters.projectOfficeId;
   else if (filters.divisionId) schoolWhere.projectOffice = { divisionId: filters.divisionId };
 
-  const [totalStudents, totalAssessments, totalSchools, literacies, numeracies, allAssessments] = await Promise.all([
+  const [totalStudents, totalAssessments, totalSchools, totalArenaBattles, literacies, numeracies, allAssessments] = await Promise.all([
     prisma.student.count({ where: whereFilter }),
     prisma.assessment.count({ where: assessmentWhere }),
     prisma.school.count({ where: schoolWhere }),
+    // @ts-ignore
+    prisma.battleRecord.count({ where: { schoolId: filters.schoolId || undefined } }),
     prisma.assessment.groupBy({
       by: ['term', 'literacyLevel'] as any,
       where: assessmentWhere,
@@ -222,6 +224,7 @@ export async function getDashboardStats(filters: { divisionId?: string, projectO
     totalStudents,
     totalAssessments,
     totalSchools,
+    totalArenaBattles,
     literacies,
     numeracies,
     operations,
@@ -706,8 +709,21 @@ export async function recordBattleResult(data: {
   player2Id: string;
   winnerId: string | null;
 }): Promise<void> {
-  // @ts-ignore - Prisma client needs local generation to recognize battleRecord model
+  // @ts-ignore - Prisma client needs local generation
   await prisma.battleRecord.create({ data });
+  
+  // Increment gamesPlayed for both players
+  // @ts-ignore
+  await prisma.student.update({
+    where: { id: data.player1Id },
+    data: { gamesPlayed: { increment: 1 } }
+  });
+  // @ts-ignore
+  await prisma.student.update({
+    where: { id: data.player2Id },
+    data: { gamesPlayed: { increment: 1 } }
+  });
+
   revalidatePath('/dashboard');
 }
 

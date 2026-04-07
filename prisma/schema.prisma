@@ -47,6 +47,7 @@ model Student {
   battlesAsP1 BattleRecord[] @relation("BattlePlayer1")
   battlesAsP2 BattleRecord[] @relation("BattlePlayer2")
   battlesWon  BattleRecord[] @relation("BattleWinner")
+  gamesPlayed Int            @default(0)
 }
 
 model Assessment {

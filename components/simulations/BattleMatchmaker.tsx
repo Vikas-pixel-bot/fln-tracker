@@ -48,10 +48,14 @@ export default function BattleMatchmaker({
       getMatchCandidates(selectedSchoolId, classNum, subject, level)
         .then(res => {
           setCandidates(res);
-          // Auto-match first two if available
+          // Auto-match first two DISTINCT candidates if available
           if (res.length >= 2 && !player1 && !player2) {
-            setPlayer1(res[0]);
-            setPlayer2(res[1]);
+            const p1 = res[0];
+            const p2 = res.find(c => c.id !== p1.id);
+            if (p1 && p2) {
+              setPlayer1(p1);
+              setPlayer2(p2);
+            }
           }
         })
         .finally(() => setMatching(false));
@@ -132,9 +136,21 @@ export default function BattleMatchmaker({
           {/* Match Status */}
           <div className="flex items-center justify-center gap-8 py-6 bg-slate-800/30 rounded-3xl border border-slate-800 relative overflow-hidden">
             <div className="absolute inset-0 bg-orange-500/5 animate-pulse" />
-            <PlayerCard player={player1} label="PLAYER 1" active={!!player1} color="blue" />
+            <PlayerCard 
+              player={player1} 
+              label="PLAYER 1" 
+              active={!!player1} 
+              color="blue" 
+              onChange={() => setPlayer1(null)}
+            />
             <div className="text-xl font-black text-slate-600 italic z-10 px-4 py-1 bg-slate-900 rounded-full border border-slate-800">VS</div>
-            <PlayerCard player={player2} label="PLAYER 2" active={!!player2} color="red" />
+            <PlayerCard 
+              player={player2} 
+              label="PLAYER 2" 
+              active={!!player2} 
+              color="red" 
+              onChange={() => setPlayer2(null)}
+            />
           </div>
 
           <div className="space-y-4">
@@ -175,6 +191,7 @@ export default function BattleMatchmaker({
                   return (
                     <button 
                       key={c.id} 
+                      disabled={(player1?.id === c.id && !isP1) || (player2?.id === c.id && !isP2)}
                       onClick={() => {
                         if (isP1) setPlayer1(null);
                         else if (isP2) setPlayer2(null);
@@ -185,7 +202,8 @@ export default function BattleMatchmaker({
                         "flex items-center justify-between p-4 rounded-2xl border transition-all hover:scale-[1.02] active:scale-95 group",
                         isP1 ? "bg-blue-600/10 border-blue-500 shadow-lg shadow-blue-500/10" :
                         isP2 ? "bg-red-600/10 border-red-500 shadow-lg shadow-red-500/10" :
-                        "bg-slate-800/40 border-slate-800 hover:bg-slate-800 hover:border-slate-700"
+                        "bg-slate-800/40 border-slate-800 hover:bg-slate-800 hover:border-slate-700",
+                        ((player1?.id === c.id && !isP1) || (player2?.id === c.id && !isP2)) && "opacity-20 cursor-not-allowed grayscale"
                       )}
                     >
                       <div className="flex items-center gap-3">
@@ -239,7 +257,7 @@ export default function BattleMatchmaker({
   );
 }
 
-function PlayerCard({ player, label, active, color }: { player: any, label: string, active: boolean, color: 'blue' | 'red' }) {
+function PlayerCard({ player, label, active, color, onChange }: { player: any, label: string, active: boolean, color: 'blue' | 'red', onChange: () => void }) {
   const colorStyles = color === 'blue' ? 'bg-blue-600 shadow-blue-500/20' : 'bg-red-600 shadow-red-500/20';
   const textStyles = color === 'blue' ? 'text-blue-400 border-blue-500/20' : 'text-red-400 border-red-500/20';
   
@@ -249,14 +267,32 @@ function PlayerCard({ player, label, active, color }: { player: any, label: stri
         {label}
       </span>
       <div className={cn(
-        "w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-xl transition-all",
+        "w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-black text-white shadow-xl transition-all relative",
         active ? colorStyles : "bg-slate-700"
       )}>
         {active ? player.name[0] : <UserCircle2 className="w-8 h-8 opacity-20" />}
+        {active && (
+           <button 
+             onClick={(e) => { e.stopPropagation(); onChange(); }}
+             className="absolute -top-1 -right-1 bg-slate-900 border border-white/10 rounded-full p-1 shadow-xl hover:bg-red-500 hover:text-white transition-all transform hover:scale-110"
+           >
+             <Users className="w-3 h-3" />
+           </button>
+        )}
       </div>
-      <p className="text-xs font-black text-white text-center max-w-[80px] truncate">
-        {active ? player.name : "Waiting..."}
-      </p>
+      <div className="flex flex-col items-center">
+        <p className="text-xs font-black text-white text-center max-w-[80px] truncate">
+          {active ? player.name : "Waiting..."}
+        </p>
+        {active && (
+          <button 
+            onClick={onChange}
+            className="text-[9px] font-bold text-slate-500 hover:text-orange-400 transition-colors mt-0.5 uppercase tracking-tighter"
+          >
+            Change
+          </button>
+        )}
+      </div>
     </div>
   );
 }

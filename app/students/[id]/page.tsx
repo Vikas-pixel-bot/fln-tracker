@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { getStudentProfile } from "@/app/actions";
-import { User, BookOpen, Calculator, MapPin, Calendar, Lightbulb, GraduationCap, Flame, ArrowRight, Clock, ShieldCheck, TrendingUp, Minus, TrendingDown } from "lucide-react";
+import { User, BookOpen, Calculator, MapPin, Calendar, Lightbulb, GraduationCap, Flame, ArrowRight, Clock, ShieldCheck, TrendingUp, Minus, TrendingDown, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { LITERACY_ACTIVITIES, NUMERACY_ACTIVITIES, TaRLActivity } from "@/lib/tarl_data";
 
@@ -43,6 +43,7 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
                   <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full"><MapPin className="w-4 h-4"/> {student.school.name}</span>
                   <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full"><GraduationCap className="w-4 h-4"/> Class {student.class}</span>
                   <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">Gender: {student.gender}</span>
+                  <span className="flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full"><Sparkles className="w-4 h-4"/> Arena Battles: {student.gamesPlayed}</span>
                </div>
             </div>
             <div>
