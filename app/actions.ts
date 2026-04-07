@@ -547,8 +547,63 @@ export async function cleanupSchools() {
 
 // -- SCHOOL LOGINS --
 
+function transliterateDevanagari(str: string): string {
+  // Multi-char conjuncts first
+  str = str
+    .replace(/क्ष/g, 'ksh')
+    .replace(/ज्ञ/g, 'dny')
+    .replace(/त्र/g, 'tr')
+    .replace(/श्र/g, 'shr');
+
+  const consonants: Record<string, string> = {
+    'क': 'k',  'ख': 'kh', 'ग': 'g',  'घ': 'gh', 'ङ': 'ng',
+    'च': 'ch', 'छ': 'chh','ज': 'j',  'झ': 'jh', 'ञ': 'n',
+    'ट': 't',  'ठ': 'th', 'ड': 'd',  'ढ': 'dh', 'ण': 'n',
+    'त': 't',  'थ': 'th', 'द': 'd',  'ध': 'dh', 'न': 'n',
+    'प': 'p',  'फ': 'ph', 'ब': 'b',  'भ': 'bh', 'म': 'm',
+    'य': 'y',  'र': 'r',  'ल': 'l',  'व': 'v',  'श': 'sh',
+    'ष': 'sh', 'स': 's',  'ह': 'h',  'ळ': 'l',
+  };
+  const vowels: Record<string, string> = {
+    'अ': 'a', 'आ': 'aa', 'इ': 'i', 'ई': 'ee', 'उ': 'u', 'ऊ': 'oo',
+    'ए': 'e', 'ऐ': 'ai', 'ओ': 'o', 'औ': 'au', 'ऋ': 'ru', 'ऍ': 'e',
+  };
+  const matras: Record<string, string | null> = {
+    'ा': 'a', 'ि': 'i', 'ी': 'ee', 'ु': 'u', 'ू': 'oo',
+    'े': 'e', 'ै': 'ai', 'ो': 'o',  'ौ': 'au', 'ृ': 'ru',
+    'ं': 'n', 'ँ': 'n', 'ः': 'h',
+    '्': null, // halant — suppress inherent vowel
+  };
+  const digits: Record<string, string> = {
+    '०':'0','१':'1','२':'2','३':'3','४':'4',
+    '५':'5','६':'6','७':'7','८':'8','९':'9',
+  };
+
+  const chars = [...str];
+  let result = '';
+  for (let i = 0; i < chars.length; i++) {
+    const ch = chars[i];
+    const next = chars[i + 1];
+    if (ch in consonants) {
+      result += consonants[ch];
+      const nextIsMatra = next !== undefined && next in matras;
+      if (!nextIsMatra) result += 'a'; // inherent vowel unless matra/halant follows
+    } else if (ch in matras) {
+      const v = matras[ch];
+      if (v !== null) result += v;
+    } else if (ch in vowels) {
+      result += vowels[ch];
+    } else if (ch in digits) {
+      result += digits[ch];
+    } else {
+      result += ch; // ASCII chars (spaces, hyphens, brackets) pass through
+    }
+  }
+  return result;
+}
+
 function toSlug(str: string): string {
-  return str
+  return transliterateDevanagari(str)
     .toLowerCase()
     .replace(/[^a-z0-9\s]/gi, '')
     .trim()
