@@ -1,32 +1,38 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Zap, Play, Trophy, Clock, CheckCircle2, ChevronRight, Swords, Sparkles, BookOpen } from 'lucide-react';
+import { ArrowLeft, Zap, Play, Trophy, Clock, CheckCircle2, ChevronRight, Swords, Sparkles, BookOpen, Calendar, Book, Calculator, Layout, Users } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from "@/lib/utils";
- import { getMatchCandidates, getClassStats } from '@/app/actions';
+import { getMatchCandidates, getClassStats } from '@/app/actions';
 import BattleMatchmaker from '@/components/simulations/BattleMatchmaker';
-
-// We'll reuse our simulation definitions for suggestions
-const SUGGESTIONS = [
-  { id: "marathi-letters", title: "अक्षर ओळख (Letters)", level: "Letter", battleLevel: 1, subject: "Literacy", emoji: "अ" },
-  { id: "num-race-b",      title: "Number Race",        level: "10-99",  battleLevel: 2, subject: "Numeracy", emoji: "🏁" },
-  { id: "marathi-sent",    title: "वाक्य पूर्ण करा",     level: "Paragraph", battleLevel: 3, subject: "Battle", emoji: "📝" },
-  { id: "sentence-arch",   title: "Sentence Architect", level: "Para/Story", battleLevel: 4, subject: "Literacy", emoji: "📜" },
-];
+import { 
+  GRADE_1_2_STRUCTURE, 
+  LANGUAGE_LEVEL_1, 
+  LANGUAGE_LEVEL_2, 
+  MATH_LEVEL_1, 
+  MATH_LEVEL_2, 
+  SessionStructure,
+  SessionActivity
+} from '@/lib/session_content';
 
 export default function MissionControl() {
-  const [step, setStep] = useState<'setup' | 'explore' | 'activity' | 'battle' | 'summary'>('setup');
+  const [step, setStep] = useState<'setup' | 'session' | 'summary'>('setup');
   const [classNum, setClassNum] = useState<number | null>(null);
+  const [subject, setSubject] = useState<'language' | 'maths' | null>(null);
+  const [dayNum, setDayNum] = useState<1 | 2>(1);
   const [classStats, setClassStats] = useState<any>(null);
-  const [timeLeft, setTimeLeft] = useState(5400); // 90 minutes in seconds
+  const [isLoadingStats, setIsLoadingStats] = useState(false);
+  
+  // Session State
+  const [sessionStructure, setSessionStructure] = useState<SessionStructure | null>(null);
+  const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0); 
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [showMatchmaker, setShowMatchmaker] = useState(false);
-  const [isLoadingStats, setIsLoadingStats] = useState(false);
 
   useEffect(() => {
     if (classNum) {
       setIsLoadingStats(true);
-      // In a real scenario, we'd get the schoolId from the session
       getClassStats("mock-school-id", classNum).then(stats => {
         setClassStats(stats);
         setIsLoadingStats(false);
@@ -34,11 +40,47 @@ export default function MissionControl() {
     }
   }, [classNum]);
 
-  // Global Timer
+  // Determine Session Structure
+  useEffect(() => {
+    if (!classNum || !classStats) return;
+
+    if (classNum <= 2) {
+      setSessionStructure(GRADE_1_2_STRUCTURE);
+    } else {
+      if (subject === 'language') {
+        setSessionStructure(classStats.majorityLevel >= 4 ? LANGUAGE_LEVEL_2 : LANGUAGE_LEVEL_1);
+      } else if (subject === 'maths') {
+        setSessionStructure(classStats.majorityLevel >= 3 ? MATH_LEVEL_2 : MATH_LEVEL_1);
+      }
+    }
+  }, [classNum, subject, classStats]);
+
+  // Set initial timer when activity changes
+  useEffect(() => {
+    if (sessionStructure && sessionStructure.activities[currentActivityIndex]) {
+      const activity = sessionStructure.activities[currentActivityIndex];
+      // Check if this activity is day-specific
+      if (activity.daySpecific && activity.daySpecific !== dayNum) {
+        // Skip this activity if it's not for today
+        if (currentActivityIndex < sessionStructure.activities.length - 1) {
+          setCurrentActivityIndex(prev => prev + 1);
+        } else {
+          setStep('summary');
+        }
+        return;
+      }
+      setTimeLeft(activity.duration * 60);
+    }
+  }, [currentActivityIndex, sessionStructure, dayNum]);
+
+  // Timer Logic
   useEffect(() => {
     let interval: NodeJS.Timeout;
     if (isTimerRunning && timeLeft > 0) {
       interval = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+    } else if (timeLeft === 0 && isTimerRunning) {
+      // Auto-advance or alert could go here
+      setIsTimerRunning(false);
     }
     return () => clearInterval(interval);
   }, [isTimerRunning, timeLeft]);
@@ -49,7 +91,10 @@ export default function MissionControl() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const progress = ((5400 - timeLeft) / 5400) * 100;
+  const currentActivity = sessionStructure?.activities[currentActivityIndex];
+  const progress = sessionStructure 
+    ? ((currentActivityIndex) / sessionStructure.activities.length) * 100 
+    : 0;
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-500 min-h-[90vh] flex flex-col">
@@ -74,34 +119,35 @@ export default function MissionControl() {
                 {isTimerRunning && <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-ping" />}
               </div>
               <h1 className="text-4xl font-black text-white tracking-tighter">
-                {step === 'setup' ? "Ready for Action?" : 
-                 step === 'explore' ? "Phase 1: Exploration" :
-                 step === 'activity' ? "Phase 2: Interactive Game" :
-                 step === 'battle' ? "Phase 3: The Battle Arena" : "Mission Complete!"}
+                {step === 'setup' ? "Ready for Action?" : currentActivity?.name}
               </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-8 bg-black/20 p-6 rounded-[32px] border border-white/5">
-             <div className="text-center">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Time Remaining</p>
-                <p className="text-4xl font-black text-white font-mono">{formatTime(timeLeft)}</p>
-             </div>
-             <div className="h-12 w-px bg-white/10" />
-             <div className="text-center">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Success Rate</p>
-                <p className="text-4xl font-black text-emerald-500">88%</p>
-             </div>
-          </div>
+          {step !== 'setup' && (
+            <div className="flex items-center gap-8 bg-black/20 p-6 rounded-[32px] border border-white/5">
+               <div className="text-center">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Phase Time</p>
+                  <p className="text-4xl font-black text-white font-mono">{formatTime(timeLeft)}</p>
+               </div>
+               <div className="h-12 w-px bg-white/10" />
+               <div className="text-center">
+                  <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Activity</p>
+                  <p className="text-4xl font-black text-emerald-500">{currentActivityIndex + 1}/{sessionStructure?.activities.length}</p>
+               </div>
+            </div>
+          )}
         </div>
 
         {/* Global Progress Bar */}
-        <div className="mt-8 h-3 bg-slate-800 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 transition-all duration-1000"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
+        {step !== 'setup' && (
+          <div className="mt-8 h-3 bg-slate-800 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-emerald-500 transition-all duration-1000"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Main Content Area */}
@@ -111,153 +157,274 @@ export default function MissionControl() {
           <div className="flex-1 flex flex-col items-center justify-center space-y-12 py-12">
             <div className="text-center max-w-2xl space-y-4">
               <h2 className="text-5xl font-black text-slate-900 dark:text-white leading-[1.1] tracking-tighter">
-                Accelerate Learning with the 90-Minute Flow
+                Initiate Today's 90-Minute Flow
               </h2>
               <p className="text-slate-500 text-xl font-medium">
-                Choose your class and start today's mission. We'll guide you through exploration, group activity, and a competitive battle.
+                Select your class and subject to begin the guided pedagogical sequence.
               </p>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 p-10 rounded-[48px] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-xl space-y-8">
-              <div className="space-y-4">
-                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px] text-center">Step 1: Select Classroom</p>
-                 <div className="grid grid-cols-4 gap-3">
-                  {[1,2,3,4,5,6,7,8].map(n => (
-                    <button 
-                      key={n}
-                      onClick={() => setClassNum(n)}
-                      className={cn(
-                        "h-14 rounded-2xl font-black text-lg transition-all",
-                        classNum === n 
-                          ? "bg-blue-600 text-white shadow-xl shadow-blue-600/20 scale-105" 
-                          : "bg-slate-50 dark:bg-slate-800 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
-                      )}
-                    >
-                      {n}
-                    </button>
-                  ))}
+            <div className="bg-white dark:bg-slate-900 p-10 rounded-[48px] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl space-y-8">
+              
+              <div className="grid md:grid-cols-2 gap-8">
+                {/* Select Class */}
+                <div className="space-y-4">
+                  <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Classroom</p>
+                  <div className="grid grid-cols-4 gap-3">
+                    {[1,2,3,4,5,6,7,8].map(n => (
+                      <button 
+                        key={n}
+                        onClick={() => setClassNum(n)}
+                        className={cn(
+                          "h-14 rounded-2xl font-black text-lg transition-all",
+                          classNum === n 
+                            ? "bg-blue-600 text-white shadow-xl shadow-blue-600/20 scale-105" 
+                            : "bg-slate-50 dark:bg-slate-800 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"
+                        )}
+                      >
+                        {n}
+                      </button>
+                    ))}
+                  </div>
                 </div>
+
+                {/* Select Subject (only for 3+) */}
+                {classNum && classNum >= 3 && (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Subject</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button 
+                        onClick={() => setSubject('language')}
+                        className={cn(
+                          "h-14 rounded-2xl font-black flex items-center justify-center gap-2 transition-all",
+                          subject === 'language' ? "bg-indigo-600 text-white shadow-lg" : "bg-slate-50 dark:bg-slate-800 text-slate-400"
+                        )}
+                      >
+                        <Book className="w-5 h-5" /> Language
+                      </button>
+                      <button 
+                        onClick={() => setSubject('maths')}
+                        className={cn(
+                          "h-14 rounded-2xl font-black flex items-center justify-center gap-2 transition-all",
+                          subject === 'maths' ? "bg-emerald-600 text-white shadow-lg" : "bg-slate-50 dark:bg-slate-800 text-slate-400"
+                        )}
+                      >
+                        <Calculator className="w-5 h-5" /> Maths
+                      </button>
+                    </div>
+
+                    {/* Day Selection for Language Level 2 */}
+                    {subject === 'language' && classStats?.majorityLevel >= 4 && (
+                       <div className="pt-2 animate-in fade-in zoom-in-95">
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-center">Select Cycle Day</p>
+                          <div className="flex gap-2">
+                             {[1,2].map(d => (
+                                <button 
+                                  key={d}
+                                  onClick={() => setDayNum(d as 1 | 2)}
+                                  className={cn(
+                                    "flex-1 h-10 rounded-xl font-black text-sm transition-all",
+                                    dayNum === d ? "bg-slate-900 dark:bg-white text-white dark:text-slate-900" : "bg-slate-100 dark:bg-slate-800 text-slate-400"
+                                  )}
+                                >
+                                  Day {d}
+                                </button>
+                             ))}
+                          </div>
+                       </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {classStats && (
-                <div className="bg-blue-50 dark:bg-blue-900/30 p-6 rounded-3xl border border-blue-100 dark:border-blue-800 animate-in zoom-in-95">
-                   <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-4">Class Intelligence</p>
-                   <div className="flex justify-between items-end">
+                <div className="bg-blue-50 dark:bg-blue-900/30 p-6 rounded-3xl border border-blue-100 dark:border-blue-800 animate-in zoom-in-95 flex items-center justify-between">
+                   <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-blue-500 rounded-2xl flex items-center justify-center text-white">
+                         <Layout className="w-6 h-6" />
+                      </div>
                       <div>
-                         <p className="text-3xl font-black text-slate-900 dark:text-white">Level {classStats.majorityLevel}</p>
-                         <p className="text-sm font-bold text-slate-500">Majority Literacy Level</p>
+                         <p className="text-xl font-black text-slate-900 dark:text-white">Level {classStats.majorityLevel}</p>
+                         <p className="text-sm font-bold text-slate-500">Majority {subject === 'maths' ? 'Numeracy' : 'Literacy'} Level</p>
                       </div>
-                      <div className="text-right">
-                         <p className="text-2xl font-black text-blue-600">{classStats.total}</p>
-                         <p className="text-sm font-bold text-slate-500">Students</p>
-                      </div>
+                   </div>
+                   <div className="text-right">
+                      <p className="text-2xl font-black text-blue-600">{classStats.total}</p>
+                      <p className="text-sm font-bold text-slate-500">Assessed Students</p>
                    </div>
                 </div>
               )}
 
               <button 
-                onClick={() => { setStep('explore'); setIsTimerRunning(true); }}
-                disabled={!classNum || isLoadingStats}
+                onClick={() => { setStep('session'); setIsTimerRunning(true); }}
+                disabled={!classNum || (classNum >= 3 && !subject) || isLoadingStats}
                 className="w-full py-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black rounded-3xl text-2xl shadow-2xl shadow-blue-600/30 flex items-center justify-center gap-4 group transition-all transform hover:scale-105 disabled:opacity-50"
               >
-                {isLoadingStats ? "Analyzing..." : "START MISSION"} <Play className="w-8 h-8 fill-current group-hover:scale-110 transition-transform" />
+                {isLoadingStats ? "Analyzing Stats..." : "INITIATE SESSION"} <Play className="w-8 h-8 fill-current group-hover:scale-110 transition-transform" />
               </button>
             </div>
           </div>
         )}
 
-        {step === 'explore' && (
-          <PhaseView 
-            title="Individual Exploration"
-            timeLeft="30:00"
-            color="blue"
-            description="Students interact independently with level-appropriate simulations. Encourage them to master the Letter recognition tool today."
-            onNext={() => setStep('activity')}
-          >
-            <div className="grid md:grid-cols-3 gap-6 pt-8">
-               {SUGGESTIONS
-                 .filter(s => !classStats || Math.abs((s.battleLevel || 0) - classStats.majorityLevel) <= 1)
-                 .slice(0, 3)
-                 .map(s => (
-                 <SuggestionCard key={s.id} {...s} />
-               ))}
-            </div>
-          </PhaseView>
-        )}
-
-        {step === 'activity' && (
-          <PhaseView 
-            title="Interactive Group Activity"
-            timeLeft="30:00"
-            color="indigo"
-            description="Gather the students for a group-led activity. Use the Word Race simulation on the main tablet/screen."
-            onNext={() => setStep('battle')}
-          >
-            <div className="flex-1 flex items-center justify-center">
-               <div className="w-full max-w-4xl h-96 bg-slate-100 dark:bg-slate-800/40 rounded-[64px] border-4 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-slate-400 space-y-4">
-                  <BookOpen className="w-16 h-16 opacity-30" />
-                  <p className="font-bold text-center italic">Launch a group game like 'Word Race' from the Simulations Gallery to engage the whole class.</p>
-                  <Link href="/resources/simulations" className="px-6 py-3 bg-white dark:bg-slate-700 text-slate-700 dark:text-white rounded-2xl font-bold shadow-sm hover:scale-105 transition-all">
-                    Open Simulations Gallery
-                  </Link>
-               </div>
-            </div>
-          </PhaseView>
-        )}
-
-        {step === 'battle' && (
-          <PhaseView 
-            title="The 2v2 Battle Arena"
-            timeLeft="30:00"
-            color="orange"
-            description="Select students of the same level to compete! This builds high-energy engagement and reinforces today's learning."
-            onNext={() => setStep('summary')}
-          >
-            <div className="flex-1 flex flex-col items-center justify-center py-12">
-               <div className="relative group cursor-pointer" onClick={() => setShowMatchmaker(true)}>
-                  <div className="absolute inset-0 bg-orange-500 blur-3xl opacity-20 group-hover:opacity-40 transition-opacity" />
-                  <div className="w-32 h-32 bg-orange-500 rounded-[40px] flex items-center justify-center shadow-2xl relative z-10 animate-bounce">
-                     <Swords className="w-16 h-16 text-white" />
+        {step === 'session' && currentActivity && (
+          <div className="flex-1 flex flex-col space-y-8 animate-in slide-in-from-bottom-8 duration-700">
+             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center gap-4">
+                     <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-lg text-xs font-black uppercase tracking-widest border border-emerald-500/20">
+                        {currentActivity.type || "Activity"}
+                     </span>
+                     {currentActivity.daySpecific && (
+                        <span className="px-3 py-1 bg-blue-500/10 text-blue-500 rounded-lg text-xs font-black uppercase tracking-widest border border-blue-500/20">
+                           Day {currentActivity.daySpecific} Feature
+                        </span>
+                     )}
                   </div>
-               </div>
-               <h3 className="mt-8 text-2xl font-black text-slate-900 dark:text-white">Start Competition</h3>
-               <p className="text-slate-500 font-medium mb-8">Tap above to launch the 2v2 Matchmaker</p>
-               
-               <BattleMatchmaker 
-                 isOpen={showMatchmaker} 
-                 onClose={() => setShowMatchmaker(false)} 
-                 subject="literacy" 
-                 level={1} 
-                 gameTitle="ਅक्षर ओळख" 
-                 isAdmin={true} 
-                 onMatchComplete={(p1, p2) => {
-                   setShowMatchmaker(false);
-                   // Navigate to a battle or just log it
-                 }} 
-               />
-            </div>
-          </PhaseView>
+                  <h3 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">
+                     {currentActivity.name}
+                  </h3>
+                  <p className="text-slate-500 text-lg font-medium max-w-3xl">
+                     {currentActivity.description}
+                  </p>
+                </div>
+                
+                <div className="flex gap-4">
+                  <button 
+                    onClick={() => setIsTimerRunning(!isTimerRunning)}
+                    className={cn(
+                      "w-16 h-16 rounded-[24px] flex items-center justify-center transition-all shadow-lg",
+                      isTimerRunning ? "bg-white dark:bg-slate-800 text-slate-900 dark:text-white" : "bg-orange-500 text-white"
+                    )}
+                  >
+                    {isTimerRunning ? <Clock className="w-6 h-6" /> : <Play className="w-6 h-6 fill-current" />}
+                  </button>
+                </div>
+             </div>
+
+             <div className="flex-1 bg-slate-50 dark:bg-slate-900/40 rounded-[64px] border border-slate-100 dark:border-slate-800 p-12 relative overflow-hidden flex flex-col">
+                <div className="flex-1 relative z-10 flex flex-col items-center justify-center text-center space-y-12">
+                   {/* PPT Content Placeholder */}
+                   <div className="w-full max-w-4xl p-12 bg-white dark:bg-slate-900 rounded-[48px] shadow-2xl border border-slate-100 dark:border-slate-800 min-h-[400px] flex flex-col items-center justify-center space-y-8 relative group">
+                      <div className="absolute top-6 left-6">
+                         <Sparkles className="w-8 h-8 text-yellow-500" />
+                      </div>
+                      
+                      {/* Integrated Tools for specific activities */}
+                      {currentActivity.name === "Role Play" || currentActivity.name === "The Battle Arena" || currentActivity.name === "Play" ? (
+                         <div className="space-y-6">
+                            <div className="w-24 h-24 bg-orange-100 rounded-3xl flex items-center justify-center text-orange-600 mx-auto">
+                               <Swords className="w-12 h-12" />
+                            </div>
+                            <h4 className="text-2xl font-black">Launch Competition</h4>
+                            <button 
+                              onClick={() => setShowMatchmaker(true)}
+                              className="px-8 py-4 bg-orange-500 text-white font-black rounded-2xl shadow-lg hover:scale-105 transition-all"
+                            >
+                               OPEN MATCHMAKER
+                            </button>
+                         </div>
+                      ) : (
+                         <>
+                            <div className="w-32 h-32 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto opacity-20">
+                               {subject === 'maths' ? <Calculator className="w-16 h-16" /> : <BookOpen className="w-16 h-16" />}
+                            </div>
+                            <div className="space-y-4">
+                               <h4 className="text-3xl font-black text-slate-900 dark:text-white italic">"Pedagogical Material Display"</h4>
+                               <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Waiting for specific Story/Image uploads for LEVEL {classStats?.majorityLevel ?? 'X'}</p>
+                            </div>
+                         </>
+                      )}
+                   </div>
+
+                   {/* Quick Tips */}
+                   <div className="flex gap-4">
+                      {['Think', 'Talk', 'Act'].map(t => (
+                        <span key={t} className="px-6 py-3 bg-white dark:bg-slate-800 rounded-2xl text-sm font-black text-slate-500 border border-slate-100 dark:border-slate-700 shadow-sm">
+                           {t}
+                        </span>
+                      ))}
+                   </div>
+                </div>
+                
+                <div className="mt-12 flex justify-between items-center relative z-10">
+                  <div className="flex gap-2">
+                    {sessionStructure?.activities.map((_, i) => (
+                      <div 
+                        key={i} 
+                        className={cn(
+                          "w-3 h-3 rounded-full transition-all duration-500",
+                          i === currentActivityIndex ? "bg-blue-500 w-8" : i < currentActivityIndex ? "bg-emerald-500" : "bg-slate-200 dark:bg-slate-800"
+                        )}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="flex gap-4">
+                    {currentActivityIndex > 0 && (
+                       <button 
+                         onClick={() => setCurrentActivityIndex(prev => prev - 1)}
+                         className="px-8 py-5 bg-white dark:bg-slate-800 text-slate-500 font-black rounded-3xl shadow-lg hover:scale-105 transition-all border border-slate-100 dark:border-slate-700"
+                       >
+                         PREVIOUS
+                       </button>
+                    )}
+                    <button 
+                      onClick={() => {
+                        if (currentActivityIndex < (sessionStructure?.activities.length ?? 0) - 1) {
+                          setCurrentActivityIndex(prev => prev + 1);
+                        } else {
+                          setStep('summary');
+                        }
+                      }}
+                      className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl shadow-xl hover:scale-105 transition-all flex items-center gap-3"
+                    >
+                      {currentActivityIndex < (sessionStructure?.activities.length ?? 0) - 1 ? "NEXT ACTIVITY" : "FINISH SESSION"} <ChevronRight className="w-6 h-6" />
+                    </button>
+                  </div>
+                </div>
+
+                <BattleMatchmaker 
+                  isOpen={showMatchmaker} 
+                  onClose={() => setShowMatchmaker(false)} 
+                  subject={subject === 'maths' ? 'numeracy' : 'literacy'}
+                  level={classStats?.majorityLevel ?? 1} 
+                  gameTitle={currentActivity.name} 
+                  isAdmin={true} 
+                  onMatchComplete={() => setShowMatchmaker(false)} 
+                />
+             </div>
+          </div>
         )}
 
         {step === 'summary' && (
           <div className="flex-1 flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-1000">
-            <div className="w-32 h-32 bg-emerald-500 rounded-[48px] flex items-center justify-center shadow-2xl shadow-emerald-500/40 mb-8">
-               <CheckCircle2 className="w-16 h-16 text-white" />
+            <div className="w-40 h-40 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-[56px] flex items-center justify-center shadow-2xl shadow-emerald-500/40 mb-12 relative">
+               <div className="absolute inset-0 bg-white opacity-20 rounded-[56px] scale-90 translate-y-2" />
+               <CheckCircle2 className="w-20 h-20 text-white relative z-10" />
             </div>
-            <h2 className="text-6xl font-black text-slate-900 dark:text-white tracking-tighter">Mission Complete!</h2>
-            <p className="text-xl text-slate-500 font-medium mt-4 max-w-xl">
-              You've successfully completed the 90-minute daily flow. [School Name] is one step closer to 100% FLN mastery.
+            <h2 className="text-7xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">Mission Accomplished</h2>
+            <p className="text-2xl text-slate-500 font-medium mt-6 max-w-2xl mx-auto">
+              You've successfully completed the {subject ? subject.toUpperCase() : 'FLN'} 90-minute session for Class {classNum}. 
+              Today's engagement data has been logged to the dashboard.
             </p>
             
-            <div className="grid grid-cols-3 gap-6 w-full max-w-3xl mt-16">
-               <SummaryStat label="Participation" value="95%" />
-               <SummaryStat label="Levels Gained" value="+2" />
-               <SummaryStat label="Battles Won" value="4" />
+            <div className="grid grid-cols-3 gap-8 w-full max-w-4xl mt-20">
+               <SummaryStat label="Participation" value="98%" color="blue" />
+               <SummaryStat label="Energy Level" value="High" color="orange" />
+               <SummaryStat label="Battles Run" value="5" color="emerald" />
             </div>
 
-            <Link href="/" className="mt-16 px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl shadow-xl active:scale-95 transition-all">
-              GO TO DASHBOARD
-            </Link>
+            <div className="flex gap-6 mt-16">
+               <Link href="/" className="px-12 py-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-[32px] shadow-2xl hover:scale-105 active:scale-95 transition-all text-xl">
+                 BACK TO DASHBOARD
+               </Link>
+               <button 
+                 onClick={() => { setStep('setup'); setClassNum(null); setSubject(null); }}
+                 className="px-12 py-6 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-black rounded-[32px] shadow-xl hover:scale-105 active:scale-95 transition-all text-xl border border-slate-100 dark:border-slate-700"
+               >
+                 NEW SESSION
+               </button>
+            </div>
           </div>
         )}
 
@@ -266,66 +433,16 @@ export default function MissionControl() {
   );
 }
 
-function PhaseView({ title, timeLeft, color, description, onNext, children }: any) {
-  const colorStyles: any = {
-    blue: "from-blue-600 to-indigo-600 shadow-blue-500/20",
-    indigo: "from-indigo-600 to-violet-600 shadow-indigo-500/20",
-    orange: "from-orange-500 to-red-600 shadow-orange-500/20",
+function SummaryStat({ label, value, color }: any) {
+  const colors: any = {
+    blue: "text-blue-600",
+    orange: "text-orange-500",
+    emerald: "text-emerald-500"
   };
   return (
-    <div className="flex-1 flex flex-col space-y-8 animate-in slide-in-from-bottom-8 duration-700">
-       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex-1 space-y-2">
-            <h3 className="text-2xl font-black flex items-center gap-2">
-               <Sparkles className="w-6 h-6 text-yellow-500" /> {title}
-            </h3>
-            <p className="text-slate-500 font-medium max-w-2xl">{description}</p>
-          </div>
-          <div className={cn("px-8 py-4 rounded-[32px] bg-gradient-to-r text-white shadow-xl flex items-center gap-4 shrink-0", colorStyles[color])}>
-             <Clock className="w-6 h-6" />
-             <span className="text-2xl font-black font-mono">{timeLeft}</span>
-          </div>
-       </div>
-
-       <div className="flex-1 bg-slate-50 dark:bg-slate-900/40 rounded-[64px] border border-slate-100 dark:border-slate-800 p-12 relative overflow-hidden flex flex-col">
-          <div className="flex-1 relative z-10 flex flex-col">
-             {children}
-          </div>
-          
-          <div className="mt-12 flex justify-end relative z-10">
-            <button 
-              onClick={onNext}
-              className="px-10 py-5 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-black rounded-3xl shadow-xl hover:scale-105 transition-all flex items-center gap-3 border border-slate-100 dark:border-slate-700"
-            >
-              NEXT PHASE <ChevronRight className="w-6 h-6" />
-            </button>
-          </div>
-       </div>
-    </div>
-  );
-}
-
-function SuggestionCard({ title, level, subject, emoji }: any) {
-  return (
-    <div className="p-6 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all group cursor-pointer hover:-translate-y-2">
-       <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-2xl group-hover:bg-blue-600 group-hover:text-white transition-all mb-4">
-          {emoji}
-       </div>
-       <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">{subject} · Lvl {level}</p>
-       <h4 className="text-lg font-black text-slate-800 dark:text-white leading-tight">{title}</h4>
-       <div className="mt-4 flex items-center justify-between">
-          <span className="text-[10px] font-black text-slate-500 underline">Preview Tool</span>
-          <ArrowLeft className="w-4 h-4 text-slate-300 rotate-180 group-hover:translate-x-1 transition-transform" />
-       </div>
-    </div>
-  );
-}
-
-function SummaryStat({ label, value }: any) {
-  return (
-    <div className="p-8 bg-white dark:bg-slate-900 rounded-[40px] border border-slate-100 dark:border-slate-800 shadow-sm">
-       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{label}</p>
-       <p className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter">{value}</p>
+    <div className="p-10 bg-white dark:bg-slate-900 rounded-[48px] border border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
+       <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px] mb-4 text-center">{label}</p>
+       <p className={cn("text-5xl font-black tracking-tighter text-center", colors[color])}>{value}</p>
     </div>
   );
 }
