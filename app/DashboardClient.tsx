@@ -25,6 +25,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
   const [activeTab, setActiveTab] = useState<'overview' | 'trends'>('trends');
   const [selectedClass, setSelectedClass] = useState<number | 'all'>('all');
   const [trendType, setTrendType] = useState<'literacy' | 'numeracy'>('literacy');
+  const [showPct, setShowPct] = useState(true);
 
   const activeDivision = hierarchy.find(d => d.id === divId);
   const pos = activeDivision ? activeDivision.projectOffices : [];
@@ -65,7 +66,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
   }
 
   // For the overview term charts — returns % normalised within each term
-  const formatTermData = (dataArray: any[], type: 'lit' | 'num') => {
+  const formatTermData = (dataArray: any[], type: 'lit' | 'num', asPct: boolean) => {
     const labels = type === 'lit' ? LIT_LABELS : NUM_LABELS;
     const key = type === 'lit' ? 'literacyLevel' : 'numeracyLevel';
     const termTotals: Record<string, number> = {};
@@ -79,7 +80,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
       TERMS.forEach(t => {
         const found = dataArray?.find((item: any) => item[key] === level && item.term === t);
         const count = found ? found._count.studentId : 0;
-        entry[t] = termTotals[t] > 0 ? Math.round((count / termTotals[t]) * 100) : 0;
+        entry[t] = asPct ? (termTotals[t] > 0 ? Math.round((count / termTotals[t]) * 100) : 0) : count;
       });
       return entry;
     });
@@ -245,9 +246,21 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
       {/* TAB: OVERVIEW */}
       {activeTab === 'overview' && (
         <div className={`space-y-6 transition-opacity ${isPending ? 'opacity-50' : ''}`}>
-          <BarCard title="Literacy Levels by Term (%)" icon="📚" data={formatTermData(stats.literacies, 'lit')} percentage />
+          <div className="flex justify-end">
+            <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl gap-1">
+              <button onClick={() => setShowPct(true)}
+                className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${showPct ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500'}`}>
+                %
+              </button>
+              <button onClick={() => setShowPct(false)}
+                className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${!showPct ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500'}`}>
+                #
+              </button>
+            </div>
+          </div>
+          <BarCard title={`Literacy Levels by Term (${showPct ? '%' : '#'})`} icon="📚" data={formatTermData(stats.literacies, 'lit', showPct)} percentage={showPct} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <BarCard title="Numeracy Levels by Term (%)" icon="🔢" data={formatTermData(stats.numeracies, 'num')} percentage />
+            <BarCard title={`Numeracy Levels by Term (${showPct ? '%' : '#'})`} icon="🔢" data={formatTermData(stats.numeracies, 'num', showPct)} percentage={showPct} />
             <BarCard title="Operations Mastery by Term" icon="➕" data={formatOpsData(stats.operations)} />
           </div>
         </div>
