@@ -86,12 +86,22 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
     });
   };
 
-  const formatOpsData = (ops: any) =>
-    ['addition', 'subtraction', 'multiplication', 'division'].map(op => {
+  const formatOpsData = (ops: any, asPct: boolean) => {
+    const termTotals: Record<string, number> = {};
+    TERMS.forEach(t => {
+      termTotals[t] = (stats.literacies ?? [])
+        .filter((item: any) => item.term === t)
+        .reduce((sum: number, item: any) => sum + item._count.studentId, 0);
+    });
+    return ['addition', 'subtraction', 'multiplication', 'division'].map(op => {
       const entry: any = { name: op[0].toUpperCase() + op.slice(1) };
-      TERMS.forEach(t => { entry[t] = ops?.[t]?.[op] ?? 0; });
+      TERMS.forEach(t => {
+        const count = ops?.[t]?.[op] ?? 0;
+        entry[t] = asPct ? (termTotals[t] > 0 ? Math.round((count / termTotals[t]) * 100) : 0) : count;
+      });
       return entry;
     });
+  };
 
   const litChartData = buildChartData('literacy');
   const numChartData = buildChartData('numeracy');
@@ -261,7 +271,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
           <BarCard title={`Literacy Levels by Term (${showPct ? '%' : '#'})`} icon="📚" data={formatTermData(stats.literacies, 'lit', showPct)} percentage={showPct} />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <BarCard title={`Numeracy Levels by Term (${showPct ? '%' : '#'})`} icon="🔢" data={formatTermData(stats.numeracies, 'num', showPct)} percentage={showPct} />
-            <BarCard title="Operations Mastery by Term" icon="➕" data={formatOpsData(stats.operations)} />
+            <BarCard title={`Operations Mastery by Term (${showPct ? '%' : '#'})`} icon="➕" data={formatOpsData(stats.operations, showPct)} percentage={showPct} />
           </div>
         </div>
       )}
