@@ -5,9 +5,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend, Cell
 } from 'recharts';
-import { BookOpen, Calculator, Users, School, Filter, TrendingUp, LayoutDashboard, GanttChartSquare } from 'lucide-react';
+import { BookOpen, Calculator, Users, School, Filter, TrendingUp, LayoutDashboard } from 'lucide-react';
 import { getDashboardStats } from "@/app/actions";
-import CohortBenchmarking from "@/components/CohortBenchmarking";
 
 const LIT_LABELS = ['Beginner', 'Letter', 'Word', 'Paragraph', 'Story'];
 const NUM_LABELS = ['Beginner', '1-9', '10-99', '100-999'];
@@ -23,7 +22,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
   const [poId, setPoId] = useState("");
   const [schoolId, setSchoolId] = useState("");
   const [term, setTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'cohort'>('trends');
+  const [activeTab, setActiveTab] = useState<'overview' | 'trends'>('trends');
   const [selectedClass, setSelectedClass] = useState<number | 'all'>('all');
   const [trendType, setTrendType] = useState<'literacy' | 'numeracy'>('literacy');
 
@@ -65,15 +64,22 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
     });
   }
 
-  // For the overview term charts
+  // For the overview term charts — returns % normalised within each term
   const formatTermData = (dataArray: any[], type: 'lit' | 'num') => {
     const labels = type === 'lit' ? LIT_LABELS : NUM_LABELS;
     const key = type === 'lit' ? 'literacyLevel' : 'numeracyLevel';
+    const termTotals: Record<string, number> = {};
+    TERMS.forEach(t => {
+      termTotals[t] = (dataArray ?? [])
+        .filter((item: any) => item.term === t)
+        .reduce((sum: number, item: any) => sum + item._count.studentId, 0);
+    });
     return labels.map((label, level) => {
       const entry: any = { name: label };
       TERMS.forEach(t => {
         const found = dataArray?.find((item: any) => item[key] === level && item.term === t);
-        entry[t] = found ? found._count.studentId : 0;
+        const count = found ? found._count.studentId : 0;
+        entry[t] = termTotals[t] > 0 ? Math.round((count / termTotals[t]) * 100) : 0;
       });
       return entry;
     });
@@ -156,7 +162,6 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
         {([
           ['trends', 'Level Trends', TrendingUp],
           ['overview', 'Term Overview', LayoutDashboard],
-          ['cohort', 'Progress Trajectory', GanttChartSquare],
         ] as const).map(([id, label, Icon]) => (
           <button key={id} onClick={() => setActiveTab(id as any)}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === id ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
@@ -240,18 +245,14 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
       {/* TAB: OVERVIEW */}
       {activeTab === 'overview' && (
         <div className={`space-y-6 transition-opacity ${isPending ? 'opacity-50' : ''}`}>
-          <BarCard title="Literacy Levels by Term (Count)" icon="📚" data={formatTermData(stats.literacies, 'lit')} />
+          <BarCard title="Literacy Levels by Term (%)" icon="📚" data={formatTermData(stats.literacies, 'lit')} percentage />
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <BarCard title="Numeracy Levels by Term (Count)" icon="🔢" data={formatTermData(stats.numeracies, 'num')} />
+            <BarCard title="Numeracy Levels by Term (%)" icon="🔢" data={formatTermData(stats.numeracies, 'num')} percentage />
             <BarCard title="Operations Mastery by Term" icon="➕" data={formatOpsData(stats.operations)} />
           </div>
         </div>
       )}
 
-      {/* TAB: COHORT */}
-      {activeTab === 'cohort' && (
-        <CohortBenchmarking filters={{ divisionId: divId, projectOfficeId: poId, schoolId }} hierarchy={hierarchy} />
-      )}
     </div>
   );
 }
@@ -333,7 +334,7 @@ function KPI({ label, value, icon, color }: { label: string; value: number; icon
   );
 }
 
-function BarCard({ title, icon, data }: { title: string; icon: string; data: any[] }) {
+function BarCard({ title, icon, data, percentage }: { title: string; icon: string; data: any[]; percentage?: boolean }) {
   const hasData = data.some((d: any) => TERMS.some(t => (d[t] ?? 0) > 0));
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-200 dark:border-slate-800">
@@ -346,8 +347,12 @@ function BarCard({ title, icon, data }: { title: string; icon: string; data: any
             <BarChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} dy={8} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }} />
-              <Tooltip cursor={{ fill: '#f8fafc' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 11 }}
+                tickFormatter={percentage ? (v: number) => `${v}%` : undefined}
+                domain={percentage ? [0, 100] : undefined} />
+              <Tooltip cursor={{ fill: '#f8fafc' }}
+                formatter={percentage ? (value: number) => [`${value}%`] : undefined}
+                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }} />
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '12px' }} />
               {TERMS.map(t => <Bar key={t} dataKey={t} fill={TERM_COLORS[t]} radius={[4, 4, 0, 0]} />)}
             </BarChart>
