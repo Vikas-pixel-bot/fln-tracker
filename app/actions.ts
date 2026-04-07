@@ -616,35 +616,29 @@ export async function generateSchoolLogins(): Promise<{ created: number; skipped
   const DEFAULT_PASSWORD = "Pratham@2025";
   const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
 
-  const schools = await prisma.school.findMany({
-    include: { projectOffice: true }
-  });
+  const schools = await prisma.school.findMany({ include: { projectOffice: true } });
 
-  let created = 0;
-  let skipped = 0;
+  const data = schools.map(school => ({
+    email: `${toSlug(school.projectOffice.name)}.${toSlug(school.name)}@flnhub.in`,
+    name: school.name,
+    role: "user",
+    schoolId: school.id,
+    passwordHash,
+  }));
 
-  for (const school of schools) {
-    const poSlug = toSlug(school.projectOffice.name);
-    const schoolSlug = toSlug(school.name);
-    const email = `${poSlug}.${schoolSlug}@flnhub.in`;
-
-    const existing = await (prisma as any).user.findUnique({ where: { email } });
-    if (existing) { skipped++; continue; }
-
-    await (prisma as any).user.create({
-      data: {
-        email,
-        name: school.name,
-        role: "user",
-        schoolId: school.id,
-        passwordHash,
-      }
-    });
-    created++;
-  }
+  const result = await (prisma as any).user.createMany({ data, skipDuplicates: true });
 
   revalidatePath("/admin/users");
-  return { created, skipped };
+  return { created: result.count, skipped: schools.length - result.count };
+}
+
+export async function deleteSchoolLogins(ids: string[]): Promise<{ deleted: number }> {
+  await requireAdmin();
+  const result = await (prisma as any).user.deleteMany({
+    where: { id: { in: ids }, email: { endsWith: '@flnhub.in' } },
+  });
+  revalidatePath('/admin/logins');
+  return { deleted: result.count };
 }
 
 export async function getSchoolCredentials(): Promise<{ id: string; school: string; po: string; email: string; password: string }[]> {
