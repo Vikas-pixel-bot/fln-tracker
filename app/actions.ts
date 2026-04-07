@@ -669,3 +669,137 @@ export async function updateLoginEmail(userId: string, newEmail: string): Promis
   revalidatePath('/admin/logins');
   return {};
 }
+
+// -- BATTLE MATCHMAKER --
+
+export type MatchCandidate = { id: string; name: string; class: number; gender: string };
+
+export async function getMatchCandidates(
+  schoolId: string,
+  classNum: number,
+  subject: 'literacy' | 'numeracy',
+  level: number
+): Promise<MatchCandidate[]> {
+  const students = await prisma.student.findMany({
+    where: { schoolId, class: classNum },
+    include: { assessments: { orderBy: { date: 'desc' }, take: 1 } },
+  });
+
+  return students
+    .filter(s => {
+      const latest = s.assessments[0];
+      if (!latest) return false;
+      return subject === 'literacy'
+        ? latest.literacyLevel === level
+        : latest.numeracyLevel === level;
+    })
+    .map(s => ({ id: s.id, name: s.name, class: s.class, gender: s.gender }));
+}
+
+export async function recordBattleResult(data: {
+  schoolId: string;
+  classNum: number;
+  subject: string;
+  level: number;
+  gameSlug: string;
+  player1Id: string;
+  player2Id: string;
+  winnerId: string | null;
+}): Promise<void> {
+  // @ts-ignore - Prisma client needs local generation to recognize battleRecord model
+  await prisma.battleRecord.create({ data });
+  revalidatePath('/dashboard');
+}
+
+export async function getStrugglingStudents(schoolId: string) {
+  const students = await prisma.student.findMany({
+    where: { schoolId },
+    include: { assessments: { orderBy: { date: 'asc' } } },
+  });
+
+  return students
+    .filter(s => {
+      const assessments = s.assessments;
+      if (assessments.length < 2) return false;
+      const baseline = assessments[0];
+      const latest = assessments[assessments.length - 1];
+      // Struggling if latest level is not higher than baseline
+      return latest.literacyLevel <= baseline.literacyLevel && latest.numeracyLevel <= baseline.numeracyLevel;
+    })
+    .map(s => {
+      const latest = s.assessments[s.assessments.length - 1];
+      return {
+        id: s.id,
+        name: s.name,
+        latestLevel: latest.literacyLevel,
+        baselineLevel: s.assessments[0].literacyLevel
+      };
+    });
+}
+
+export async function getGrowthVelocity(schoolId?: string) {
+  const where = schoolId ? { schoolId } : {};
+  const students = await prisma.student.findMany({
+    where,
+    include: { assessments: { orderBy: { date: 'asc' } } },
+  });
+
+  let improved = 0;
+  let totalWithData = 0;
+
+  students.forEach(s => {
+    if (s.assessments.length >= 2) {
+      totalWithData++;
+      const first = s.assessments[0];
+      const last = s.assessments[s.assessments.length - 1];
+      if (last.literacyLevel > first.literacyLevel || last.numeracyLevel > first.numeracyLevel) {
+        improved++;
+      }
+    }
+  });
+
+  return {
+    velocity: totalWithData > 0 ? Math.round((improved / totalWithData) * 100) : 0,
+    totalMeasured: totalWithData,
+    improvedCount: improved
+  };
+}
+export async function getInterventionPlan(students: any[]) {
+  // In a real app, this would call an LLM. Here we provide a structured pedagogical response.
+  const levels = Array.from(new Set(students.map(s => s.latestLevel)));
+  const avgLevel = levels.length > 0 ? labels[Math.floor(levels.reduce((a, b) => a + b, 0) / levels.length)] : "Beginner";
+
+  return {
+    title: `10-Day Intensive Bootcamp: Stage ${avgLevel}`,
+    focus: "Bridging the gap between recognition and phonetic assembly.",
+    schedule: [
+      { day: "1-2", activity: "Phonetic Flashcards & Mirror Practice (अ, आ, इ, ई)" },
+      { day: "3-5", activity: "Interactive 'Word Race' simulations in pairs" },
+      { day: "6-8", activity: "Sentence Architect challenges with Emoji-to-Marathi" },
+      { day: "9-10", activity: "Peer-to-peer 2v2 Battles with teacher observation" }
+    ],
+    resources: ["Letter Identification Tool", "Marathi Word Cards", "FLN Battle Arena"]
+  };
+}
+
+export async function getClassStats(schoolId: string, classNum: number) {
+  const students = await prisma.student.findMany({
+    where: { schoolId, class: classNum },
+    include: { assessments: { orderBy: { date: 'desc' }, take: 1 } },
+  });
+
+  if (students.length === 0) return { avgLevel: 0, majorityLevel: 0, total: 0 };
+
+  const levels = students.map(s => s.assessments[0]?.literacyLevel ?? 0);
+  const majorityLevel = levels.sort((a,b) =>
+    levels.filter(v => v===a).length - levels.filter(v => v===b).length
+  ).pop() ?? 0;
+
+  return {
+    majorityLevel,
+    avgLevel: Math.round(levels.reduce((a, b) => a + b, 0) / levels.length),
+    total: students.length
+  };
+}
+
+const labels = ['Beginner', 'Letter', 'Word', 'Paragraph', 'Story'];

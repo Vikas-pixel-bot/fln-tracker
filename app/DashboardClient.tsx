@@ -5,8 +5,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend, Cell
 } from 'recharts';
-import { BookOpen, Calculator, Users, School, Filter, TrendingUp, LayoutDashboard } from 'lucide-react';
-import { getDashboardStats } from "@/app/actions";
+import { BookOpen, Calculator, Users, School, Filter, TrendingUp, LayoutDashboard, Search, Sparkles, AlertCircle, TrendingDown } from 'lucide-react';
+import { getDashboardStats, getStrugglingStudents, getGrowthVelocity, getInterventionPlan } from "@/app/actions";
 
 const LIT_LABELS = ['Beginner', 'Letter', 'Word', 'Paragraph', 'Story'];
 const NUM_LABELS = ['Beginner', '1-9', '10-99', '100-999'];
@@ -26,6 +26,29 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
   const [selectedClass, setSelectedClass] = useState<number | 'all'>('all');
   const [trendType, setTrendType] = useState<'literacy' | 'numeracy'>('literacy');
   const [showPct, setShowPct] = useState(true);
+  const [query, setQuery] = useState("");
+  const [struggling, setStruggling] = useState<any[]>([]);
+  const [velocity, setVelocity] = useState<any>(null);
+  const [plan, setPlan] = useState<any>(null);
+  const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+
+  // AI Smart Filter Logic
+  const handleQuery = (val: string) => {
+    setQuery(val);
+    const v = val.toLowerCase();
+    
+    // Class matching
+    const classMatch = v.match(/class\s+(\d)/);
+    if (classMatch) setSelectedClass(Number(classMatch[1]));
+    
+    // Type matching
+    if (v.includes("literacy") || v.includes("read")) setTrendType("literacy");
+    if (v.includes("numeracy") || v.includes("math")) setTrendType("numeracy");
+    
+    // Tab switching
+    if (v.includes("trend") || v.includes("growth")) setActiveTab("trends");
+    if (v.includes("overview") || v.includes("summary")) setActiveTab("overview");
+  };
 
   const activeDivision = hierarchy.find(d => d.id === divId);
   const pos = activeDivision ? activeDivision.projectOffices : [];
@@ -36,6 +59,14 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
     startTransition(async () => {
       const newStats = await getDashboardStats({ divisionId: divId, projectOfficeId: poId, schoolId, term });
       setStats(newStats);
+      
+      const v = await getGrowthVelocity(schoolId);
+      setVelocity(v);
+
+      if (schoolId) {
+        const s = await getStrugglingStudents(schoolId);
+        setStruggling(s);
+      }
     });
   }, [divId, poId, schoolId, term]);
 
@@ -135,7 +166,30 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
   };
 
   return (
-    <div className="w-full space-y-6 animate-in fade-in duration-700">
+    <div className="w-full space-y-8 animate-in fade-in duration-700">
+
+      {/* AI SMART BAR */}
+      <div className="relative group max-w-4xl mx-auto mb-10">
+        <div className="absolute inset-0 bg-blue-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
+        <div className="relative flex items-center gap-4 bg-white dark:bg-slate-900 p-2 pl-6 rounded-[32px] shadow-2xl border border-slate-200 dark:border-slate-800 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+          <Sparkles className="w-6 h-6 text-blue-500 animate-pulse" />
+          <input 
+            type="text" 
+            placeholder="Ask your data: 'Class 3 literacy trends' or 'Who has zero progress?'"
+            className="flex-1 bg-transparent border-none focus:ring-0 text-slate-700 dark:text-slate-200 font-medium py-3 outline-none"
+            value={query}
+            onChange={(e) => handleQuery(e.target.value)}
+          />
+          <button className="bg-slate-900 dark:bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all">
+            <Search className="w-4 h-4" /> Analyze
+          </button>
+        </div>
+        <div className="flex gap-4 px-6 mt-3 text-[10px] font-bold text-slate-500 lowercase tracking-widest">
+           <span>Suggested: "Class 5 numeracy"</span>
+           <span>"Show struggling students"</span>
+           <span>"Growth overview"</span>
+        </div>
+      </div>
 
       {/* Filters */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-3 items-center">
@@ -162,11 +216,93 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
       </div>
 
       {/* KPIs */}
-      <div className={`grid grid-cols-2 lg:grid-cols-3 gap-4 transition-opacity ${isPending ? 'opacity-50' : ''}`}>
+      <div className={`grid grid-cols-2 lg:grid-cols-4 gap-4 transition-opacity ${isPending ? 'opacity-50' : ''}`}>
         <KPI label="Total Students" value={stats.totalStudents} icon={<Users className="w-5 h-5" />} color="blue" />
         <KPI label="Total Assessments" value={stats.totalAssessments} icon={<BookOpen className="w-5 h-5" />} color="indigo" />
+        <KPI label="Learning Velocity" value={velocity?.velocity ?? 0} icon={<TrendingUp className="w-5 h-5" />} color="emerald" suffix="%" />
         <KPI label="Active Schools" value={stats.totalSchools} icon={<School className="w-5 h-5" />} color="emerald" />
       </div>
+
+      {/* STRUGGLING STUDENTS ALERT */}
+      {(query.toLowerCase().includes("struggle") || query.toLowerCase().includes("zero") || struggling.length > 5) && (
+        <div className="animate-in slide-in-from-top-4 duration-500 my-8">
+          <div className="bg-red-50 dark:bg-red-950/20 rounded-[40px] p-8 border border-red-100 dark:border-red-900/30 flex flex-col md:flex-row items-center gap-8 shadow-xl shadow-red-500/5">
+             <div className="w-20 h-20 bg-red-500 rounded-[32px] flex items-center justify-center shadow-2xl shadow-red-500/20 shrink-0">
+                <AlertCircle className="w-10 h-10 text-white" />
+             </div>
+             <div className="flex-1 space-y-2">
+                <h3 className="text-xl font-black text-red-900 dark:text-red-400">Critical: {struggling.length} Students with Zero Progress</h3>
+                <p className="text-red-700 dark:text-red-500/70 font-medium">These students have not moved from their Baseline level. Recommended: Intensive 10-day Bootcamp.</p>
+                
+                <div className="flex flex-wrap gap-2 mt-4">
+                   {struggling.slice(0, 10).map((s: any) => (
+                      <div key={s.id} className="px-3 py-1.5 bg-white dark:bg-red-900/40 rounded-xl text-xs font-bold text-red-600 border border-red-200 dark:border-red-800 flex items-center gap-2">
+                         <TrendingDown className="w-3 h-3" /> {s.name} (Lvl {s.baselineLevel ?? 0} → {s.latestLevel})
+                      </div>
+                   ))}
+                </div>
+             </div>
+             <button 
+               onClick={async () => {
+                 setIsGeneratingPlan(true);
+                 const p = await getInterventionPlan(struggling);
+                 setPlan(p);
+                 setIsGeneratingPlan(false);
+               }}
+               disabled={isGeneratingPlan}
+               className="px-8 py-4 bg-red-600 text-white font-black rounded-3xl hover:bg-red-700 transition-all shadow-lg shrink-0 uppercase tracking-widest text-[10px] disabled:opacity-50"
+             >
+                {isGeneratingPlan ? "Analyzing..." : "Generate Intervention"}
+             </button>
+          </div>
+        </div>
+      )}
+
+      {/* INTERVENTION PLAN DISPLAY */}
+      {plan && (
+        <div className="animate-in zoom-in-95 duration-500 my-8">
+           <div className="bg-white dark:bg-slate-900 border-2 border-blue-500 rounded-[48px] p-10 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-3xl -mr-32 -mt-32" />
+              <button onClick={() => setPlan(null)} className="absolute top-8 right-8 text-slate-400 hover:text-slate-600 font-bold">Close X</button>
+              
+              <div className="flex items-center gap-4 mb-8">
+                 <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                    <Sparkles className="w-6 h-6" />
+                 </div>
+                 <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">{plan.title}</h3>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-12">
+                 <div className="space-y-6">
+                    <div>
+                       <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2">Core Focus</p>
+                       <p className="text-xl font-bold text-slate-700 dark:text-slate-200 leading-relaxed">{plan.focus}</p>
+                    </div>
+                    <div>
+                       <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2">Required Resources</p>
+                       <div className="flex flex-wrap gap-2">
+                          {plan.resources.map((r: string) => (
+                             <span key={r} className="px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400 border border-slate-100 dark:border-slate-700">{r}</span>
+                          ))}
+                       </div>
+                    </div>
+                 </div>
+
+                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-[40px] p-8 border border-slate-100 dark:border-slate-800">
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Milestone Schedule</p>
+                    <div className="space-y-4">
+                       {plan.schedule.map((s: any) => (
+                          <div key={s.day} className="flex gap-4">
+                             <div className="w-12 text-blue-600 font-black text-sm pt-0.5">D{s.day}</div>
+                             <div className="flex-1 text-sm font-medium text-slate-700 dark:text-slate-300">{s.activity}</div>
+                          </div>
+                       ))}
+                    </div>
+                 </div>
+              </div>
+           </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-2xl w-fit border border-slate-200 dark:border-slate-800">
@@ -342,7 +478,7 @@ function SummaryTable({ type, selectedClass, overallBreakdown, classBreakdown }:
   );
 }
 
-function KPI({ label, value, icon, color }: { label: string; value: number; icon: React.ReactNode; color: string }) {
+function KPI({ label, value, icon, color, suffix = "" }: { label: string; value: number; icon: React.ReactNode; color: string; suffix?: string }) {
   const colors: Record<string, string> = {
     blue: 'border-l-blue-500 text-blue-600',
     indigo: 'border-l-indigo-500 text-indigo-600',
@@ -352,7 +488,7 @@ function KPI({ label, value, icon, color }: { label: string; value: number; icon
     <div className={`bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-sm border border-slate-100 dark:border-slate-800 border-l-4 ${colors[color]}`}>
       <div className={`mb-2 ${colors[color]}`}>{icon}</div>
       <p className="text-sm font-semibold text-slate-500 mb-1">{label}</p>
-      <h3 className="text-3xl font-black text-slate-800 dark:text-slate-100">{(value ?? 0).toLocaleString()}</h3>
+      <h3 className="text-3xl font-black text-slate-800 dark:text-slate-100">{(value ?? 0).toLocaleString()}{suffix}</h3>
     </div>
   );
 }

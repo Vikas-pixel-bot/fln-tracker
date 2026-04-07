@@ -32,17 +32,21 @@ model School {
   projectOffice   ProjectOffice @relation(fields: [projectOfficeId], references: [id])
   students        Student[]
   users           User[]
+  battles         BattleRecord[]
 }
 
 model Student {
-  id          String       @id @default(cuid())
+  id          String         @id @default(cuid())
   name        String
-  class       Int          // 1 to 8
-  gender      String       // Male / Female / Other
+  class       Int            // 1 to 8
+  gender      String         // Male / Female / Other
   age         Int?
   schoolId    String
-  school      School       @relation(fields: [schoolId], references: [id])
+  school      School         @relation(fields: [schoolId], references: [id])
   assessments Assessment[]
+  battlesAsP1 BattleRecord[] @relation("BattlePlayer1")
+  battlesAsP2 BattleRecord[] @relation("BattlePlayer2")
+  battlesWon  BattleRecord[] @relation("BattleWinner")
 }
 
 model Assessment {
@@ -60,6 +64,23 @@ model Assessment {
 
   studentId       String
   student         Student  @relation(fields: [studentId], references: [id])
+}
+
+model BattleRecord {
+  id          String   @id @default(cuid())
+  schoolId    String
+  school      School   @relation(fields: [schoolId], references: [id])
+  classNum    Int
+  subject     String   // "literacy" | "numeracy"
+  level       Int      // 0–4
+  gameSlug    String
+  player1Id   String
+  player1     Student  @relation("BattlePlayer1", fields: [player1Id], references: [id])
+  player2Id   String
+  player2     Student  @relation("BattlePlayer2", fields: [player2Id], references: [id])
+  winnerId    String?
+  winner      Student? @relation("BattleWinner", fields: [winnerId], references: [id])
+  conductedAt DateTime @default(now())
 }
 
 model SystemSetting {

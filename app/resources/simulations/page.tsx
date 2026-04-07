@@ -13,6 +13,15 @@ import WordBuilder from "@/components/simulations/WordBuilder";
 import SentenceArchitect from "@/components/simulations/SentenceArchitect";
 import MathSprint from "@/components/simulations/MathSprint";
 import SoundDuel from "@/components/simulations/SoundDuel";
+import BattleMatchmaker from "@/components/simulations/BattleMatchmaker";
+
+// New 2v2 Games
+import LetterFlash from "@/components/simulations/LetterFlash";
+import WordRace from "@/components/simulations/WordRace";
+import SentenceFill from "@/components/simulations/SentenceFill";
+import MathDuel from "@/components/simulations/MathDuel";
+import NumberRace from "@/components/simulations/NumberRace";
+import PlaceValueBattle from "@/components/simulations/PlaceValueBattle";
 
 // Games
 import CountingStones from "@/components/games/CountingStones";
@@ -34,38 +43,59 @@ import NumberRiver from "@/components/games/NumberRiver";
 import ClockReader from "@/components/games/ClockReader";
 import SortingHat from "@/components/games/SortingHat";
 
-type Item = { id: string; title: string; level: string; subject: string; emoji: string; component: React.ReactNode; tag?: string };
+type Item = { 
+  id: string; 
+  title: string; 
+  level: string; 
+  battleLevel?: number; 
+  subject: string; 
+  emoji: string; 
+  component: (props: any) => React.ReactNode; 
+  tag?: string 
+};
 
 const SIMS: Item[] = [
-  { id: "math-sprint",     title: "Math Sprint",        level: "10-99",      subject: "Battle",   emoji: "⚡", tag: "60s Race",   component: <MathSprint /> },
-  { id: "sound-duel",      title: "Sound Duel",         level: "Letter",     subject: "Battle",   emoji: "🎙️", tag: "60s Race",  component: <SoundDuel /> },
-  { id: "number-hunter",   title: "Number Hunter",      level: "1-9",        subject: "Math",     emoji: "🔢", component: <NumberHunter /> },
-  { id: "bundle-builder",  title: "Bundle Builder",     level: "10-99",      subject: "Math",     emoji: "📦", component: <BundleBuilder /> },
-  { id: "addition-master", title: "Addition Master",    level: "Operations", subject: "Math",     emoji: "➕", component: <AdditionMaster /> },
-  { id: "sound-explorer",  title: "Sound Explorer",     level: "Letter",     subject: "Literacy", emoji: "🔊", component: <SoundExplorer /> },
-  { id: "word-builder",    title: "Word Builder",       level: "Word",       subject: "Literacy", emoji: "🔤", component: <WordBuilder /> },
-  { id: "sentence-arch",   title: "Sentence Architect", level: "Para/Story", subject: "Literacy", emoji: "📜", component: <SentenceArchitect /> },
+  // 2v2 Marathi Literacy
+  { id: "marathi-letters", title: "अक्षर ओळख (Letters)", level: "Letter",     battleLevel: 1, subject: "Battle",   emoji: "अ", tag: "Marathi",  component: (p) => <LetterFlash {...p} /> },
+  { id: "marathi-words",   title: "शब्द वाचन (Words)",   level: "Word",       battleLevel: 2, subject: "Battle",   emoji: "📖", tag: "Marathi",  component: (p) => <WordRace {...p} /> },
+  { id: "marathi-sent",    title: "वाक्य पूर्ण करा",     level: "Paragraph",  battleLevel: 3, subject: "Battle",   emoji: "📝", tag: "Marathi",  component: (p) => <SentenceFill {...p} /> },
+  
+  // 2v2 Numeracy
+  { id: "math-duel-b",     title: "Math Duel",          level: "Operations", battleLevel: 4, subject: "Battle",   emoji: "⚡", tag: "± / ÷",    component: (p) => <MathDuel {...p} /> },
+  { id: "num-race-b",      title: "Number Race",        level: "10-99",      battleLevel: 2, subject: "Battle",   emoji: "🏁", tag: "Compare",  component: (p) => <NumberRace {...p} /> },
+  { id: "pv-battle-b",     title: "Place Value Battle", level: "100-999",    battleLevel: 3, subject: "Battle",   emoji: "🏛️", tag: "H-T-O",    component: (p) => <PlaceValueBattle {...p} /> },
+
+  // Original Sims
+  { id: "math-sprint",     title: "Math Sprint",        level: "10-99",      battleLevel: 2, subject: "Battle",   emoji: "⚡", tag: "60s Race",   component: (p) => <MathSprint {...p} /> },
+  { id: "sound-duel",      title: "Sound Duel",         level: "Letter",     battleLevel: 1, subject: "Battle",   emoji: "🎙️", tag: "60s Race",  component: (p) => <SoundDuel {...p} /> },
+  
+  { id: "number-hunter",   title: "Number Hunter",      level: "1-9",        battleLevel: 1, subject: "Math",     emoji: "🔢", component: (p) => <NumberHunter {...p} /> },
+  { id: "bundle-builder",  title: "Bundle Builder",     level: "10-99",      battleLevel: 2, subject: "Math",     emoji: "📦", component: (p) => <BundleBuilder {...p} /> },
+  { id: "addition-master", title: "Addition Master",    level: "Operations", battleLevel: 3, subject: "Math",     emoji: "➕", component: (p) => <AdditionMaster {...p} /> },
+  { id: "sound-explorer",  title: "Sound Explorer",     level: "Letter",     battleLevel: 1, subject: "Literacy", emoji: "🔊", component: (p) => <SoundExplorer {...p} /> },
+  { id: "word-builder",    title: "Word Builder",       level: "Word",       battleLevel: 2, subject: "Literacy", emoji: "🔤", component: (p) => <WordBuilder {...p} /> },
+  { id: "sentence-arch",   title: "Sentence Architect", level: "Para/Story", battleLevel: 4, subject: "Literacy", emoji: "📜", component: (p) => <SentenceArchitect {...p} /> },
 ];
 
 const GAMES: Item[] = [
-  { id: "g-oddone",   title: "Odd One Out",        level: "Beginner",    subject: "Literacy", emoji: "🔍", component: <OddOneOut /> },
-  { id: "g-letters",  title: "Letter Explorer",    level: "Letter",      subject: "Literacy", emoji: "🔤", component: <LetterPicker /> },
-  { id: "g-missing",  title: "Missing Letter",     level: "Word",        subject: "Literacy", emoji: "🔡", component: <MissingLetter /> },
-  { id: "g-fish",     title: "Fish Word Catch",    level: "Word",        subject: "Literacy", emoji: "🐟", component: <FishGame /> },
-  { id: "g-rhyme",    title: "Rhyme Time",         level: "Word",        subject: "Literacy", emoji: "🎵", component: <RhymeTime /> },
-  { id: "g-sentence", title: "Sentence Builder",   level: "Paragraph",   subject: "Literacy", emoji: "📝", component: <SentenceBuilder /> },
-  { id: "g-story",    title: "Story Sequence",     level: "Paragraph",   subject: "Literacy", emoji: "📖", component: <StorySequence /> },
-  { id: "g-true",     title: "True or False",      level: "Story",       subject: "Literacy", emoji: "✅", component: <TrueFalse /> },
-  { id: "g-bigger",   title: "Bigger or Smaller",  level: "Beginner",    subject: "Numeracy", emoji: "🔢", component: <BiggerSmaller /> },
-  { id: "g-counting", title: "Count the Stones",   level: "Beginner",    subject: "Numeracy", emoji: "🪨", component: <CountingStones /> },
-  { id: "g-train",    title: "Number Train",       level: "1–9",         subject: "Numeracy", emoji: "🚂", component: <NumberTrain /> },
-  { id: "g-weights",  title: "Balance the Scale",  level: "10–99",       subject: "Numeracy", emoji: "⚖️", component: <WeightMatcher /> },
-  { id: "g-place",    title: "Place Value Builder", level: "10–99",       subject: "Numeracy", emoji: "🏗️", component: <PlaceValue /> },
-  { id: "g-bonds",    title: "Number Bonds",       level: "Addition",    subject: "Numeracy", emoji: "🔗", component: <NumberBonds /> },
-  { id: "g-market",   title: "Market Math",        level: "Operations",  subject: "Numeracy", emoji: "🛒", component: <MarketMath /> },
-  { id: "g-river",    title: "Number River",       level: "Operations",  subject: "Numeracy", emoji: "🌊", component: <NumberRiver /> },
-  { id: "g-clock",    title: "Clock Reader",       level: "Life Skills", subject: "Bonus",    emoji: "🕐", component: <ClockReader /> },
-  { id: "g-sorting",  title: "Sorting Hat",        level: "Cross-level", subject: "Bonus",    emoji: "🎩", component: <SortingHat /> },
+  { id: "g-oddone",   title: "Odd One Out",        level: "Beginner",    battleLevel: 0, subject: "Literacy", emoji: "🔍", component: (p) => <OddOneOut {...p} /> },
+  { id: "g-letters",  title: "Letter Explorer",    level: "Letter",      battleLevel: 1, subject: "Literacy", emoji: "🔤", component: (p) => <LetterPicker {...p} /> },
+  { id: "g-missing",  title: "Missing Letter",     level: "Word",        battleLevel: 2, subject: "Literacy", emoji: "🔡", component: (p) => <MissingLetter {...p} /> },
+  { id: "g-fish",     title: "Fish Word Catch",    level: "Word",        battleLevel: 2, subject: "Literacy", emoji: "🐟", component: (p) => <FishGame {...p} /> },
+  { id: "g-rhyme",    title: "Rhyme Time",         level: "Word",        battleLevel: 2, subject: "Literacy", emoji: "🎵", component: (p) => <RhymeTime {...p} /> },
+  { id: "g-sentence", title: "Sentence Builder",   level: "Paragraph",   battleLevel: 3, subject: "Literacy", emoji: "📝", component: (p) => <SentenceBuilder {...p} /> },
+  { id: "g-story",    title: "Story Sequence",     level: "Paragraph",   battleLevel: 3, subject: "Literacy", emoji: "📖", component: (p) => <StorySequence {...p} /> },
+  { id: "g-true",     title: "True or False",      level: "Story",       battleLevel: 4, subject: "Literacy", emoji: "✅", component: (p) => <TrueFalse {...p} /> },
+  { id: "g-bigger",   title: "Bigger or Smaller",  level: "Beginner",    battleLevel: 0, subject: "Numeracy", emoji: "🔢", component: (p) => <BiggerSmaller {...p} /> },
+  { id: "g-counting", title: "Count the Stones",   level: "Beginner",    battleLevel: 0, subject: "Numeracy", emoji: "🪨", component: (p) => <CountingStones {...p} /> },
+  { id: "g-train",    title: "Number Train",       level: "1–9",         battleLevel: 1, subject: "Numeracy", emoji: "🚂", component: (p) => <NumberTrain {...p} /> },
+  { id: "g-weights",  title: "Balance the Scale",  level: "10–99",       battleLevel: 2, subject: "Numeracy", emoji: "⚖️", component: (p) => <WeightMatcher {...p} /> },
+  { id: "g-place",    title: "Place Value Builder", level: "10–99",       battleLevel: 2, subject: "Numeracy", emoji: "🏗️", component: (p) => <PlaceValue {...p} /> },
+  { id: "g-bonds",    title: "Number Bonds",       level: "Addition",    battleLevel: 3, subject: "Numeracy", emoji: "🔗", component: (p) => <NumberBonds {...p} /> },
+  { id: "g-market",   title: "Market Math",        level: "Operations",  battleLevel: 4, subject: "Numeracy", emoji: "🛒", component: (p) => <MarketMath {...p} /> },
+  { id: "g-river",    title: "Number River",       level: "Operations",  battleLevel: 4, subject: "Numeracy", emoji: "🌊", component: (p) => <NumberRiver {...p} /> },
+  { id: "g-clock",    title: "Clock Reader",       level: "Life Skills", battleLevel: 0, subject: "Bonus",    emoji: "🕐", component: (p) => <ClockReader {...p} /> },
+  { id: "g-sorting",  title: "Sorting Hat",        level: "Cross-level", battleLevel: 0, subject: "Bonus",    emoji: "🎩", component: (p) => <SortingHat {...p} /> },
 ];
 
 const ALL = [...SIMS, ...GAMES];
@@ -81,8 +111,20 @@ const SECTIONS = [
 
 export default function SimulationsPage() {
   const [activeId, setActiveId] = useState("bundle-builder");
+  const [showMatchmaker, setShowMatchmaker] = useState(false);
+  const [battleContext, setBattleContext] = useState<any>(null);
+
   const active = ALL.find(s => s.id === activeId)!;
   const activeSection = SECTIONS.find(s => s.filter(active)) ?? SECTIONS[1];
+
+  const handleSimSelect = (id: string) => {
+    const item = ALL.find(i => i.id === id);
+    if (item?.subject === 'Battle') {
+      setShowMatchmaker(true);
+    }
+    setActiveId(id);
+    setBattleContext(null);
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-500">
@@ -128,7 +170,7 @@ export default function SimulationsPage() {
                 {items.map(item => {
                   const isActive = item.id === activeId;
                   return (
-                    <button key={item.id} onClick={() => setActiveId(item.id)}
+                    <button key={item.id} onClick={() => handleSimSelect(item.id)}
                       className={cn(
                         "w-full px-3 py-2.5 rounded-2xl text-left transition-all duration-200 flex items-center gap-3 group",
                         isActive
@@ -172,8 +214,27 @@ export default function SimulationsPage() {
 
           {/* Game area */}
           <div key={activeId} className="animate-in fade-in zoom-in-95 duration-300">
-            {active.component}
+            {active.component({ 
+              player1: battleContext?.p1, 
+              player2: battleContext?.p2,
+              schoolId: battleContext?.schoolId,
+              classNum: battleContext?.classNum
+            })}
           </div>
+
+          <BattleMatchmaker 
+            isOpen={showMatchmaker}
+            onClose={() => setShowMatchmaker(false)}
+            subject={active.subject === 'Battle' ? (active.id.includes('math') ? 'numeracy' : 'literacy') : 'literacy'}
+            level={active.battleLevel || 1}
+            gameTitle={active.title}
+            userSchoolId={undefined} // Need session hook here eventually
+            isAdmin={true} // Need session hook
+            onMatchComplete={(p1, p2, schoolId, classNum) => {
+              setBattleContext({ p1, p2, schoolId, classNum });
+              setShowMatchmaker(false);
+            }}
+          />
 
           {/* Quick-pick related games */}
           <div>
