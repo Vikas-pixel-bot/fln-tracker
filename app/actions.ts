@@ -108,7 +108,7 @@ export async function getDashboardStats(filters: { divisionId?: string, projectO
   else if (filters.projectOfficeId) schoolWhere.projectOfficeId = filters.projectOfficeId;
   else if (filters.divisionId) schoolWhere.projectOffice = { divisionId: filters.divisionId };
 
-  const [totalStudents, totalAssessments, totalSchools, literacies, numeracies, rawOps] = await Promise.all([
+  const [totalStudents, totalAssessments, totalSchools, literacies, numeracies, allAssessments] = await Promise.all([
     prisma.student.count({ where: whereFilter }),
     prisma.assessment.count({ where: assessmentWhere }),
     prisma.school.count({ where: schoolWhere }),
@@ -122,13 +122,24 @@ export async function getDashboardStats(filters: { divisionId?: string, projectO
       where: assessmentWhere,
       _count: { studentId: true }
     }),
+    // Fetch all assessments with student class for class-wise breakdown
     prisma.assessment.findMany({
       where: assessmentWhere,
-      select: { term: true, addition: true, subtraction: true, multiplication: true, division: true }
+      select: {
+        term: true,
+        literacyLevel: true,
+        numeracyLevel: true,
+        addition: true,
+        subtraction: true,
+        multiplication: true,
+        division: true,
+        student: { select: { class: true } }
+      }
     }),
   ]);
 
-  const operations = rawOps.reduce((acc: any, curr: any) => {
+  // Operations by term
+  const operations = allAssessments.reduce((acc: any, curr: any) => {
     if (!acc[curr.term]) acc[curr.term] = { addition: 0, subtraction: 0, multiplication: 0, division: 0, total: 0 };
     acc[curr.term].total += 1;
     if (curr.addition) acc[curr.term].addition += 1;
@@ -138,50 +149,74 @@ export async function getDashboardStats(filters: { divisionId?: string, projectO
     return acc;
   }, {});
 
-  // --- GROWTH STATS: compare first vs latest assessment per student ---
-  const studentsWithAssessments = await prisma.student.findMany({
-    where: whereFilter,
-    select: {
-      assessments: {
-        select: { literacyLevel: true, numeracyLevel: true, date: true },
-        orderBy: { date: 'asc' }
+  // --- CLASS-WISE LEVEL BREAKDOWN ---
+  // Structure: classLit[classNum][term][level] = count
+  const TERMS = ['Baseline', 'Midline', 'Endline'];
+  const classLit: Record<number, Record<string, Record<number, number>>> = {};
+  const classNum: Record<number, Record<string, Record<number, number>>> = {};
+
+  for (const a of allAssessments) {
+    const cls = (a as any).student.class as number;
+    if (!classLit[cls]) classLit[cls] = {};
+    if (!classLit[cls][a.term]) classLit[cls][a.term] = {};
+    classLit[cls][a.term][a.literacyLevel] = (classLit[cls][a.term][a.literacyLevel] || 0) + 1;
+
+    if (!classNum[cls]) classNum[cls] = {};
+    if (!classNum[cls][a.term]) classNum[cls][a.term] = {};
+    classNum[cls][a.term][a.numeracyLevel] = (classNum[cls][a.term][a.numeracyLevel] || 0) + 1;
+  }
+
+  // Convert to percentage + count per (class, term, level)
+  // Output: { [cls]: { [term]: { total, levels: { [level]: { count, pct } } } } }
+  function computePcts(raw: Record<number, Record<string, Record<number, number>>>) {
+    const result: Record<number, Record<string, { total: number; levels: Record<number, { count: number; pct: number }> }>> = {};
+    for (const cls of Object.keys(raw).map(Number)) {
+      result[cls] = {};
+      for (const term of Object.keys(raw[cls])) {
+        const levelCounts = raw[cls][term];
+        const total = Object.values(levelCounts).reduce((s, v) => s + v, 0);
+        result[cls][term] = {
+          total,
+          levels: Object.fromEntries(
+            Object.entries(levelCounts).map(([lvl, count]) => [
+              lvl,
+              { count, pct: total > 0 ? Math.round((count / total) * 100) : 0 }
+            ])
+          )
+        };
       }
     }
-  });
-
-  let litImproved = 0, litDeclined = 0, litSame = 0;
-  let numImproved = 0, numDeclined = 0, numSame = 0;
-  let studentsWithGrowthData = 0;
-
-  // Level-wise improvement breakdown (how many moved from each level to a higher one)
-  const litGrowthByLevel: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
-  const numGrowthByLevel: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0 };
-
-  for (const student of studentsWithAssessments) {
-    if (student.assessments.length < 2) continue;
-    studentsWithGrowthData++;
-    const first = student.assessments[0];
-    const last = student.assessments[student.assessments.length - 1];
-
-    if (last.literacyLevel > first.literacyLevel) { litImproved++; litGrowthByLevel[first.literacyLevel]++; }
-    else if (last.literacyLevel < first.literacyLevel) litDeclined++;
-    else litSame++;
-
-    if (last.numeracyLevel > first.numeracyLevel) { numImproved++; numGrowthByLevel[first.numeracyLevel]++; }
-    else if (last.numeracyLevel < first.numeracyLevel) numDeclined++;
-    else numSame++;
+    return result;
   }
 
-  // Latest level distribution (most recent assessment per student)
-  const litDistribution: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
-  const numDistribution: Record<number, number> = { 0: 0, 1: 0, 2: 0, 3: 0 };
-
-  for (const student of studentsWithAssessments) {
-    if (student.assessments.length === 0) continue;
-    const latest = student.assessments[student.assessments.length - 1];
-    if (litDistribution[latest.literacyLevel] !== undefined) litDistribution[latest.literacyLevel]++;
-    if (numDistribution[latest.numeracyLevel] !== undefined) numDistribution[latest.numeracyLevel]++;
+  // Also compute overall (all classes) breakdown
+  const overallLit: Record<string, Record<number, number>> = {};
+  const overallNum: Record<string, Record<number, number>> = {};
+  for (const a of allAssessments) {
+    if (!overallLit[a.term]) overallLit[a.term] = {};
+    overallLit[a.term][a.literacyLevel] = (overallLit[a.term][a.literacyLevel] || 0) + 1;
+    if (!overallNum[a.term]) overallNum[a.term] = {};
+    overallNum[a.term][a.numeracyLevel] = (overallNum[a.term][a.numeracyLevel] || 0) + 1;
   }
+
+  function computeOverallPcts(raw: Record<string, Record<number, number>>) {
+    const result: Record<string, { total: number; levels: Record<number, { count: number; pct: number }> }> = {};
+    for (const term of Object.keys(raw)) {
+      const total = Object.values(raw[term]).reduce((s, v) => s + v, 0);
+      result[term] = {
+        total,
+        levels: Object.fromEntries(
+          Object.entries(raw[term]).map(([lvl, count]) => [
+            lvl,
+            { count, pct: total > 0 ? Math.round((count / total) * 100) : 0 }
+          ])
+        )
+      };
+    }
+    return result;
+  }
+
+  const availableClasses = Object.keys(classLit).map(Number).sort((a, b) => a - b);
 
   return {
     totalStudents,
@@ -190,12 +225,15 @@ export async function getDashboardStats(filters: { divisionId?: string, projectO
     literacies,
     numeracies,
     operations,
-    growth: {
-      studentsWithGrowthData,
-      literacy: { improved: litImproved, declined: litDeclined, same: litSame, byLevel: litGrowthByLevel },
-      numeracy: { improved: numImproved, declined: numDeclined, same: numSame, byLevel: numGrowthByLevel },
+    classBreakdown: {
+      literacy: computePcts(classLit),
+      numeracy: computePcts(classNum),
     },
-    latestDistribution: { literacy: litDistribution, numeracy: numDistribution },
+    overallBreakdown: {
+      literacy: computeOverallPcts(overallLit),
+      numeracy: computeOverallPcts(overallNum),
+    },
+    availableClasses,
   };
 }
 
