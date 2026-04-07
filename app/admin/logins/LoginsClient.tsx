@@ -1,21 +1,24 @@
 "use client";
 import { useState, useTransition } from 'react';
-import { generateSchoolLogins } from '@/app/actions';
-import { Download, Loader2, Users, Zap, School, CheckCircle } from 'lucide-react';
+import { generateSchoolLogins, updateLoginEmail } from '@/app/actions';
+import { Download, Loader2, Users, Zap, School, CheckCircle, Pencil, X, Check } from 'lucide-react';
 
-type Credential = { po: string; school: string; email: string; password: string };
+type Credential = { id: string; po: string; school: string; email: string; password: string };
 
 export default function LoginsClient({ initialCredentials }: { initialCredentials: Credential[] }) {
   const [credentials, setCredentials] = useState(initialCredentials);
   const [isPending, startTransition] = useTransition();
   const [result, setResult] = useState<{ created: number; skipped: number } | null>(null);
   const [search, setSearch] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editEmail, setEditEmail] = useState('');
+  const [editError, setEditError] = useState('');
+  const [savingId, setSavingId] = useState<string | null>(null);
 
   function generate() {
     startTransition(async () => {
       const res = await generateSchoolLogins();
       setResult(res);
-      // Refresh credentials list
       const r = await fetch('/api/admin/credentials');
       if (r.ok) setCredentials(await r.json());
     });
@@ -33,6 +36,32 @@ export default function LoginsClient({ initialCredentials }: { initialCredential
     a.download = `school-logins-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
+  }
+
+  function startEdit(c: Credential) {
+    setEditingId(c.id);
+    setEditEmail(c.email);
+    setEditError('');
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setEditEmail('');
+    setEditError('');
+  }
+
+  async function saveEdit(id: string) {
+    setSavingId(id);
+    setEditError('');
+    const res = await updateLoginEmail(id, editEmail);
+    if (res.error) {
+      setEditError(res.error);
+      setSavingId(null);
+      return;
+    }
+    setCredentials(prev => prev.map(c => c.id === id ? { ...c, email: editEmail.trim().toLowerCase() } : c));
+    setEditingId(null);
+    setSavingId(null);
   }
 
   const filtered = credentials.filter(c =>
@@ -119,20 +148,53 @@ export default function LoginsClient({ initialCredentials }: { initialCredential
             <span className="text-xs text-slate-400 font-semibold">{filtered.length} schools</span>
           </div>
 
-          <div className="grid grid-cols-4 bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs font-semibold uppercase tracking-wider px-6 py-3 border-b border-slate-100 dark:border-slate-800">
+          <div className="grid grid-cols-[1fr_1fr_1.5fr_auto] bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs font-semibold uppercase tracking-wider px-6 py-3 border-b border-slate-100 dark:border-slate-800">
             <span>Project Office</span>
             <span>School Name</span>
             <span>Login Email</span>
-            <span>Password</span>
+            <span />
           </div>
 
           <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[480px] overflow-y-auto">
-            {filtered.map((c, i) => (
-              <div key={i} className="grid grid-cols-4 items-center px-6 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors text-sm">
+            {filtered.map((c) => (
+              <div key={c.id} className="grid grid-cols-[1fr_1fr_1.5fr_auto] items-center px-6 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors text-sm gap-3">
                 <span className="text-slate-500 truncate">{c.po}</span>
                 <span className="font-medium text-slate-800 dark:text-slate-100 truncate">{c.school}</span>
-                <span className="text-blue-600 font-mono text-xs truncate">{c.email}</span>
-                <span className="font-mono text-xs text-slate-400">{c.password}</span>
+
+                {editingId === c.id ? (
+                  <div className="flex flex-col gap-1">
+                    <input
+                      autoFocus
+                      value={editEmail}
+                      onChange={e => { setEditEmail(e.target.value); setEditError(''); }}
+                      onKeyDown={e => { if (e.key === 'Enter') saveEdit(c.id); if (e.key === 'Escape') cancelEdit(); }}
+                      className="font-mono text-xs px-2 py-1 rounded-lg border border-blue-400 outline-none ring-2 ring-blue-200 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 w-full"
+                    />
+                    {editError && <span className="text-red-500 text-xs">{editError}</span>}
+                  </div>
+                ) : (
+                  <span className="text-blue-600 font-mono text-xs truncate">{c.email}</span>
+                )}
+
+                <div className="flex items-center gap-1.5 justify-end">
+                  {editingId === c.id ? (
+                    <>
+                      <button onClick={() => saveEdit(c.id)} disabled={savingId === c.id}
+                        className="p-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition-colors disabled:opacity-50">
+                        {savingId === c.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                      </button>
+                      <button onClick={cancelEdit}
+                        className="p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors">
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </>
+                  ) : (
+                    <button onClick={() => startEdit(c)}
+                      className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors">
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
             {filtered.length === 0 && (

@@ -647,7 +647,7 @@ export async function generateSchoolLogins(): Promise<{ created: number; skipped
   return { created, skipped };
 }
 
-export async function getSchoolCredentials(): Promise<{ school: string; po: string; email: string; password: string }[]> {
+export async function getSchoolCredentials(): Promise<{ id: string; school: string; po: string; email: string; password: string }[]> {
   await requireAdmin();
 
   const users = await (prisma as any).user.findMany({
@@ -657,9 +657,21 @@ export async function getSchoolCredentials(): Promise<{ school: string; po: stri
   });
 
   return users.map((u: any) => ({
+    id: u.id,
     po: u.school?.projectOffice?.name ?? '',
     school: u.school?.name ?? '',
     email: u.email,
     password: 'Pratham@2025',
   }));
+}
+
+export async function updateLoginEmail(userId: string, newEmail: string): Promise<{ error?: string }> {
+  await requireAdmin();
+  const trimmed = newEmail.trim().toLowerCase();
+  if (!trimmed) return { error: 'Email cannot be empty' };
+  const existing = await (prisma as any).user.findUnique({ where: { email: trimmed } });
+  if (existing && existing.id !== userId) return { error: 'Email already in use' };
+  await (prisma as any).user.update({ where: { id: userId }, data: { email: trimmed } });
+  revalidatePath('/admin/logins');
+  return {};
 }

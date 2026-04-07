@@ -15,6 +15,7 @@ export async function GET() {
   });
 
   const result = users.map((u: any) => ({
+    id: u.id,
     po: u.school?.projectOffice?.name ?? '',
     school: u.school?.name ?? '',
     email: u.email,
