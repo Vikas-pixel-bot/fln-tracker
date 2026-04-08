@@ -48,13 +48,13 @@ export async function analyzeDashboardQuery(query: string, context: any) {
       - Fields: filters {classNum: number|null, subject: "literacy"|"numeracy"|"all"|null}, insight (string), recommendation (string), tab ("trends"|"overview"|"ranking"), summary (string).
     `;
 
-    // Attempt model rotation with an expanded list of identifiers
+    // Attempt model rotation with High-Availability "Workhorse" models
     let result;
     const modelOptions = [
       "gemini-2.5-flash", 
-      "models/gemini-2.5-flash",
       "gemini-1.5-flash", 
-      "models/gemini-1.5-flash",
+      "gemini-1.5-flash-8b", // Light and highly available
+      "gemini-1.0-pro",      // Ultra-stable
       "gemini-pro"
     ];
     let lastError = null;
@@ -66,16 +66,16 @@ export async function analyzeDashboardQuery(query: string, context: any) {
         if (result) break;
       } catch (e: any) {
         lastError = e;
-        console.warn(`Model ${modelName} failed:`, e.message);
+        // Quietly skip busy (503) or missing (404) models
         continue;
       }
     }
 
-    if (!result) throw lastError || new Error("All authorized models failed to respond.");
+    if (!result) throw lastError || new Error("Mission Brain is currently over-saturated.");
 
     const text = result.response.text();
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON structure was found in the AI response.");
+    if (!jsonMatch) throw new Error("Could not parse strategist insights.");
     
     return JSON.parse(jsonMatch[0]);
 
@@ -84,18 +84,18 @@ export async function analyzeDashboardQuery(query: string, context: any) {
     console.error("AI FATAL ERROR:", errorMessage);
     
     try {
-      // Survival fallback using simplest possible call
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      // Survival fallback using the most stable model (1.0 pro)
+      const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
       const simpleResult = await model.generateContent("Give a one-sentence strategic insight for an education mission. Response format: { \"insight\": \"...\" }");
       const text = simpleResult.response.text();
       const jsonMatch = text.match(/\{[\s\S]*\}/);
-      return jsonMatch ? JSON.parse(jsonMatch[0]) : { error: true, insight: "Basic strategic guidance is currently limited." };
-    } catch (innerError: any) {
+      return jsonMatch ? JSON.parse(jsonMatch[0]) : { error: true, insight: "Basic strategic guidance is temporarily limited." };
+    } catch {
        return {
           error: true,
-          insight: `DEBUG: ${innerError.message || "Total System Blockage"}`,
-          recommendation: "Please ensure the Generative Language API is enabled for your key and check for quota limits.",
-          summary: "System Block"
+          insight: "I'm currently recalibrating my data sensors due to high demand. Please try a simpler question in a few moments.",
+          recommendation: "Switch manually to the Trends tab for detailed mission growth views.",
+          summary: "Recalibrating"
        };
     }
   }
