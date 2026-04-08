@@ -14,6 +14,19 @@ import {
   SessionStructure,
   SessionActivity
 } from '@/lib/session_content';
+import React from 'react';
+
+interface ClassStats {
+  majorityLevel: number;
+  total: number;
+}
+
+interface BattleContext {
+  p1: any;
+  p2: any;
+  schoolId: string;
+  classNum: number;
+}
 
 // Simulations
 import BundleBuilder from "@/components/simulations/BundleBuilder";
@@ -51,7 +64,7 @@ import NumberRiver from "@/components/games/NumberRiver";
 import ClockReader from "@/components/games/ClockReader";
 import SortingHat from "@/components/games/SortingHat";
 
-const SIM_COMPONENTS: Record<string, any> = {
+const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "bundle-builder": BundleBuilder,
   "number-hunter": NumberHunter,
   "addition-master": AdditionMaster,
@@ -91,7 +104,7 @@ export default function MissionControl() {
   const [classNum, setClassNum] = useState<number | null>(null);
   const [subject, setSubject] = useState<'language' | 'maths' | null>(null);
   const [dayNum, setDayNum] = useState<1 | 2>(1);
-  const [classStats, setClassStats] = useState<any>(null);
+  const [classStats, setClassStats] = useState<ClassStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
   
@@ -101,16 +114,19 @@ export default function MissionControl() {
   const [timeLeft, setTimeLeft] = useState(0); 
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [showMatchmaker, setShowMatchmaker] = useState(false);
-  const [battleContext, setBattleContext] = useState<any>(null);
+  const [battleContext, setBattleContext] = useState<BattleContext | null>(null);
 
   useEffect(() => {
+    let active = true;
     if (classNum) {
       setIsLoadingStats(true);
       getClassStats("mock-school-id", classNum).then(stats => {
+        if (!active) return;
         setClassStats(stats);
         setIsLoadingStats(false);
       });
     }
+    return () => { active = false; };
   }, [classNum]);
 
   // Determine Session Structure
@@ -253,7 +269,7 @@ export default function MissionControl() {
           <div className="flex-1 flex flex-col items-center justify-center space-y-12 py-12">
             <div className="text-center max-w-2xl space-y-4">
               <h2 className="text-5xl font-black text-slate-900 dark:text-white leading-[1.1] tracking-tighter">
-                Initiate Today's 90-Minute Flow
+                Initiate Today&apos;s 90-Minute Flow
               </h2>
               <p className="text-slate-500 text-xl font-medium">
                 Select your class and subject to begin the guided pedagogical sequence.
@@ -527,8 +543,8 @@ export default function MissionControl() {
             </div>
             <h2 className="text-7xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">Mission Accomplished</h2>
             <p className="text-2xl text-slate-500 font-medium mt-6 max-w-2xl mx-auto">
-              You've successfully completed the {subject ? subject.toUpperCase() : 'FLN'} 90-minute session for Class {classNum}. 
-              Today's engagement data has been logged to the dashboard.
+              You&apos;ve successfully completed the {subject ? subject.toUpperCase() : 'FLN'} 90-minute session for Class {classNum}. 
+              Today&apos;s engagement data has been logged to the dashboard.
             </p>
             
             <div className="grid grid-cols-3 gap-8 w-full max-w-4xl mt-20">
@@ -556,8 +572,8 @@ export default function MissionControl() {
   );
 }
 
-function SummaryStat({ label, value, color }: any) {
-  const colors: any = {
+function SummaryStat({ label, value, color }: { label: string, value: string, color: 'blue' | 'orange' | 'emerald' }) {
+  const colors = {
     blue: "text-blue-600",
     orange: "text-orange-500",
     emerald: "text-emerald-500"
