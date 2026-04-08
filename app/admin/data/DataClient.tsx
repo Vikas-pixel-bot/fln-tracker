@@ -389,7 +389,7 @@ export default function DataClient({
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
                   <th className="px-4 py-3">School</th>
-                  <th className="px-4 py-3">UDISE</th>
+                  <th className="px-4 py-3">Project Office</th>
                   <th className="px-4 py-3">Division</th>
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Teacher</th>
@@ -407,7 +407,7 @@ export default function DataClient({
                 {items.map((log: any) => (
                   <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
                     <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{log.school.name}</td>
-                    <td className="px-4 py-3 text-slate-500 font-mono text-xs">{log.school.udiseCode}</td>
+                    <td className="px-4 py-3 text-slate-500 text-xs">{log.school.projectOffice.name}</td>
                     <td className="px-4 py-3 text-slate-500 text-xs">{log.school.projectOffice.division.name}</td>
                     <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
                       {new Date(log.conductedAt).toLocaleDateString("en-IN")}
