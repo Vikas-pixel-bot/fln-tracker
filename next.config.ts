@@ -6,13 +6,6 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
     ],
   },
-  // @ts-ignore
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  // @ts-ignore
-  typescript: {
-    ignoreBuildErrors: true,
   },
   async headers() {
     return [
