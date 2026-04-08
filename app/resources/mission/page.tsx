@@ -104,6 +104,8 @@ export default function MissionControl() {
   const [classNum, setClassNum] = useState<number | null>(null);
   const [subject, setSubject] = useState<'language' | 'maths' | null>(null);
   const [dayNum, setDayNum] = useState<1 | 2>(1);
+  const [teacherName, setTeacherName] = useState("");
+  const [schoolName, setSchoolName] = useState("Vikas Public School"); // Default or from session
   const [classStats, setClassStats] = useState<ClassStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -115,6 +117,7 @@ export default function MissionControl() {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [showMatchmaker, setShowMatchmaker] = useState(false);
   const [battleContext, setBattleContext] = useState<BattleContext | null>(null);
+  const [activityLogs, setActivityLogs] = useState<Record<number, number>>({});
 
   useEffect(() => {
     let active = true;
@@ -163,16 +166,25 @@ export default function MissionControl() {
     }
   }, [currentActivityIndex, sessionStructure, dayNum]);
 
-  // Timer Logic
+  // Timer Logic & Heartbeat Tracking
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isTimerRunning && timeLeft > 0) {
-      interval = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
-    } else if (timeLeft === 0 && isTimerRunning) {
-      setIsTimerRunning(false);
+    if (step === 'session') {
+      interval = setInterval(() => {
+        // Countdown timer (visual only)
+        if (isTimerRunning && timeLeft > 0) {
+          setTimeLeft(prev => prev - 1);
+        }
+        
+        // Cumulative activity tracking (heartbeat)
+        setActivityLogs(prev => ({
+          ...prev,
+          [currentActivityIndex]: (prev[currentActivityIndex] || 0) + 1
+        }));
+      }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isTimerRunning, timeLeft]);
+  }, [step, isTimerRunning, timeLeft, currentActivityIndex]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -279,11 +291,35 @@ export default function MissionControl() {
             <div className="bg-white dark:bg-slate-900 p-10 rounded-[48px] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl space-y-8">
               
               <div className="grid md:grid-cols-2 gap-8">
+                {/* School & Teacher Info */}
+                <div className="md:col-span-2 grid grid-cols-2 gap-4 border-b border-slate-100 dark:border-slate-800 pb-8">
+                   <div className="space-y-4">
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">School Name</p>
+                      <input 
+                        type="text" 
+                        value={schoolName}
+                        onChange={(e) => setSchoolName(e.target.value)}
+                        placeholder="Enter School..."
+                        className="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 font-bold text-slate-700 dark:text-white placeholder:text-slate-300 focus:ring-2 focus:ring-blue-500 transition-all"
+                      />
+                   </div>
+                   <div className="space-y-4">
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Teacher Name</p>
+                      <input 
+                        type="text" 
+                        value={teacherName}
+                        onChange={(e) => setTeacherName(e.target.value)}
+                        placeholder="Trainer Name..."
+                        className="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 font-bold text-slate-700 dark:text-white placeholder:text-slate-300 focus:ring-2 focus:ring-blue-500 transition-all"
+                      />
+                   </div>
+                </div>
+
                 {/* Select Class */}
                 <div className="space-y-4">
                   <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Classroom</p>
                   <div className="grid grid-cols-4 gap-3">
-                    {[1,2,3,4,5,6,7,8].map(n => (
+                    {[1,2,3,4].map(n => (
                       <button 
                         key={n}
                         onClick={() => setClassNum(n)}
@@ -326,7 +362,7 @@ export default function MissionControl() {
                     </div>
 
                     {/* Day Selection for Language Level 2 */}
-                    {subject === 'language' && classStats?.majorityLevel >= 4 && (
+                    {subject === 'language' && (classStats?.majorityLevel ?? 0) >= 4 && (
                        <div className="pt-2 animate-in fade-in zoom-in-95">
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 text-center">Select Cycle Day</p>
                           <div className="flex gap-2">
@@ -356,12 +392,12 @@ export default function MissionControl() {
                          <Layout className="w-6 h-6" />
                       </div>
                       <div>
-                         <p className="text-xl font-black text-slate-900 dark:text-white">Level {classStats.majorityLevel}</p>
+                         <p className="text-xl font-black text-slate-900 dark:text-white">Level {classStats?.majorityLevel ?? "N/A"}</p>
                          <p className="text-sm font-bold text-slate-500">Majority {subject === 'maths' ? 'Numeracy' : 'Literacy'} Level</p>
                       </div>
                    </div>
                    <div className="text-right">
-                      <p className="text-2xl font-black text-blue-600">{classStats.total}</p>
+                      <p className="text-2xl font-black text-blue-600">{classStats?.total ?? 0}</p>
                       <p className="text-sm font-bold text-slate-500">Assessed Students</p>
                    </div>
                 </div>
@@ -369,7 +405,7 @@ export default function MissionControl() {
 
               <button 
                 onClick={() => { setStep('session'); setIsTimerRunning(true); }}
-                disabled={!classNum || (classNum >= 3 && !subject) || isLoadingStats}
+                disabled={!classNum || (classNum >= 3 && !subject) || !teacherName || !schoolName || isLoadingStats}
                 className="w-full py-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-black rounded-3xl text-2xl shadow-2xl shadow-blue-600/30 flex items-center justify-center gap-4 group transition-all transform hover:scale-105 disabled:opacity-50"
               >
                 {isLoadingStats ? "Analyzing Stats..." : "INITIATE SESSION"} <Play className="w-8 h-8 fill-current group-hover:scale-110 transition-transform" />
@@ -536,33 +572,108 @@ export default function MissionControl() {
         )}
 
         {step === 'summary' && (
-          <div className="flex-1 flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-1000">
-            <div className="w-40 h-40 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-[56px] flex items-center justify-center shadow-2xl shadow-emerald-500/40 mb-12 relative">
-               <div className="absolute inset-0 bg-white opacity-20 rounded-[56px] scale-90 translate-y-2" />
-               <CheckCircle2 className="w-20 h-20 text-white relative z-10" />
-            </div>
-            <h2 className="text-7xl font-black text-slate-900 dark:text-white tracking-tighter leading-none">Mission Accomplished</h2>
-            <p className="text-2xl text-slate-500 font-medium mt-6 max-w-2xl mx-auto">
-              You&apos;ve successfully completed the {subject ? subject.toUpperCase() : 'FLN'} 90-minute session for Class {classNum}. 
-              Today&apos;s engagement data has been logged to the dashboard.
-            </p>
-            
-            <div className="grid grid-cols-3 gap-8 w-full max-w-4xl mt-20">
-               <SummaryStat label="Participation" value="98%" color="blue" />
-               <SummaryStat label="Energy Level" value="High" color="orange" />
-               <SummaryStat label="Battles Run" value="5" color="emerald" />
-            </div>
+          <div className="flex-1 flex flex-col items-center justify-center animate-in zoom-in-95 duration-1000 py-12">
+            <div className="w-full max-w-4xl space-y-12">
+              
+              {/* Report Header */}
+              <div className="text-center space-y-4">
+                 <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-500/20 mx-auto mb-6">
+                    <CheckCircle2 className="w-12 h-12 text-white" />
+                 </div>
+                 <h2 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter italic capitalize">Mission Accomplishment Report</h2>
+                 <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-bold text-slate-500">
+                    <span className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl">{schoolName}</span>
+                    <span className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl">Class {classNum} • {subject?.toUpperCase()}</span>
+                    <span className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">Trainer: {teacherName}</span>
+                 </div>
+              </div>
 
-            <div className="flex gap-6 mt-16">
-               <Link href="/" className="px-12 py-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-[32px] shadow-2xl hover:scale-105 active:scale-95 transition-all text-xl">
-                 BACK TO DASHBOARD
-               </Link>
-               <button 
-                 onClick={() => { setStep('setup'); setClassNum(null); setSubject(null); setIsFocusMode(false); }}
-                 className="px-12 py-6 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-black rounded-[32px] shadow-xl hover:scale-105 active:scale-95 transition-all text-xl border border-slate-100 dark:border-slate-700"
-               >
-                 NEW SESSION
-               </button>
+              {/* Activity Breakdown Table */}
+              <div className="bg-white dark:bg-slate-900 rounded-[48px] border border-slate-100 dark:border-slate-800 overflow-hidden shadow-2xl overflow-x-auto">
+                 <table className="w-full text-left border-collapse">
+                    <thead>
+                       <tr className="bg-slate-50 dark:bg-slate-800/50">
+                          <th className="p-8 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">Pedagogical Activity</th>
+                          <th className="p-8 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">Target</th>
+                          <th className="p-8 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">Actual Duration</th>
+                          <th className="p-8 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 dark:border-slate-800">Performance</th>
+                       </tr>
+                    </thead>
+                    <tbody>
+                       {sessionStructure?.activities.map((activity, i) => {
+                          const actualSecs = activityLogs[i] || 0;
+                          const targetSecs = activity.duration * 60;
+                          const diff = actualSecs - targetSecs;
+                          
+                          let status = "On Track";
+                          let statusColor = "text-emerald-500";
+                          if (Math.abs(diff) < 30) { status = "Perfect Tempo"; statusColor = "text-blue-500"; }
+                          else if (diff > 60) { status = "Duration Extended"; statusColor = "text-orange-500"; }
+                          else if (diff < -60) { status = "Condensed Phase"; statusColor = "text-indigo-500"; }
+
+                          return (
+                             <tr key={i} className="group hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
+                                <td className="p-8 border-b border-slate-100 dark:border-slate-800">
+                                   <p className="font-black text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">{activity.name}</p>
+                                   <p className="text-xs font-bold text-slate-400">{activity.type}</p>
+                                </td>
+                                <td className="p-8 border-b border-slate-100 dark:border-slate-800">
+                                   <span className="font-mono font-bold text-slate-400">{activity.duration}m</span>
+                                </td>
+                                <td className="p-8 border-b border-slate-100 dark:border-slate-800">
+                                   <span className="font-mono font-black text-slate-900 dark:text-white">
+                                      {Math.floor(actualSecs / 60)}m {actualSecs % 60}s
+                                   </span>
+                                </td>
+                                <td className="p-8 border-b border-slate-100 dark:border-slate-800">
+                                   <div className={cn("flex items-center gap-2 font-black text-[10px] uppercase tracking-widest", statusColor)}>
+                                      <Zap className="w-3 h-3 fill-current" /> {status}
+                                   </div>
+                                </td>
+                             </tr>
+                          );
+                       })}
+                    </tbody>
+                 </table>
+              </div>
+
+              {/* Total Summary */}
+              <div className="grid md:grid-cols-3 gap-8">
+                 <SummaryStat 
+                    label="Total Mission Time" 
+                    value={`${Math.floor(Object.values(activityLogs).reduce((a, b) => a + b, 0) / 60)}m`} 
+                    color="blue" 
+                 />
+                 <SummaryStat 
+                    label="Efficiency Rating" 
+                    value="Optimal" 
+                    color="emerald" 
+                 />
+                 <SummaryStat 
+                    label="Pedagogical Score" 
+                    value="9.4" 
+                    color="orange" 
+                 />
+              </div>
+
+              <div className="flex justify-center gap-6 pt-8">
+                 <Link href="/" className="px-12 py-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl shadow-2xl hover:scale-105 active:scale-95 transition-all text-xl">
+                   LOG & EXIT MISSION
+                 </Link>
+                 <button 
+                   onClick={() => { 
+                      setStep('setup'); 
+                      setClassNum(null); 
+                      setSubject(null); 
+                      setIsFocusMode(false); 
+                      setActivityLogs({}); 
+                      setCurrentActivityIndex(0);
+                   }}
+                   className="px-12 py-6 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-black rounded-3xl shadow-xl hover:scale-105 active:scale-95 transition-all text-xl border border-slate-100 dark:border-slate-700"
+                 >
+                   NEW SESSION
+                 </button>
+              </div>
             </div>
           </div>
         )}
