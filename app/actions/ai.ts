@@ -45,21 +45,21 @@ export async function analyzeDashboardQuery(query: string, context: any) {
     return JSON.parse(jsonMatch[0]);
 
   } catch (error: any) {
-    console.error("AI HYPER-PRUNE ERROR:", error.message || error);
+    const errorMessage = error.message || "Unknown error";
+    console.error("AI HYPER-PRUNE ERROR:", errorMessage);
     
-    // SURVIVAL CONTEXT FALLBACK: Ask the AI for a general strategy without the heavy context
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const simpleResult = await model.generateContent(`User asked: "${query}" about an FLN mission. Give a general, non-data-specific executive recommendation for this mission in JSON format: { "insight": "Analysis is currently limited due to data scale.", "recommendation": "Focus on teacher training.", "summary": "General Strategy", "filters": null, "tab": "overview" }`);
+      const simpleResult = await model.generateContent(`User asked: "${query}". Respond with a strategic recommendation.`);
       const text = simpleResult.response.text();
       const jsonMatch = text.match(/\{[\s\S]*\}/);
-      return jsonMatch ? JSON.parse(jsonMatch[0]) : { error: true };
-    } catch {
+      return jsonMatch ? JSON.parse(jsonMatch[0]) : { error: true, insight: "Fallback parsing failed." };
+    } catch (innerError: any) {
        return {
           error: true,
-          insight: "I'm currently recalibrating my data sensors. Please try a simpler question.",
+          insight: `DEBUG MODE: ${innerError.message || "Survival fallback failed"}`,
           recommendation: "Switch manually to the Trends tab for detailed growth views.",
-          summary: "Recalibrating"
+          summary: "Error Debug"
        };
     }
   }
