@@ -50,7 +50,7 @@ export async function analyzeDashboardQuery(query: string, context: any) {
 
     // Attempt model rotation to solve 404 errors
     let result;
-    const modelOptions = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro"];
+    const modelOptions = ["gemini-1.5-flash", "gemini-pro"];
     let lastError = null;
 
     for (const modelName of modelOptions) {
@@ -68,7 +68,6 @@ export async function analyzeDashboardQuery(query: string, context: any) {
     if (!result) throw lastError || new Error("All models failed.");
 
     const text = result.response.text();
-    
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error("No JSON found");
     
@@ -79,8 +78,9 @@ export async function analyzeDashboardQuery(query: string, context: any) {
     console.error("AI HYPER-PRUNE ERROR:", errorMessage);
     
     try {
-      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      const simpleResult = await model.generateContent(`User asked: "${query}". Respond with a strategic recommendation.`);
+      // Use the MOST stable model for fallback
+      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+      const simpleResult = await model.generateContent(`User asked: "${query}". Give an executive FLN mission strategy recommendation in JSON format.`);
       const text = simpleResult.response.text();
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       return jsonMatch ? JSON.parse(jsonMatch[0]) : { error: true, insight: "Fallback parsing failed." };
