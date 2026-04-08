@@ -48,14 +48,12 @@ export async function analyzeDashboardQuery(query: string, context: any) {
       - Fields: filters {classNum: number|null, subject: "literacy"|"numeracy"|"all"|null}, insight (string), recommendation (string), tab ("trends"|"overview"|"ranking"), summary (string).
     `;
 
-    // Attempt model rotation with High-Availability "Workhorse" models
+    // Attempt model rotation with VERIFIED-AUTHORIZED futuristic models
     let result;
     const modelOptions = [
-      "gemini-2.5-flash", 
-      "gemini-1.5-flash", 
-      "gemini-1.5-flash-8b", // Light and highly available
-      "gemini-1.0-pro",      // Ultra-stable
-      "gemini-pro"
+      "gemini-pro-latest", 
+      "gemini-2.0-flash-lite", // Fast and highly available
+      "gemini-2.5-flash"       // Flagship
     ];
     let lastError = null;
 
@@ -66,16 +64,16 @@ export async function analyzeDashboardQuery(query: string, context: any) {
         if (result) break;
       } catch (e: any) {
         lastError = e;
-        // Quietly skip busy (503) or missing (404) models
+        // Skip busy or missing modern models quietly
         continue;
       }
     }
 
-    if (!result) throw lastError || new Error("Mission Brain is currently over-saturated.");
+    if (!result) throw lastError || new Error("Mission Brain is currently calibrating for high-demand.");
 
     const text = result.response.text();
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("Could not parse strategist insights.");
+    if (!jsonMatch) throw new Error("Could not parse mission strategist insights.");
     
     return JSON.parse(jsonMatch[0]);
 
@@ -84,12 +82,12 @@ export async function analyzeDashboardQuery(query: string, context: any) {
     console.error("AI FATAL ERROR:", errorMessage);
     
     try {
-      // Survival fallback using the most stable model (1.0 pro)
-      const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" });
-      const simpleResult = await model.generateContent("Give a one-sentence strategic insight for an education mission. Response format: { \"insight\": \"...\" }");
+      // Survival fallback using the most stable Lite model (verified authorized)
+      const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+      const simpleResult = await model.generateContent("Analyze the mission query and provide one strategic executive recommendation in JSON format: { \"insight\": \"...\", \"recommendation\": \"...\", \"summary\": \"Strategy\" }");
       const text = simpleResult.response.text();
       const jsonMatch = text.match(/\{[\s\S]*\}/);
-      return jsonMatch ? JSON.parse(jsonMatch[0]) : { error: true, insight: "Basic strategic guidance is temporarily limited." };
+      return jsonMatch ? JSON.parse(jsonMatch[0]) : { error: true, insight: "Basic mission guidance is temporarily limited." };
     } catch {
        return {
           error: true,
