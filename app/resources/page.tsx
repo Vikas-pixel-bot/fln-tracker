@@ -108,7 +108,8 @@ interface BattleContext {
 
 // --- Sub-component: Mission Control (Integrated Version) ---
 function MissionControl() {
-  const { data: session } = useSession();
+  const sessionResult = useSession();
+  const session = sessionResult?.data;
   const [step, setStep] = useState<'setup' | 'session' | 'summary'>('setup');
   const [classNum, setClassNum] = useState<number | null>(null);
   const [subject, setSubject] = useState<'language' | 'maths' | null>(null);
