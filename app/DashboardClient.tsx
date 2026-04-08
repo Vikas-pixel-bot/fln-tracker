@@ -33,8 +33,9 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
   const [velocity, setVelocity] = useState<any>(null);
   const [plan, setPlan] = useState<any>(null);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
-  const [aiInsight, setAiInsight] = useState<{ insight: string; recommendation?: string } | null>(null);
+  const [aiInsight, setAiInsight] = useState<{ insight: string; recommendation?: string; summary?: string } | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isBotOpen, setIsBotOpen] = useState(false);
 
   // AI Smart Filter Logic
   const handleQuery = (val: string) => {
@@ -175,88 +176,6 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
   return (
     <div className="w-full space-y-8 animate-in fade-in duration-700">
 
-      <form 
-        onSubmit={async (e) => {
-          e.preventDefault();
-          if (!query.trim()) return;
-          
-          setIsAnalyzing(true);
-          setAiInsight(null);
-          
-          try {
-            const result = await analyzeDashboardQuery(query, stats);
-            if (result.filters) {
-              if (result.filters.classNum) setSelectedClass(result.filters.classNum);
-              if (result.filters.subject === 'literacy') setTrendType('literacy');
-              if (result.filters.subject === 'numeracy') setTrendType('numeracy');
-              if (result.tab) setActiveTab(result.tab);
-            }
-            setAiInsight({ 
-              insight: result.insight || "I couldn't find a specific insight for that query.",
-              recommendation: result.recommendation 
-            });
-          } catch (err) {
-            console.error(err);
-          } finally {
-            setIsAnalyzing(false);
-          }
-        }}
-        className="relative group max-w-4xl mx-auto mb-10"
-      >
-        <div className="absolute inset-0 bg-blue-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
-        <div className="relative flex items-center gap-4 bg-white dark:bg-slate-900 p-2 pl-6 rounded-[32px] shadow-2xl border border-slate-200 dark:border-slate-800 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-          <BrainCircuit className="w-6 h-6 text-blue-500 animate-pulse" />
-          <input 
-            type="text" 
-            placeholder="Ask your data: 'Why is class 3 literacy lagging?' or 'Summarize endline progress'"
-            className="flex-1 bg-transparent border-none focus:ring-0 text-slate-700 dark:text-slate-200 font-medium py-3 outline-none"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <button 
-            type="submit"
-            disabled={isAnalyzing}
-            className="bg-slate-900 dark:bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all disabled:opacity-50"
-          >
-            {isAnalyzing ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Analyzing
-              </div>
-            ) : (
-              <><Search className="w-4 h-4" /> Analyze</>
-            )}
-          </button>
-        </div>
-
-        {/* AI INSIGHT BUBBLE */}
-        {aiInsight && (
-          <div className="mt-4 animate-in slide-in-from-top-2 fade-in duration-500">
-             <div className="bg-blue-600 rounded-[32px] p-6 shadow-xl shadow-blue-500/20 text-white relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
-                <div className="flex gap-4 items-start relative z-10">
-                   <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
-                      <Lightbulb className="w-5 h-5 text-yellow-300" />
-                   </div>
-                   <div className="space-y-2">
-                      <p className="font-bold leading-relaxed">{aiInsight.insight}</p>
-                      {aiInsight.recommendation && (
-                        <div className="flex gap-2 items-center bg-black/10 w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10">
-                           <TrendingUp className="w-3 h-3" /> {aiInsight.recommendation}
-                        </div>
-                      )}
-                   </div>
-                </div>
-             </div>
-          </div>
-        )}
-
-        <div className="flex gap-4 px-6 mt-3 text-[10px] font-bold text-slate-500 lowercase tracking-widest">
-           <span>Suggested: "Compare Baseline vs Endline"</span>
-           <span>"How is Class 5 doing?"</span>
-           <span>"Explain growth in subtraction"</span>
-        </div>
-      </form>
 
       {/* Filters */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-3 items-center">
@@ -563,6 +482,140 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
            </div>
         </div>
       )}
+      {/* FLOATING MISSION ASSISTANT (THE BRAIN) */}
+      <div className="fixed bottom-8 right-8 z-[100] flex flex-col items-end">
+        {/* Chat Panel */}
+        {isBotOpen && (
+          <div className="mb-4 w-[380px] md:w-[450px] bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-500 group text-left">
+             {/* Header */}
+             <div className="bg-slate-900 p-6 flex justify-between items-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 blur-3xl -mr-16 -mt-16" />
+                <div className="flex items-center gap-3 relative z-10">
+                   <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                      <BrainCircuit className="w-6 h-6 text-white" />
+                   </div>
+                   <div>
+                      <h4 className="text-white font-black tracking-tight">Mission Assistant</h4>
+                      <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest">Accessing Global Context</p>
+                   </div>
+                </div>
+                <button onClick={() => setIsBotOpen(false)} className="text-slate-400 hover:text-white transition-colors">
+                   <AlertCircle className="w-6 h-6 rotate-45" />
+                </button>
+             </div>
+
+             {/* Content Area */}
+             <div className="p-6 space-y-6 max-h-[500px] overflow-y-auto">
+                {aiInsight ? (
+                  <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
+                     <div className="flex gap-2 items-center">
+                        <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 text-[10px] font-black rounded-full uppercase tracking-widest border border-blue-100 dark:border-blue-800">
+                           {aiInsight.summary || "Executive Insight"}
+                        </span>
+                     </div>
+                     <p className="text-slate-700 dark:text-slate-200 font-bold leading-relaxed">{aiInsight.insight}</p>
+                     
+                     {aiInsight.recommendation && (
+                        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-slate-100 dark:border-slate-800 flex gap-3 items-start">
+                           <Lightbulb className="w-5 h-5 text-yellow-500 shrink-0 mt-1" />
+                           <div>
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Strategist's Recommendation</p>
+                              <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{aiInsight.recommendation}</p>
+                           </div>
+                        </div>
+                     )}
+
+                     <button onClick={() => setAiInsight(null)} className="w-full py-3 text-xs font-black text-blue-600 uppercase tracking-widest hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-2xl transition-all">
+                        Ask another question
+                     </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4 py-4 text-center">
+                     <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-[24px] flex items-center justify-center mx-auto mb-4 border border-slate-100 dark:border-slate-800">
+                        <Sparkles className="w-8 h-8 text-blue-500 animate-pulse" />
+                     </div>
+                     <p className="text-slate-600 dark:text-slate-400 font-medium px-4">Hello! I am "The Brain". I have access to all Mission data including rankings, struggling students, and regional performance. How can I assist today?</p>
+                     
+                     <div className="grid grid-cols-1 gap-2 pt-4">
+                        {[
+                          "Compare Baseline vs Endline results",
+                          "Which PO is the top performer?",
+                          "Summarize status of struggling students",
+                          "How is Class 3 literacy moving?"
+                        ].map(q => (
+                          <button key={q} onClick={() => { setQuery(q); }} className="text-left px-4 py-3 bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl text-[11px] font-bold text-slate-500 hover:text-blue-600 transition-all border border-slate-100 dark:border-slate-800">
+                             {q}
+                          </button>
+                        ))}
+                     </div>
+                  </div>
+                )}
+             </div>
+
+             {/* Input Area */}
+             <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
+                <form 
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!query.trim()) return;
+                    setIsAnalyzing(true);
+                    try {
+                      const result = await analyzeDashboardQuery(query, {
+                        stats,
+                        hierarchy,
+                        rankings,
+                        struggling,
+                        velocity
+                      });
+                      if (result.filters) {
+                         if (result.filters.classNum) setSelectedClass(result.filters.classNum);
+                         if (result.filters.subject === 'literacy') setTrendType('literacy');
+                         if (result.filters.subject === 'numeracy') setTrendType('numeracy');
+                         if (result.tab) setActiveTab(result.tab);
+                      }
+                      setAiInsight(result);
+                    } catch (err) {
+                      console.error(err);
+                    } finally {
+                      setIsAnalyzing(false);
+                    }
+                  }}
+                  className="relative flex items-center"
+                >
+                   <input 
+                      type="text"
+                      className="w-full bg-white dark:bg-slate-900 rounded-2xl px-5 py-3.5 pr-14 text-sm font-medium border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-blue-500 shadow-sm outline-none"
+                      placeholder="Ask the Mission Brain..."
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                   />
+                   <button 
+                     type="submit" 
+                     disabled={isAnalyzing}
+                     className="absolute right-2 p-2 bg-blue-600 text-white rounded-xl shadow-lg hover:scale-110 active:scale-95 transition-all disabled:opacity-50"
+                   >
+                      {isAnalyzing ? (
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      ) : (
+                        <Search className="w-5 h-5" />
+                      )}
+                   </button>
+                </form>
+             </div>
+          </div>
+        )}
+
+        {/* FAB Button */}
+        <button 
+          onClick={() => setIsBotOpen(!isBotOpen)}
+          className={`group flex items-center gap-3 p-4 rounded-[32px] shadow-2xl transition-all hover:scale-105 active:scale-95 ${isBotOpen ? 'bg-slate-900 dark:bg-slate-800 scale-90' : 'bg-blue-600 hover:bg-blue-700'}`}
+        >
+           {!isBotOpen && <span className="text-white text-sm font-black uppercase tracking-widest pl-2 hidden md:inline">Ask Mission Brain</span>}
+           <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-transform duration-500 ${isBotOpen ? 'rotate-90 bg-white/10' : 'bg-white shadow-xl'}`}>
+              <BrainCircuit className={`w-6 h-6 ${isBotOpen ? 'text-white' : 'text-blue-600'}`} />
+           </div>
+        </button>
+      </div>
 
     </div>
   );

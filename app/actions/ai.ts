@@ -4,46 +4,41 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || "");
 
-export async function analyzeDashboardQuery(query: string, stats: any) {
+export async function analyzeDashboardQuery(query: string, context: any) {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    // Clean up stats for the prompt to save tokens and focus on key data
-    const context = {
-      totalStudents: stats.totalStudents,
-      totalAssessments: stats.totalAssessments,
-      totalSchools: stats.totalSchools,
-      overallLiteracy: stats.overallBreakdown?.literacy,
-      overallNumeracy: stats.overallBreakdown?.numeracy,
-      operations: stats.operations,
-      availableClasses: stats.availableClasses
-    };
-
     const prompt = `
-      You are an AI Data Analyst for the FLN (Foundational Literacy and Numeracy) Progress Tracker.
-      You are helping administrators understand student performance data.
+      You are "The Brain" — the FLN Mission Strategist AI. 
+      You have access to the COMPLETE organizational data for the Foundational Literacy and Numeracy mission.
 
-      DATA CONTEXT:
-      ${JSON.stringify(context, null, 2)}
+      MISSION CONTEXT:
+      - Hierarchy: ${JSON.stringify(context.hierarchy?.map((d: any) => ({ name: d.name, pos: d.projectOffices.map((p: any) => p.name) })), null, 2)}
+      - Current Filtered Stats: ${JSON.stringify(context.stats, null, 2)}
+      - Regional Rankings: ${JSON.stringify(context.rankings, null, 2)}
+      - Struggling Students Sample: ${JSON.stringify(context.struggling?.slice(0, 10), null, 2)}
+      - Growth Velocity: ${JSON.stringify(context.velocity, null, 2)}
 
       USER QUERY:
       "${query}"
 
       INSTRUCTIONS:
-      1. Analyze the query against the provided data.
+      1. Analyze the query using ALL provided context. Cross-reference data (e.g., if asked about a school, check its PO rank).
       2. Respond in a JSON format ONLY.
       3. The JSON must contain:
          - "filters": object containing any identified filters (classNum: number, subject: "literacy"|"numeracy"|"all").
-         - "insight": A concise, executive summary of what the data shows for this query (1-2 sentences).
-         - "recommendation": A brief actionable step based on the data.
-         - "tab": "trends" or "overview" (whichever is more relevant).
+         - "insight": A detailed, professional analysis (2-3 sentences).
+         - "recommendation": A specific actionable strategy for the mission (1 sentence).
+         - "tab": "trends", "overview", or "ranking".
+         - "summary": A very short 3-5 word executive title for this response.
 
       Example Response:
       {
         "filters": { "classNum": 3, "subject": "literacy" },
         "insight": "Class 3 literacy has improved significantly, with 45% of students now at Story level compared to only 10% during Baseline.",
         "recommendation": "Maintain the current emphasis on phonics training for Class 3 teachers.",
-        "tab": "trends"
+        "tab": "trends",
+        "summary": "Class 3 Growth Success"
       }
 
       Deliver the JSON response now.
