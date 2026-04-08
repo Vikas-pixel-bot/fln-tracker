@@ -798,6 +798,57 @@ export async function getInterventionPlan(students: any[]) {
   };
 }
 
+export async function getPORankings(divisionId?: string) {
+  const where: any = {};
+  if (divisionId) where.divisionId = divisionId;
+
+  const pos = await prisma.projectOffice.findMany({
+    where,
+    include: {
+      schools: {
+        include: {
+          students: {
+            include: {
+              assessments: {
+                orderBy: { date: 'desc' },
+                take: 1
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+
+  const rankings = pos.map(po => {
+    let totalAssessed = 0;
+    let storyReaders = 0;
+    let subtractionMasters = 0;
+
+    po.schools.forEach(school => {
+      school.students.forEach(student => {
+        const latest = student.assessments[0];
+        if (latest) {
+          totalAssessed++;
+          if (latest.literacyLevel === 4) storyReaders++;
+          if (latest.subtraction) subtractionMasters++;
+        }
+      });
+    });
+
+    return {
+      id: po.id,
+      name: po.name,
+      totalAssessed,
+      storyPct: totalAssessed > 0 ? Math.round((storyReaders / totalAssessed) * 100) : 0,
+      subtractionPct: totalAssessed > 0 ? Math.round((subtractionMasters / totalAssessed) * 100) : 0,
+      score: totalAssessed > 0 ? Math.round(((storyReaders + subtractionMasters) / (totalAssessed * 2)) * 100) : 0
+    };
+  });
+
+  return rankings.sort((a, b) => b.score - a.score);
+}
+
 export async function getClassStats(schoolId: string, classNum: number) {
   const students = await prisma.student.findMany({
     where: { schoolId, class: classNum },

@@ -5,8 +5,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend, Cell
 } from 'recharts';
-import { BookOpen, Calculator, Users, School, Filter, TrendingUp, LayoutDashboard, Search, Sparkles, AlertCircle, TrendingDown } from 'lucide-react';
-import { getDashboardStats, getStrugglingStudents, getGrowthVelocity, getInterventionPlan } from "@/app/actions";
+import { BookOpen, Calculator, Users, School, Filter, TrendingUp, LayoutDashboard, Search, Sparkles, AlertCircle, TrendingDown, Trophy, Medal } from 'lucide-react';
+import { getDashboardStats, getStrugglingStudents, getGrowthVelocity, getInterventionPlan, getPORankings } from "@/app/actions";
 
 const LIT_LABELS = ['Beginner', 'Letter', 'Word', 'Paragraph', 'Story'];
 const NUM_LABELS = ['Beginner', '1-9', '10-99', '100-999'];
@@ -22,8 +22,9 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
   const [poId, setPoId] = useState("");
   const [schoolId, setSchoolId] = useState("");
   const [term, setTerm] = useState("");
-  const [activeTab, setActiveTab] = useState<'overview' | 'trends'>('trends');
+  const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'ranking'>('trends');
   const [selectedClass, setSelectedClass] = useState<number | 'all'>('all');
+  const [rankings, setRankings] = useState<any[]>([]);
   const [trendType, setTrendType] = useState<'literacy' | 'numeracy'>('literacy');
   const [showPct, setShowPct] = useState(true);
   const [query, setQuery] = useState("");
@@ -67,6 +68,9 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
         const s = await getStrugglingStudents(schoolId);
         setStruggling(s);
       }
+
+      const r = await getPORankings(divId || undefined);
+      setRankings(r);
     });
   }, [divId, poId, schoolId, term]);
 
@@ -309,6 +313,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
         {([
           ['trends', 'Level Trends', TrendingUp],
           ['overview', 'Term Overview', LayoutDashboard],
+          ['ranking', 'P.O. Ranking', Trophy],
         ] as const).map(([id, label, Icon]) => (
           <button key={id} onClick={() => setActiveTab(id as any)}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all ${activeTab === id ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
@@ -409,6 +414,90 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
             <BarCard title={`Numeracy Levels by Term (${showPct ? '%' : '#'})`} icon="🔢" data={formatTermData(stats.numeracies, 'num', showPct)} percentage={showPct} />
             <BarCard title={`Operations Mastery by Term (${showPct ? '%' : '#'})`} icon="➕" data={formatOpsData(stats.operations, showPct)} percentage={showPct} />
           </div>
+        </div>
+      )}
+
+      {/* TAB: RANKING */}
+      {activeTab === 'ranking' && (
+        <div className={`space-y-6 animate-in slide-in-from-bottom-4 duration-500 ${isPending ? 'opacity-50' : ''}`}>
+           <div className="bg-white dark:bg-slate-900 rounded-[48px] p-10 border border-slate-100 dark:border-slate-800 shadow-2xl">
+              <div className="flex items-center justify-between mb-10">
+                 <div>
+                    <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+                       <Trophy className="w-8 h-8 text-yellow-500" /> Project Office Leaderboard
+                    </h2>
+                    <p className="text-slate-500 font-medium mt-1">Ranking based on student story reading and subtraction mastery rates.</p>
+                 </div>
+                 <div className="hidden md:flex gap-2">
+                    <div className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-[10px] font-black text-blue-600 uppercase tracking-widest border border-blue-100 dark:border-blue-800">
+                       Top Performer: {rankings[0]?.name || "N/A"}
+                    </div>
+                 </div>
+              </div>
+
+              <div className="space-y-4">
+                 {rankings.map((po, index) => (
+                    <div key={po.id} className="group relative bg-slate-50 dark:bg-slate-800/40 hover:bg-white dark:hover:bg-slate-800 rounded-[32px] p-6 border border-slate-100 dark:border-slate-800 transition-all hover:shadow-xl hover:-translate-y-1">
+                       <div className="flex flex-col md:flex-row items-center gap-8">
+                          {/* Rank */}
+                          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-800">
+                             {index === 0 && <Medal className="w-8 h-8 text-yellow-500" />}
+                             {index === 1 && <Medal className="w-8 h-8 text-slate-400" />}
+                             {index === 2 && <Medal className="w-8 h-8 text-orange-400" />}
+                             {index > 2 && <span className="text-xl font-black text-slate-300">#{index + 1}</span>}
+                          </div>
+
+                          <div className="flex-1 space-y-4">
+                             <div className="flex items-center justify-between">
+                                <h3 className="text-xl font-black text-slate-800 dark:text-white">{po.name}</h3>
+                                <div className="text-right">
+                                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Efficiency Score</p>
+                                   <p className="text-2xl font-black text-blue-600">{po.score}%</p>
+                                </div>
+                             </div>
+
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Story Progress */}
+                                <div className="space-y-2">
+                                   <div className="flex justify-between text-[11px] font-bold">
+                                      <span className="text-slate-500 uppercase tracking-wider">Story Reading</span>
+                                      <span className="text-slate-800 dark:text-slate-200">{po.storyPct}%</span>
+                                   </div>
+                                   <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                      <div className="h-full bg-blue-500 transition-all duration-1000" style={{ width: `${po.storyPct}%` }} />
+                                   </div>
+                                </div>
+                                {/* Subtraction Progress */}
+                                <div className="space-y-2">
+                                   <div className="flex justify-between text-[11px] font-bold">
+                                      <span className="text-slate-500 uppercase tracking-wider">Subtraction Mastery</span>
+                                      <span className="text-slate-800 dark:text-slate-200">{po.subtractionPct}%</span>
+                                   </div>
+                                   <div className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                      <div className="h-full bg-emerald-500 transition-all duration-1000" style={{ width: `${po.subtractionPct}%` }} />
+                                   </div>
+                                </div>
+                             </div>
+                          </div>
+
+                          <div className="shrink-0 text-center px-6 border-l border-slate-100 dark:border-slate-800 hidden lg:block">
+                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Assessed</p>
+                             <p className="text-xl font-black text-slate-800 dark:text-slate-100">{po.totalAssessed}</p>
+                          </div>
+                       </div>
+                    </div>
+                 ))}
+
+                 {rankings.length === 0 && (
+                    <div className="py-20 text-center space-y-4">
+                       <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto">
+                          <AlertCircle className="w-10 h-10 text-slate-300" />
+                       </div>
+                       <p className="text-slate-400 font-bold">No ranking data available for selected filters.</p>
+                    </div>
+                 )}
+              </div>
+           </div>
         </div>
       )}
 
