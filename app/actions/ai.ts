@@ -48,9 +48,15 @@ export async function analyzeDashboardQuery(query: string, context: any) {
       - Fields: filters {classNum: number|null, subject: "literacy"|"numeracy"|"all"|null}, insight (string), recommendation (string), tab ("trends"|"overview"|"ranking"), summary (string).
     `;
 
-    // Attempt model rotation with verified-to-exist modern models
+    // Attempt model rotation with an expanded list of identifiers
     let result;
-    const modelOptions = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-pro"];
+    const modelOptions = [
+      "gemini-2.5-flash", 
+      "models/gemini-2.5-flash",
+      "gemini-1.5-flash", 
+      "models/gemini-1.5-flash",
+      "gemini-pro"
+    ];
     let lastError = null;
 
     for (const modelName of modelOptions) {
@@ -60,16 +66,16 @@ export async function analyzeDashboardQuery(query: string, context: any) {
         if (result) break;
       } catch (e: any) {
         lastError = e;
-        console.warn(`Model ${modelName} failed, trying next...`);
+        console.warn(`Model ${modelName} failed:`, e.message);
         continue;
       }
     }
 
-    if (!result) throw lastError || new Error("All models failed.");
+    if (!result) throw lastError || new Error("All authorized models failed to respond.");
 
     const text = result.response.text();
     const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error("No JSON found");
+    if (!jsonMatch) throw new Error("No JSON structure was found in the AI response.");
     
     return JSON.parse(jsonMatch[0]);
 
@@ -78,18 +84,18 @@ export async function analyzeDashboardQuery(query: string, context: any) {
     console.error("AI FATAL ERROR:", errorMessage);
     
     try {
-      // Survival fallback using most stable rotation
+      // Survival fallback using simplest possible call
       const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-      const simpleResult = await model.generateContent(`User asked: "${query}". Respond with a strategic mission recommendation (JSON only).`);
+      const simpleResult = await model.generateContent("Give a one-sentence strategic insight for an education mission. Response format: { \"insight\": \"...\" }");
       const text = simpleResult.response.text();
       const jsonMatch = text.match(/\{[\s\S]*\}/);
-      return jsonMatch ? JSON.parse(jsonMatch[0]) : { error: true, insight: "Analysis is currently limited." };
-    } catch {
+      return jsonMatch ? JSON.parse(jsonMatch[0]) : { error: true, insight: "Basic strategic guidance is currently limited." };
+    } catch (innerError: any) {
        return {
           error: true,
-          insight: "I'm currently recalibrating my data sensors. Please try a simpler question.",
-          recommendation: "Switch manually to the Trends tab for detailed growth views.",
-          summary: "Recalibrating"
+          insight: `DEBUG: ${innerError.message || "Total System Blockage"}`,
+          recommendation: "Please ensure the Generative Language API is enabled for your key and check for quota limits.",
+          summary: "System Block"
        };
     }
   }
