@@ -136,7 +136,7 @@ export default function SimulationsPage() {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3">
             <Link href="/resources" className="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white transition-colors">
-              <ArrowLeft className="w-3 h-3" /> Back to Training Hub
+              <ArrowLeft className="w-3 h-3" /> Back to Implementation Corner
             </Link>
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/40">

@@ -33,10 +33,10 @@ export default function LandingPage() {
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/resources/mission"
+                href="/resources"
                 className="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white bg-indigo-600 rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 transition-all hover:-translate-y-1 active:translate-y-0"
               >
-                Mission Control <ClipboardPlus className="ml-2 w-5 h-5" />
+                Implementation Corner <ClipboardPlus className="ml-2 w-5 h-5" />
               </Link>
               <Link
                 href="/dashboard"

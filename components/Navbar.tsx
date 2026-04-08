@@ -21,10 +21,7 @@ export default async function Navbar() {
                 Dashboards
               </Link>
               <Link href="/resources" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors gap-2">
-                <GraduationCap className="w-4 h-4" /> Training Hub
-              </Link>
-              <Link href="/resources/mission" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors gap-2">
-                <ClipboardPlus className="w-4 h-4" /> Mission Flow
+                <GraduationCap className="w-4 h-4" /> Implementation Corner
               </Link>
             </div>
           </div>
