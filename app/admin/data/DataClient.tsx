@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateAssessment, deleteAssessment, clearAllAssessments, clearAllData, cleanupSchools } from "@/app/actions";
 import { Trash2, Pencil, X, Check, AlertTriangle, Filter, ShieldCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const LIT_LABELS = ["Beginner", "Letter", "Word", "Paragraph", "Story"];
 const NUM_LABELS = ["Beginner", "1–9", "10–99", "100–999"];
