@@ -173,7 +173,13 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
     <div className="w-full space-y-8 animate-in fade-in duration-700">
 
       {/* AI SMART BAR */}
-      <div className="relative group max-w-4xl mx-auto mb-10">
+      <form 
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleQuery(query);
+        }}
+        className="relative group max-w-4xl mx-auto mb-10"
+      >
         <div className="absolute inset-0 bg-blue-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
         <div className="relative flex items-center gap-4 bg-white dark:bg-slate-900 p-2 pl-6 rounded-[32px] shadow-2xl border border-slate-200 dark:border-slate-800 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
           <Sparkles className="w-6 h-6 text-blue-500 animate-pulse" />
@@ -184,7 +190,10 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
             value={query}
             onChange={(e) => handleQuery(e.target.value)}
           />
-          <button className="bg-slate-900 dark:bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all">
+          <button 
+            type="submit"
+            className="bg-slate-900 dark:bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
+          >
             <Search className="w-4 h-4" /> Analyze
           </button>
         </div>
@@ -193,7 +202,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
            <span>"Show struggling students"</span>
            <span>"Growth overview"</span>
         </div>
-      </div>
+      </form>
 
       {/* Filters */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 flex flex-col md:flex-row gap-3 items-center">
