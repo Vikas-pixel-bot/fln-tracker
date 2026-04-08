@@ -81,22 +81,41 @@ export async function analyzeDashboardQuery(query: string, context: any) {
     const errorMessage = error.message || "Unknown error";
     console.error("AI FALLBACK TRIGGERED:", errorMessage);
     
-    // ZERO-FAILURE LOCAL INTELLIGENCE
-    // If external models are busy or 404, we generate a high-quality local analysis
-    const lit = context.stats.overallBreakdown.literacy || 0;
-    const num = context.stats.overallBreakdown.numeracy || 0;
+    // ZERO-FAILURE LOCAL INTELLIGENCE with robust data extraction
+    const breakdown = context.stats.overallBreakdown || {};
+    
+    // Function to calculate headline % (highest 2 levels) for the latest available term
+    const getHeadlinePct = (data: any) => {
+      if (!data) return 0;
+      const terms = ["Endline", "Midline", "Baseline"];
+      for (const term of terms) {
+        const termData = data[term];
+        if (termData?.levels) {
+          const levels = termData.levels;
+          const count = Object.keys(levels).length;
+          // Sum pct of top 2 levels
+          const p1 = levels[count - 1]?.pct || 0;
+          const p2 = levels[count - 2]?.pct || 0;
+          return p1 + p2;
+        }
+      }
+      return 0;
+    };
+
+    const litPct = getHeadlinePct(breakdown.literacy);
+    const numPct = getHeadlinePct(breakdown.numeracy);
     const lowPo = context.rankings?.slice(-1)[0]?.name || "selected clusters";
     
-    let localInsight = `Mission data indicates an overall literacy level of ${Math.round(lit)}% and numeracy at ${Math.round(num)}%. `;
-    if (lit < 50) localInsight += "Language acquisition metrics are significantly below mission targets. ";
-    else localInsight += "Literacy growth is showing positive momentum. ";
+    let localInsight = `Mission analysis shows that ${Math.round(litPct)}% of students are reaching proficiency in literacy, while numeracy proficiency stands at ${Math.round(numPct)}%. `;
+    if (litPct < 50) localInsight += "Language acquisition targets are currently the primary mission bottleneck. ";
+    else localInsight += "Foundational literacy is showing strong upward momentum. ";
     
     return {
-      error: false, // Return as success because we have a valid heuristic insight
+      error: false, 
       insight: localInsight,
-      recommendation: `Prioritize foundational TaRL interventions in ${lowPo}. Focus specifically on ${lit < num ? 'reading' : 'mental math'} simulations to bridge the current performance gap.`,
-      tab: lit < 50 ? "overview" : "trends",
-      summary: "Local Strategist Analysis"
+      recommendation: `Targeted interventions should be prioritized in ${lowPo}. I recommend high-intensity ${litPct < numPct ? 'Story-reading' : 'Number recognition'} drills to accelerate growth towards mission parity.`,
+      tab: litPct < 50 ? "overview" : "trends",
+      summary: "Mission Strategist Fallback"
     };
   }
 }
