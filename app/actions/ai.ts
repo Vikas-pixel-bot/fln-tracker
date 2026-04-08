@@ -5,6 +5,18 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || "");
 
 export async function analyzeDashboardQuery(query: string, context: any) {
+  const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  
+  if (!apiKey) {
+    return {
+      error: true,
+      insight: "CRITICAL ERROR: AI API Key is missing from the server environment. 'The Brain' is currently disconnected.",
+      recommendation: "Please add 'GOOGLE_GENERATIVE_AI_API_KEY' to your hosting environment variables (e.g., Vercel Dashboard) and redeploy.",
+      summary: "Key Missing",
+      tab: "overview"
+    };
+  }
+
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
