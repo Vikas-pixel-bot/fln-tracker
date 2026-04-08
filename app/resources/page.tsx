@@ -9,6 +9,7 @@ import {
   Maximize2, Minimize2 
 } from "lucide-react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import { VIDEOS, ARTICLES, SIMULATIONS, Resource } from "@/lib/resource_data";
 import { cn } from "@/lib/utils";
 import { getMatchCandidates, getClassStats } from '@/app/actions';
@@ -106,12 +107,13 @@ interface BattleContext {
 
 // --- Sub-component: Mission Control (Integrated Version) ---
 function MissionControl() {
+  const { data: session } = useSession();
   const [step, setStep] = useState<'setup' | 'session' | 'summary'>('setup');
   const [classNum, setClassNum] = useState<number | null>(null);
   const [subject, setSubject] = useState<'language' | 'maths' | null>(null);
   const [dayNum, setDayNum] = useState<1 | 2>(1);
   const [teacherName, setTeacherName] = useState("");
-  const [schoolName, setSchoolName] = useState("Vikas Public School");
+  const [schoolName, setSchoolName] = useState("");
   const [classStats, setClassStats] = useState<ClassStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -122,6 +124,19 @@ function MissionControl() {
   const [showMatchmaker, setShowMatchmaker] = useState(false);
   const [battleContext, setBattleContext] = useState<BattleContext | null>(null);
   const [activityLogs, setActivityLogs] = useState<Record<number, number>>({});
+
+  useEffect(() => {
+    if (session?.user) {
+      if ((session.user as any).schoolName) {
+        setSchoolName((session.user as any).schoolName);
+      } else if (session.user.schoolId) {
+        setSchoolName(`School ID: ${session.user.schoolId}`);
+      }
+      if (session.user.name) {
+        setTeacherName(session.user.name);
+      }
+    }
+  }, [session]);
 
   useEffect(() => {
     let active = true;
@@ -266,7 +281,13 @@ function MissionControl() {
                 <div className="md:col-span-2 grid grid-cols-2 gap-4 border-b border-slate-100 dark:border-slate-800 pb-8">
                    <div className="space-y-4">
                       <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">School Name</p>
-                      <input type="text" value={schoolName} onChange={(e) => setSchoolName(e.target.value)} className="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all" />
+                      <input 
+                        type="text" 
+                        value={schoolName} 
+                        readOnly
+                        placeholder="Loading school..."
+                        className="w-full h-14 bg-slate-100 dark:bg-slate-800/50 border-none rounded-2xl px-6 font-bold text-slate-500 dark:text-slate-400 cursor-not-allowed" 
+                      />
                    </div>
                    <div className="space-y-4">
                       <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Teacher Name</p>

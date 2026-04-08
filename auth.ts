@@ -46,11 +46,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (token.id) {
         const fresh = await (prisma as any).user.findUnique({
           where: { id: token.id as string },
-          select: { role: true, schoolId: true },
+          select: { role: true, schoolId: true, school: { select: { name: true } } },
         });
         if (fresh) {
           token.role = fresh.role;
           token.schoolId = fresh.schoolId ?? null;
+          token.schoolName = (fresh as any).school?.name ?? null;
         }
       }
       return token;
@@ -58,6 +59,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }) {
       session.user.role = token.role as string;
       session.user.schoolId = (token.schoolId as string) ?? null;
+      session.user.schoolName = (token.schoolName as string) ?? null;
       session.user.id = token.id as string;
       return session;
     },
@@ -65,7 +67,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   events: {
     async signIn({ user }) {
       if (user.id) {
-        await prisma.user.update({
+        await (prisma as any).user.update({
           where: { id: user.id },
           data: { lastLoginAt: new Date() },
         }).catch(() => {});
