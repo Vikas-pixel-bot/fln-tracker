@@ -104,10 +104,7 @@ export default function DataClient({
   }
 
   function switchTab(newTab: "assessments" | "implementation") {
-    const params = new URLSearchParams();
-    params.set("tab", newTab);
-    params.set("page", "1");
-    router.push(`/admin/data?${params.toString()}`);
+    router.push(`?tab=${newTab}&page=1`);
   }
 
   return (

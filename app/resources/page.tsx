@@ -116,6 +116,7 @@ function MissionControl() {
   const [dayNum, setDayNum] = useState<1 | 2>(1);
   const [teacherName, setTeacherName] = useState("");
   const [schoolName, setSchoolName] = useState("");
+  const [schoolId, setSchoolId] = useState<string | null>(null);
   const [classStats, setClassStats] = useState<ClassStats | null>(null);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
@@ -129,18 +130,31 @@ function MissionControl() {
   const [isLogging, setIsLogging] = useState(false);
   const [logSuccess, setLogSuccess] = useState(false);
 
+  const [allSchools, setAllSchools] = useState<any[]>([]);
+  const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'ADMIN';
+
   useEffect(() => {
     if (session?.user) {
-      if ((session.user as any).schoolName) {
+      if ((session.user as any).schoolName && !schoolName) {
         setSchoolName((session.user as any).schoolName);
-      } else if (session.user.schoolId) {
-        setSchoolName(`School ID: ${session.user.schoolId}`);
+        setSchoolId((session.user as any).schoolId);
+      } else if (session.user.schoolId && !schoolId) {
+        setSchoolId(session.user.schoolId);
       }
-      if (session.user.name) {
+      
+      if (session.user.name && !teacherName) {
         setTeacherName(session.user.name);
       }
     }
   }, [session]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      import("@/app/actions").then(actions => {
+        actions.getSchools().then(setAllSchools);
+      });
+    }
+  }, [isAdmin]);
 
   useEffect(() => {
     let active = true;
@@ -207,8 +221,8 @@ function MissionControl() {
   };
 
   const handleFinishAndLog = async () => {
-    if (!session?.user?.schoolId) {
-      alert("Error: No School ID found in session. Please sign in again.");
+    if (!schoolId) {
+      alert("Error: No School selected. Please select a school.");
       return;
     }
 
@@ -216,8 +230,8 @@ function MissionControl() {
     const totalSeconds = Object.values(activityLogs).reduce((acc, val) => acc + val, 0);
     
     const result = await logImplementationSession({
-      schoolId: session.user.schoolId,
-      teacherName: teacherName || session.user.name || "Anonymous",
+      schoolId: schoolId,
+      teacherName: teacherName || session?.user?.name || "Anonymous",
       classNum: classNum || 0,
       subject: subject || undefined,
       totalDuration: totalSeconds,
@@ -309,19 +323,54 @@ function MissionControl() {
             <div className="bg-white dark:bg-slate-900 p-10 rounded-[48px] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl space-y-8">
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="md:col-span-2 grid grid-cols-2 gap-4 border-b border-slate-100 dark:border-slate-800 pb-8">
-                   <div className="space-y-4">
+                  <div className="space-y-4">
                       <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">School Name</p>
-                      <input 
-                        type="text" 
-                        value={schoolName} 
-                        readOnly
-                        placeholder="Loading school..."
-                        className="w-full h-14 bg-slate-100 dark:bg-slate-800/50 border-none rounded-2xl px-6 font-bold text-slate-500 dark:text-slate-400 cursor-not-allowed" 
-                      />
+                      {isAdmin ? (
+                        <div className="relative">
+                          <input 
+                            type="text" 
+                            value={schoolName} 
+                            onChange={(e) => setSchoolName(e.target.value)}
+                            placeholder="Type to search schools..."
+                            className="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all" 
+                          />
+                          {schoolName && !allSchools.find(s => s.name === schoolName) && (
+                            <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl shadow-xl overflow-hidden max-h-48 overflow-y-auto">
+                              {allSchools
+                                .filter(s => s.name.toLowerCase().includes(schoolName.toLowerCase()))
+                                .map(s => (
+                                  <button
+                                    key={s.id}
+                                    onClick={() => {
+                                      setSchoolName(s.name);
+                                      setSchoolId(s.id);
+                                    }}
+                                    className="w-full px-6 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-800 text-sm font-medium transition-colors border-b border-slate-50 dark:border-slate-800 last:border-none"
+                                  >
+                                    {s.name}
+                                  </button>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <input 
+                          type="text" 
+                          value={schoolName} 
+                          readOnly
+                          placeholder="Loading school..."
+                          className="w-full h-14 bg-slate-100 dark:bg-slate-800/50 border-none rounded-2xl px-6 font-bold text-slate-500 dark:text-slate-400 cursor-not-allowed" 
+                        />
+                      )}
                    </div>
                    <div className="space-y-4">
                       <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Teacher Name</p>
-                      <input type="text" value={teacherName} onChange={(e) => setTeacherName(e.target.value)} className="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all" />
+                      <input 
+                        type="text" 
+                        value={teacherName} 
+                        onChange={(e) => setTeacherName(e.target.value)} 
+                        className="w-full h-14 bg-slate-50 dark:bg-slate-800 border-none rounded-2xl px-6 font-bold text-slate-700 dark:text-white focus:ring-2 focus:ring-blue-500 transition-all" 
+                      />
                    </div>
                 </div>
                 <div className="space-y-4">

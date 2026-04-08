@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { getAssessmentsAdmin } from "@/app/actions";
 import { getImplementationLogsAdmin } from "@/app/actions/implementation";
 import DataClient from "./DataClient";
