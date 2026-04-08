@@ -48,7 +48,25 @@ export async function analyzeDashboardQuery(query: string, context: any) {
       - Fields: filters {classNum: number|null, subject: "literacy"|"numeracy"|"all"|null}, insight (string), recommendation (string), tab ("trends"|"overview"|"ranking"), summary (string).
     `;
 
-    const result = await model.generateContent(prompt);
+    // Attempt model rotation to solve 404 errors
+    let result;
+    const modelOptions = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro"];
+    let lastError = null;
+
+    for (const modelName of modelOptions) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        result = await model.generateContent(prompt);
+        if (result) break;
+      } catch (e: any) {
+        lastError = e;
+        console.warn(`Model ${modelName} failed, trying next...`);
+        continue;
+      }
+    }
+
+    if (!result) throw lastError || new Error("All models failed.");
+
     const text = result.response.text();
     
     const jsonMatch = text.match(/\{[\s\S]*\}/);
