@@ -1,0 +1,36 @@
+﻿
+> fln-tracker@0.1.0 build
+> prisma generate && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+node.exe : Error: 
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (E  
+  rror: :String) [], Re   
+ moteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+EPERM: operation not 
+permitted, rename 'C:\User
+s\Lenovo\OneDrive\Desktop\
+Workshop\fln-tracker\node_
+modules\.prisma\client\que
+ry_engine-windows.dll.node
+.tmp18376' -> 'C:\Users\Le
+novo\OneDrive\Desktop\Work
+shop\fln-tracker\node_modu
+les\.prisma\client\query_e
+ngine-windows.dll.node'
+
+

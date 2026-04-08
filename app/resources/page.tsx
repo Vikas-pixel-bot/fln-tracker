@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import { Play, FileText, Gamepad2, GraduationCap, Download, ExternalLink, ChevronRight, BookOpen, Lightbulb, BoxSelect, MonitorPlay, SpellCheck, Binary, Info, Search } from "lucide-react";
+import { Play, FileText, Gamepad2, GraduationCap, Download, ExternalLink, ChevronRight, BookOpen, Lightbulb, BoxSelect, MonitorPlay, SpellCheck, Binary, Info, Search, ClipboardPlus } from "lucide-react";
 import Link from "next/link";
 import { VIDEOS, ARTICLES, SIMULATIONS, Resource } from "@/lib/resource_data";
 import { cn } from "@/lib/utils";
@@ -29,6 +29,22 @@ export default function ResourcesPage() {
         <p className="text-lg text-slate-500 dark:text-slate-400 leading-relaxed">
           Access high-impact training materials and interactive simulations mapped specifically to every ASER/FLN level.
         </p>
+        
+        {/* Featured: 90-Min Runner */}
+        <div className="pt-6">
+           <Link href="/resources/mission" className="inline-flex items-center gap-6 p-6 bg-gradient-to-r from-slate-900 to-blue-900 dark:from-blue-600 dark:to-indigo-600 rounded-[32px] shadow-2xl hover:scale-[1.02] transition-all text-left border border-white/10 group">
+              <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-white group-hover:bg-white/20 transition-all">
+                 <ClipboardPlus className="w-8 h-8" />
+              </div>
+              <div>
+                 <h3 className="text-xl font-black text-white">90-Minute Classroom Runner</h3>
+                 <p className="text-blue-200 text-sm font-medium">Start today's automated pedagogical flow with level-matched simulations.</p>
+              </div>
+              <div className="bg-white/10 p-3 rounded-full text-white group-hover:bg-white group-hover:text-blue-600 transition-all">
+                 <ChevronRight className="w-6 h-6" />
+              </div>
+           </Link>
+        </div>
       </div>
 
       {/* Tabs Controller */}

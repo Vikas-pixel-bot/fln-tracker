@@ -10,7 +10,8 @@ import {
   Lightbulb, 
   MapPin, 
   ShieldCheck, 
-  Trophy 
+  Trophy,
+  ClipboardPlus
 } from "lucide-react";
 
 export default function LandingPage() {
@@ -32,16 +33,16 @@ export default function LandingPage() {
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/dashboard"
-                className="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white bg-blue-600 rounded-2xl hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all hover:-translate-y-1 active:translate-y-0"
+                href="/resources/mission"
+                className="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white bg-indigo-600 rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-500/20 transition-all hover:-translate-y-1 active:translate-y-0"
               >
-                Go to Dashboard <LayoutDashboard className="ml-2 w-5 h-5" />
+                Mission Control <ClipboardPlus className="ml-2 w-5 h-5" />
               </Link>
               <Link
-                href="#what-is-fln"
+                href="/dashboard"
                 className="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
               >
-                Learn More
+                Go to Dashboard
               </Link>
             </div>
           </div>
