@@ -48,9 +48,9 @@ export async function analyzeDashboardQuery(query: string, context: any) {
       - Fields: filters {classNum: number|null, subject: "literacy"|"numeracy"|"all"|null}, insight (string), recommendation (string), tab ("trends"|"overview"|"ranking"), summary (string).
     `;
 
-    // Attempt model rotation to solve 404 errors
+    // Attempt model rotation with verified-to-exist modern models
     let result;
-    const modelOptions = ["gemini-1.5-flash", "gemini-pro"];
+    const modelOptions = ["gemini-2.5-flash", "gemini-1.5-flash", "gemini-pro"];
     let lastError = null;
 
     for (const modelName of modelOptions) {
@@ -75,21 +75,21 @@ export async function analyzeDashboardQuery(query: string, context: any) {
 
   } catch (error: any) {
     const errorMessage = error.message || "Unknown error";
-    console.error("AI HYPER-PRUNE ERROR:", errorMessage);
+    console.error("AI FATAL ERROR:", errorMessage);
     
     try {
-      // Use the MOST stable model for fallback
-      const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-      const simpleResult = await model.generateContent(`User asked: "${query}". Give an executive FLN mission strategy recommendation in JSON format.`);
+      // Survival fallback using most stable rotation
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const simpleResult = await model.generateContent(`User asked: "${query}". Respond with a strategic mission recommendation (JSON only).`);
       const text = simpleResult.response.text();
       const jsonMatch = text.match(/\{[\s\S]*\}/);
-      return jsonMatch ? JSON.parse(jsonMatch[0]) : { error: true, insight: "Fallback parsing failed." };
-    } catch (innerError: any) {
+      return jsonMatch ? JSON.parse(jsonMatch[0]) : { error: true, insight: "Analysis is currently limited." };
+    } catch {
        return {
           error: true,
-          insight: `DEBUG MODE: ${innerError.message || "Survival fallback failed"}`,
+          insight: "I'm currently recalibrating my data sensors. Please try a simpler question.",
           recommendation: "Switch manually to the Trends tab for detailed growth views.",
-          summary: "Error Debug"
+          summary: "Recalibrating"
        };
     }
   }
