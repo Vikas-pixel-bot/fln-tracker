@@ -28,18 +28,20 @@ type Assessment = {
 };
 
 export default function DataClient({
-  initialAssessments,
+  initialItems,
   total,
   pages,
   currentPage,
+  activeTab,
 }: {
-  initialAssessments: Assessment[];
+  initialItems: any[];
   total: number;
   pages: number;
   currentPage: number;
+  activeTab: "assessments" | "implementation";
 }) {
   const router = useRouter();
-  const [assessments, setAssessments] = useState(initialAssessments);
+  const [items, setItems] = useState(initialItems);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<any>(null);
   const [clearConfirm, setClearConfirm] = useState(false);
@@ -73,7 +75,7 @@ export default function DataClient({
   function handleSave(id: string) {
     startTransition(async () => {
       await updateAssessment(id, editForm);
-      setAssessments((prev) =>
+      setItems((prev) =>
         prev.map((a) => (a.id === id ? { ...a, ...editForm } : a))
       );
       setEditingId(null);
@@ -84,7 +86,7 @@ export default function DataClient({
     if (!confirm("Delete this assessment? This cannot be undone.")) return;
     startTransition(async () => {
       await deleteAssessment(id);
-      setAssessments((prev) => prev.filter((a) => a.id !== id));
+      setItems((prev) => prev.filter((a) => a.id !== id));
     });
   }
 
@@ -96,17 +98,15 @@ export default function DataClient({
         await clearAllAssessments(clearTerm || undefined);
       }
       setClearConfirm(false);
-      setAssessments([]);
+      setItems([]);
     });
   }
 
-  function handleSanitize() {
-    if (!confirm("This will delete all schools, students, and assessments NOT matching the official 497 master list. Proceed?")) return;
-    startTransition(async () => {
-      const result = await cleanupSchools();
-      alert(`Sanitization complete! Deleted ${result.count} invalid schools and their related data.`);
-      router.refresh();
-    });
+  function switchTab(newTab: "assessments" | "implementation") {
+    const params = new URLSearchParams();
+    params.set("tab", newTab);
+    params.set("page", "1");
+    router.push(`/admin/data?${params.toString()}`);
   }
 
   return (
@@ -114,23 +114,35 @@ export default function DataClient({
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Assessment Data</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+            {activeTab === "assessments" ? "Assessment Data" : "Implementation Logs"}
+          </h1>
           <p className="text-slate-500 text-sm mt-1">{total} records total</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2">
-            <Filter className="w-4 h-4 text-slate-400" />
-            <select
-              value={filterTerm}
-              onChange={(e) => applyFilter(e.target.value)}
-              className="bg-transparent text-sm font-medium text-slate-700 dark:text-slate-200 outline-none"
-            >
-              <option value="">All Terms</option>
-              {TERMS.map((t) => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
+          {activeTab === "assessments" && (
+            <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2">
+              <Filter className="w-4 h-4 text-slate-400" />
+              <select
+                value={filterTerm}
+                onChange={(e) => applyFilter(e.target.value)}
+                className="bg-transparent text-sm font-medium text-slate-700 dark:text-slate-200 outline-none"
+              >
+                <option value="">All Terms</option>
+                {TERMS.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+          )}
+          
           <button
-            onClick={handleSanitize}
+            onClick={() => {
+              if (!confirm("This will delete all schools, students, and assessments NOT matching the official 497 master list. Proceed?")) return;
+              startTransition(async () => {
+                const result = await cleanupSchools();
+                alert(`Sanitization complete! Deleted ${result.count} invalid schools and their related data.`);
+                router.refresh();
+              });
+            }}
             disabled={isPending}
             className="flex items-center gap-2 px-4 py-2.5 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-bold rounded-xl text-sm transition-all shadow-sm"
           >
@@ -143,6 +155,32 @@ export default function DataClient({
             <Trash2 className="w-4 h-4" /> Clear Data
           </button>
         </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 bg-slate-100/50 dark:bg-slate-800/30 p-1 rounded-2xl w-fit">
+        <button
+          onClick={() => switchTab("assessments")}
+          className={cn(
+            "px-6 py-2.5 rounded-xl text-sm font-bold transition-all",
+            activeTab === "assessments" 
+              ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm" 
+              : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+          )}
+        >
+          Assessments
+        </button>
+        <button
+          onClick={() => switchTab("implementation")}
+          className={cn(
+            "px-6 py-2.5 rounded-xl text-sm font-bold transition-all",
+            activeTab === "implementation" 
+              ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-sm" 
+              : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+          )}
+        >
+          Implementation Logs
+        </button>
       </div>
 
       {/* Clear Confirm Modal */}
@@ -207,44 +245,46 @@ export default function DataClient({
         </div>
       )}
 
-      {/* Table */}
+      {/* Table Section */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
-                <th className="px-4 py-3">Student</th>
-                <th className="px-4 py-3">School / Division</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Term</th>
-                <th className="px-4 py-3">Assessor</th>
-                <th className="px-4 py-3">Literacy</th>
-                <th className="px-4 py-3">Numeracy</th>
-                <th className="px-4 py-3">Operations</th>
-                <th className="px-4 py-3">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {assessments.length === 0 && (
-                <tr>
-                  <td colSpan={9} className="px-6 py-12 text-center text-slate-400">No assessments found.</td>
+          {activeTab === "assessments" ? (
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                  <th className="px-4 py-3">Student</th>
+                  <th className="px-4 py-3">School / Division</th>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">Term</th>
+                  <th className="px-4 py-3">Assessor</th>
+                  <th className="px-4 py-3">Literacy</th>
+                  <th className="px-4 py-3">Numeracy</th>
+                  <th className="px-4 py-3">Operations</th>
+                  <th className="px-4 py-3">Actions</th>
                 </tr>
-              )}
-              {assessments.map((a) => {
-                const isEditing = editingId === a.id;
-                return (
-                  <tr key={a.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors ${isEditing ? "bg-blue-50 dark:bg-blue-900/10" : ""}`}>
-                    <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100 whitespace-nowrap">
-                      {a.student.name}
-                      <span className="ml-1 text-xs text-slate-400">Cl.{a.student.class}</span>
-                    </td>
-                    <td className="px-4 py-3 text-slate-500 text-xs">
-                      <div>{a.student.school.name}</div>
-                      <div className="text-slate-400">{a.student.school.projectOffice.division.name}</div>
-                    </td>
-                    <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
-                      {new Date(a.date).toLocaleDateString("en-IN")}
-                    </td>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {items.length === 0 && (
+                  <tr>
+                    <td colSpan={9} className="px-6 py-12 text-center text-slate-400">No assessments found.</td>
+                  </tr>
+                )}
+                {items.map((a: any) => {
+                  const isEditing = editingId === a.id;
+                  return (
+                    <tr key={a.id} className={`hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors ${isEditing ? "bg-blue-50 dark:bg-blue-900/10" : ""}`}>
+                      <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100 whitespace-nowrap">
+                        {a.student.name}
+                        <span className="ml-1 text-xs text-slate-400">Cl.{a.student.class}</span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-500 text-xs">
+                        <div>{a.student.school.name}</div>
+                        <div className="text-slate-400">{a.student.school.projectOffice.division.name}</div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
+                        {new Date(a.date).toLocaleDateString("en-IN")}
+                      </td>
+                      {/* ... existing cells ... */}
 
                     {/* Term */}
                     <td className="px-4 py-3">
@@ -346,6 +386,52 @@ export default function DataClient({
               })}
             </tbody>
           </table>
+          ) : (
+            <table className="w-full text-left text-sm">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-xs font-semibold uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
+                  <th className="px-4 py-3">School</th>
+                  <th className="px-4 py-3">UDISE</th>
+                  <th className="px-4 py-3">Division</th>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3">Teacher</th>
+                  <th className="px-4 py-3">Class</th>
+                  <th className="px-4 py-3">Subject</th>
+                  <th className="px-4 py-3 text-right">Duration</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {items.length === 0 && (
+                  <tr>
+                    <td colSpan={8} className="px-6 py-12 text-center text-slate-400">No implementation logs found.</td>
+                  </tr>
+                )}
+                {items.map((log: any) => (
+                  <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
+                    <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{log.school.name}</td>
+                    <td className="px-4 py-3 text-slate-500 font-mono text-xs">{log.school.udiseCode}</td>
+                    <td className="px-4 py-3 text-slate-500 text-xs">{log.school.projectOffice.division.name}</td>
+                    <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
+                      {new Date(log.conductedAt).toLocaleDateString("en-IN")}
+                    </td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{log.teacherName}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-300">Class {log.classNum}</td>
+                    <td className="px-4 py-3">
+                      <span className={cn(
+                        "px-2 py-0.5 rounded text-xs font-bold uppercase",
+                        log.subject === "maths" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"
+                      )}>
+                        {log.subject || "All"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right font-bold text-slate-700 dark:text-slate-200">
+                      {Math.round(log.totalDuration / 60)} mins
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Pagination */}

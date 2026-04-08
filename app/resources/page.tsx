@@ -23,6 +23,7 @@ import {
   SessionStructure,
   SessionActivity
 } from '@/lib/session_content';
+import { logImplementationSession } from '@/app/actions/implementation';
 
 // Simulations & Games Imports
 import BundleBuilder from "@/components/simulations/BundleBuilder";
@@ -124,6 +125,8 @@ function MissionControl() {
   const [showMatchmaker, setShowMatchmaker] = useState(false);
   const [battleContext, setBattleContext] = useState<BattleContext | null>(null);
   const [activityLogs, setActivityLogs] = useState<Record<number, number>>({});
+  const [isLogging, setIsLogging] = useState(false);
+  const [logSuccess, setLogSuccess] = useState(false);
 
   useEffect(() => {
     if (session?.user) {
@@ -200,6 +203,32 @@ function MissionControl() {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleFinishAndLog = async () => {
+    if (!session?.user?.schoolId) {
+      alert("Error: No School ID found in session. Please sign in again.");
+      return;
+    }
+
+    setIsLogging(true);
+    const totalSeconds = Object.values(activityLogs).reduce((acc, val) => acc + val, 0);
+    
+    const result = await logImplementationSession({
+      schoolId: session.user.schoolId,
+      teacherName: teacherName || session.user.name || "Anonymous",
+      classNum: classNum || 0,
+      subject: subject || undefined,
+      totalDuration: totalSeconds,
+      activityLogs: activityLogs
+    });
+
+    setIsLogging(false);
+    if (result.success) {
+      setLogSuccess(true);
+    } else {
+      alert("Failed to save implementation log. Please try again.");
+    }
   };
 
   const currentActivity = sessionStructure?.activities[currentActivityIndex];
@@ -418,8 +447,25 @@ function MissionControl() {
                  </table>
               </div>
               <div className="flex justify-center gap-6 pt-8">
-                 <button onClick={() => window.location.reload()} className="px-12 py-6 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl shadow-2xl hover:scale-105 transition-all text-xl">FINISH & LOG</button>
-                 <button onClick={() => { setStep('setup'); setClassNum(null); setSubject(null); setIsFocusMode(false); setActivityLogs({}); setCurrentActivityIndex(0); }} className="px-12 py-6 bg-white dark:bg-slate-800 font-black rounded-3xl shadow-xl hover:scale-105 transition-all text-xl border border-slate-100 dark:border-slate-700">NEW MISSION</button>
+                 <button 
+                   onClick={handleFinishAndLog} 
+                   disabled={isLogging || logSuccess}
+                   className={cn(
+                     "px-12 py-6 font-black rounded-3xl shadow-2xl hover:scale-105 transition-all text-xl flex items-center gap-3",
+                     logSuccess 
+                       ? "bg-emerald-500 text-white cursor-default" 
+                       : "bg-slate-900 dark:bg-white text-white dark:text-slate-900"
+                   )}
+                 >
+                   {logSuccess ? (
+                     <><CheckCircle2 className="w-6 h-6" /> LOGGED SUCCESSFULLY</>
+                   ) : isLogging ? (
+                     "LOGGING..."
+                   ) : (
+                     "FINISH & LOG"
+                   )}
+                 </button>
+                 <button onClick={() => { setStep('setup'); setClassNum(null); setSubject(null); setIsFocusMode(false); setActivityLogs({}); setCurrentActivityIndex(0); setLogSuccess(false); }} className="px-12 py-6 bg-white dark:bg-slate-800 font-black rounded-3xl shadow-xl hover:scale-105 transition-all text-xl border border-slate-100 dark:border-slate-700">NEW MISSION</button>
               </div>
             </div>
           </div>

@@ -33,6 +33,19 @@ model School {
   students        Student[]
   users           User[]
   battles         BattleRecord[]
+  implementationSessions ImplementationSession[]
+}
+
+model ImplementationSession {
+  id             String   @id @default(cuid())
+  schoolId       String
+  school         School   @relation(fields: [schoolId], references: [id])
+  teacherName    String
+  classNum       Int
+  subject        String?  // language / maths
+  totalDuration  Int      // total seconds spent
+  activityLogs   Json     // stores { activityIndex: seconds }
+  conductedAt    DateTime @default(now())
 }
 
 model Student {
