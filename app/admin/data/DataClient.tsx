@@ -406,11 +406,11 @@ export default function DataClient({
                 )}
                 {items.map((log: any) => (
                   <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/20 transition-colors">
-                    <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{log.school.name}</td>
-                    <td className="px-4 py-3 text-slate-500 text-xs">{log.school.projectOffice.name}</td>
-                    <td className="px-4 py-3 text-slate-500 text-xs">{log.school.projectOffice.division.name}</td>
+                    <td className="px-4 py-3 font-medium text-slate-800 dark:text-slate-100">{log.school?.name || "Unknown"}</td>
+                    <td className="px-4 py-3 text-slate-500 text-xs">{log.school?.projectOffice?.name || "—"}</td>
+                    <td className="px-4 py-3 text-slate-500 text-xs">{log.school?.projectOffice?.division?.name || "—"}</td>
                     <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
-                      {new Date(log.conductedAt).toLocaleDateString("en-IN")}
+                      {log.conductedAt ? new Date(log.conductedAt).toLocaleDateString("en-IN") : "—"}
                     </td>
                     <td className="px-4 py-3 text-slate-600 dark:text-slate-300">{log.teacherName}</td>
                     <td className="px-4 py-3 text-slate-600 dark:text-slate-300">Class {log.classNum}</td>
@@ -423,7 +423,7 @@ export default function DataClient({
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-slate-700 dark:text-slate-200">
-                      {Math.round(log.totalDuration / 60)} mins
+                      {Math.round((log.totalDuration || 0) / 60)} mins
                     </td>
                   </tr>
                 ))}
