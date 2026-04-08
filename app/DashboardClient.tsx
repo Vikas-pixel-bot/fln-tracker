@@ -5,8 +5,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend, Cell
 } from 'recharts';
-import { BookOpen, Calculator, Users, School, Filter, TrendingUp, LayoutDashboard, Search, Sparkles, AlertCircle, TrendingDown, Trophy, Medal } from 'lucide-react';
+import { BookOpen, Calculator, Users, School, Filter, TrendingUp, LayoutDashboard, Search, Sparkles, AlertCircle, TrendingDown, Trophy, Medal, BrainCircuit, Lightbulb } from 'lucide-react';
 import { getDashboardStats, getStrugglingStudents, getGrowthVelocity, getInterventionPlan, getPORankings } from "@/app/actions";
+import { analyzeDashboardQuery } from "@/app/actions/ai";
 
 const LIT_LABELS = ['Beginner', 'Letter', 'Word', 'Paragraph', 'Story'];
 const NUM_LABELS = ['Beginner', '1-9', '10-99', '100-999'];
@@ -32,6 +33,8 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
   const [velocity, setVelocity] = useState<any>(null);
   const [plan, setPlan] = useState<any>(null);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+  const [aiInsight, setAiInsight] = useState<{ insight: string; recommendation?: string } | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   // AI Smart Filter Logic
   const handleQuery = (val: string) => {
@@ -172,35 +175,86 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
   return (
     <div className="w-full space-y-8 animate-in fade-in duration-700">
 
-      {/* AI SMART BAR */}
       <form 
-        onSubmit={(e) => {
+        onSubmit={async (e) => {
           e.preventDefault();
-          handleQuery(query);
+          if (!query.trim()) return;
+          
+          setIsAnalyzing(true);
+          setAiInsight(null);
+          
+          try {
+            const result = await analyzeDashboardQuery(query, stats);
+            if (result.filters) {
+              if (result.filters.classNum) setSelectedClass(result.filters.classNum);
+              if (result.filters.subject === 'literacy') setTrendType('literacy');
+              if (result.filters.subject === 'numeracy') setTrendType('numeracy');
+              if (result.tab) setActiveTab(result.tab);
+            }
+            setAiInsight({ 
+              insight: result.insight || "I couldn't find a specific insight for that query.",
+              recommendation: result.recommendation 
+            });
+          } catch (err) {
+            console.error(err);
+          } finally {
+            setIsAnalyzing(false);
+          }
         }}
         className="relative group max-w-4xl mx-auto mb-10"
       >
         <div className="absolute inset-0 bg-blue-500/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl" />
         <div className="relative flex items-center gap-4 bg-white dark:bg-slate-900 p-2 pl-6 rounded-[32px] shadow-2xl border border-slate-200 dark:border-slate-800 focus-within:ring-2 focus-within:ring-blue-500 transition-all">
-          <Sparkles className="w-6 h-6 text-blue-500 animate-pulse" />
+          <BrainCircuit className="w-6 h-6 text-blue-500 animate-pulse" />
           <input 
             type="text" 
-            placeholder="Ask your data: 'Class 3 literacy trends' or 'Who has zero progress?'"
+            placeholder="Ask your data: 'Why is class 3 literacy lagging?' or 'Summarize endline progress'"
             className="flex-1 bg-transparent border-none focus:ring-0 text-slate-700 dark:text-slate-200 font-medium py-3 outline-none"
             value={query}
-            onChange={(e) => handleQuery(e.target.value)}
+            onChange={(e) => setQuery(e.target.value)}
           />
           <button 
             type="submit"
-            className="bg-slate-900 dark:bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all"
+            disabled={isAnalyzing}
+            className="bg-slate-900 dark:bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:scale-105 transition-all disabled:opacity-50"
           >
-            <Search className="w-4 h-4" /> Analyze
+            {isAnalyzing ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Analyzing
+              </div>
+            ) : (
+              <><Search className="w-4 h-4" /> Analyze</>
+            )}
           </button>
         </div>
+
+        {/* AI INSIGHT BUBBLE */}
+        {aiInsight && (
+          <div className="mt-4 animate-in slide-in-from-top-2 fade-in duration-500">
+             <div className="bg-blue-600 rounded-[32px] p-6 shadow-xl shadow-blue-500/20 text-white relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
+                <div className="flex gap-4 items-start relative z-10">
+                   <div className="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
+                      <Lightbulb className="w-5 h-5 text-yellow-300" />
+                   </div>
+                   <div className="space-y-2">
+                      <p className="font-bold leading-relaxed">{aiInsight.insight}</p>
+                      {aiInsight.recommendation && (
+                        <div className="flex gap-2 items-center bg-black/10 w-fit px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/10">
+                           <TrendingUp className="w-3 h-3" /> {aiInsight.recommendation}
+                        </div>
+                      )}
+                   </div>
+                </div>
+             </div>
+          </div>
+        )}
+
         <div className="flex gap-4 px-6 mt-3 text-[10px] font-bold text-slate-500 lowercase tracking-widest">
-           <span>Suggested: "Class 5 numeracy"</span>
-           <span>"Show struggling students"</span>
-           <span>"Growth overview"</span>
+           <span>Suggested: "Compare Baseline vs Endline"</span>
+           <span>"How is Class 5 doing?"</span>
+           <span>"Explain growth in subtraction"</span>
         </div>
       </form>
 
