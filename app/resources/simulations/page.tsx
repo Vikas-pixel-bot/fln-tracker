@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useSession } from "next-auth/react";
 import { ArrowLeft, Zap, Trophy, Gamepad2, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -43,31 +44,32 @@ import NumberRiver from "@/components/games/NumberRiver";
 import ClockReader from "@/components/games/ClockReader";
 import SortingHat from "@/components/games/SortingHat";
 
-type Item = { 
-  id: string; 
-  title: string; 
-  level: string; 
-  battleLevel?: number; 
-  subject: string; 
-  emoji: string; 
-  component: (props: any) => React.ReactNode; 
-  tag?: string 
+type Item = {
+  id: string;
+  title: string;
+  level: string;
+  battleLevel?: number;
+  battleSubject?: 'literacy' | 'numeracy';
+  subject: string;
+  emoji: string;
+  component: (props: any) => React.ReactNode;
+  tag?: string
 };
 
 const SIMS: Item[] = [
   // 2v2 Marathi Literacy
-  { id: "marathi-letters", title: "अक्षर ओळख (Letters)", level: "Letter",     battleLevel: 1, subject: "Battle",   emoji: "अ", tag: "Marathi",  component: (p) => <LetterFlash {...p} /> },
-  { id: "marathi-words",   title: "शब्द वाचन (Words)",   level: "Word",       battleLevel: 2, subject: "Battle",   emoji: "📖", tag: "Marathi",  component: (p) => <WordRace {...p} /> },
-  { id: "marathi-sent",    title: "वाक्य पूर्ण करा",     level: "Paragraph",  battleLevel: 3, subject: "Battle",   emoji: "📝", tag: "Marathi",  component: (p) => <SentenceFill {...p} /> },
-  
+  { id: "marathi-letters", title: "अक्षर ओळख (Letters)", level: "Letter",     battleLevel: 1, battleSubject: "literacy",  subject: "Battle", emoji: "अ",  tag: "Marathi",   component: (p) => <LetterFlash {...p} /> },
+  { id: "marathi-words",   title: "शब्द वाचन (Words)",   level: "Word",       battleLevel: 2, battleSubject: "literacy",  subject: "Battle", emoji: "📖", tag: "Marathi",   component: (p) => <WordRace {...p} /> },
+  { id: "marathi-sent",    title: "वाक्य पूर्ण करा",     level: "Paragraph",  battleLevel: 3, battleSubject: "literacy",  subject: "Battle", emoji: "📝", tag: "Marathi",   component: (p) => <SentenceFill {...p} /> },
+
   // 2v2 Numeracy
-  { id: "math-duel-b",     title: "Math Duel",          level: "Operations", battleLevel: 4, subject: "Battle",   emoji: "⚡", tag: "± / ÷",    component: (p) => <MathDuel {...p} /> },
-  { id: "num-race-b",      title: "Number Race",        level: "10-99",      battleLevel: 2, subject: "Battle",   emoji: "🏁", tag: "Compare",  component: (p) => <NumberRace {...p} /> },
-  { id: "pv-battle-b",     title: "Place Value Battle", level: "100-999",    battleLevel: 3, subject: "Battle",   emoji: "🏛️", tag: "H-T-O",    component: (p) => <PlaceValueBattle {...p} /> },
+  { id: "math-duel-b",     title: "Math Duel",           level: "Operations", battleLevel: 4, battleSubject: "numeracy",  subject: "Battle", emoji: "⚡", tag: "± / ÷",    component: (p) => <MathDuel {...p} /> },
+  { id: "num-race-b",      title: "Number Race",         level: "10-99",      battleLevel: 2, battleSubject: "numeracy",  subject: "Battle", emoji: "🏁", tag: "Compare",  component: (p) => <NumberRace {...p} /> },
+  { id: "pv-battle-b",     title: "Place Value Battle",  level: "100-999",    battleLevel: 3, battleSubject: "numeracy",  subject: "Battle", emoji: "🏛️", tag: "H-T-O",   component: (p) => <PlaceValueBattle {...p} /> },
 
   // Original Sims
-  { id: "math-sprint",     title: "Math Sprint",        level: "10-99",      battleLevel: 2, subject: "Battle",   emoji: "⚡", tag: "60s Race",   component: (p) => <MathSprint {...p} /> },
-  { id: "sound-duel",      title: "Sound Duel",         level: "Letter",     battleLevel: 1, subject: "Battle",   emoji: "🎙️", tag: "60s Race",  component: (p) => <SoundDuel {...p} /> },
+  { id: "math-sprint",     title: "Math Sprint",         level: "10-99",      battleLevel: 2, battleSubject: "numeracy",  subject: "Battle", emoji: "⚡", tag: "60s Race",  component: (p) => <MathSprint {...p} /> },
+  { id: "sound-duel",      title: "Sound Duel",          level: "Letter",     battleLevel: 1, battleSubject: "literacy",  subject: "Battle", emoji: "🎙️", tag: "60s Race", component: (p) => <SoundDuel {...p} /> },
   
   { id: "number-hunter",   title: "Number Hunter",      level: "1-9",        battleLevel: 1, subject: "Math",     emoji: "🔢", component: (p) => <NumberHunter {...p} /> },
   { id: "bundle-builder",  title: "Bundle Builder",     level: "10-99",      battleLevel: 2, subject: "Math",     emoji: "📦", component: (p) => <BundleBuilder {...p} /> },
@@ -110,6 +112,10 @@ const SECTIONS = [
 ];
 
 export default function SimulationsPage() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === 'admin';
+  const userSchoolId = (session?.user as any)?.schoolId ?? undefined;
+
   const [activeId, setActiveId] = useState("bundle-builder");
   const [showMatchmaker, setShowMatchmaker] = useState(false);
   const [battleContext, setBattleContext] = useState<any>(null);
@@ -222,14 +228,14 @@ export default function SimulationsPage() {
             })}
           </div>
 
-          <BattleMatchmaker 
+          <BattleMatchmaker
             isOpen={showMatchmaker}
             onClose={() => setShowMatchmaker(false)}
-            subject={active.subject === 'Battle' ? (active.id.includes('math') ? 'numeracy' : 'literacy') : 'literacy'}
-            level={active.battleLevel || 1}
+            subject={active.battleSubject ?? 'literacy'}
+            level={active.battleLevel ?? 1}
             gameTitle={active.title}
-            userSchoolId={undefined} // Need session hook here eventually
-            isAdmin={true} // Need session hook
+            userSchoolId={userSchoolId}
+            isAdmin={isAdmin}
             onMatchComplete={(p1, p2, schoolId, classNum) => {
               setBattleContext({ p1, p2, schoolId, classNum });
               setShowMatchmaker(false);
