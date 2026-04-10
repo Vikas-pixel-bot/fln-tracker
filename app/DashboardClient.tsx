@@ -32,7 +32,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
   const [velocity, setVelocity] = useState<any>(null);
   const [plan, setPlan] = useState<any>(null);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
-  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; recommendation?: string; summary?: string }[]>([]);
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; recommendation?: string; activitySuggestion?: string | null; summary?: string }[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isBotOpen, setIsBotOpen] = useState(false);
@@ -56,6 +56,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
         role: 'assistant',
         content: result.insight,
         recommendation: result.recommendation,
+        activitySuggestion: result.activitySuggestion ?? null,
         summary: result.summary
       }]);
     } catch {
@@ -505,8 +506,8 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
                       <BrainCircuit className="w-6 h-6 text-white" />
                    </div>
                    <div>
-                      <h4 className="text-white font-black tracking-tight">Mission Assistant</h4>
-                      <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest">Accessing Global Context</p>
+                      <h4 className="text-white font-black tracking-tight">Mission Brain</h4>
+                      <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest">Data + TaRL Pedagogy</p>
                    </div>
                 </div>
                 <button onClick={() => setIsBotOpen(false)} className="text-slate-400 hover:text-white transition-colors">
@@ -521,17 +522,19 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
                      <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-[24px] flex items-center justify-center mx-auto border border-slate-100 dark:border-slate-800">
                         <Sparkles className="w-8 h-8 text-blue-500 animate-pulse" />
                      </div>
-                     <p className="text-slate-600 dark:text-slate-400 font-medium px-4 text-sm">I'm "The Brain" — I have access to all mission data: rankings, struggling students, regional performance. Ask me anything.</p>
+                     <p className="text-slate-600 dark:text-slate-400 font-medium px-4 text-sm">I'm "The Brain" — I analyze mission data AND know the full TaRL manual. Ask about results or what to teach today.</p>
                      <div className="grid grid-cols-1 gap-2 pt-2">
                         {[
-                          "Compare Baseline vs Endline results",
-                          "Which PO is the top performer?",
-                          "Show students with zero progress",
-                          "How is Class 3 literacy moving?"
-                        ].map(q => (
+                          { q: "Compare Baseline vs Endline results", icon: "📊" },
+                          { q: "Which PO needs the most support?", icon: "🎯" },
+                          { q: "What activity should I run for Level 1 literacy students?", icon: "📖" },
+                          { q: "How do I handle students stuck at Numeracy Beginner?", icon: "🔢" },
+                          { q: "Suggest today's session plan for Class 3 Language", icon: "🗓️" },
+                          { q: "Which schools have the best Endline improvement?", icon: "🏆" },
+                        ].map(({ q, icon }) => (
                           <button key={q} onClick={() => handleSubmit(q)}
-                            className="text-left px-4 py-3 bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl text-[11px] font-bold text-slate-500 hover:text-blue-600 transition-all border border-slate-100 dark:border-slate-800">
-                             {q}
+                            className="text-left px-4 py-3 bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl text-[11px] font-bold text-slate-500 hover:text-blue-600 transition-all border border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                            <span>{icon}</span> {q}
                           </button>
                         ))}
                      </div>
@@ -558,6 +561,15 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
                                <div className="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/30 flex gap-2 items-start">
                                  <Lightbulb className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
                                  <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">{msg.recommendation}</p>
+                               </div>
+                             )}
+                             {msg.activitySuggestion && (
+                               <div className="px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 flex gap-2 items-start">
+                                 <BookOpen className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                                 <div>
+                                   <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Activity for Today</p>
+                                   <p className="text-xs font-semibold text-emerald-900 dark:text-emerald-200 leading-relaxed">{msg.activitySuggestion}</p>
+                                 </div>
                                </div>
                              )}
                            </div>
