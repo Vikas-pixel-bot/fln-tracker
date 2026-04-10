@@ -14,7 +14,7 @@ export default async function Navbar() {
           <div className="flex">
             <Link href="/" className="flex-shrink-0 flex items-center font-bold text-xl text-blue-600 dark:text-blue-400 gap-2 tracking-tight">
               <BarChart3 className="w-7 h-7" />
-              <span className="hidden sm:inline bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400">FLN Tracker</span>
+              <span className="hidden sm:inline bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-indigo-400">Mission FLN</span>
             </Link>
             <div className="hidden sm:ml-10 sm:flex sm:space-x-8">
               <Link href="/dashboard" className="border-transparent text-gray-500 dark:text-gray-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors">

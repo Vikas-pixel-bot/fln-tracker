@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "FLN Tracker – Pratham ASER",
-    short_name: "FLN Tracker",
+    name: "Mission FLN – Pratham ASER",
+    short_name: "Mission FLN",
     description: "Field assessment tool for Foundational Literacy & Numeracy tracking",
     start_url: "/assessments/live",
     display: "standalone",

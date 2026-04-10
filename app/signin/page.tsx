@@ -54,7 +54,7 @@ function SignInForm() {
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2 text-blue-600">
             <BarChart3 className="w-9 h-9" />
-            <span className="text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">FLN Hub</span>
+            <span className="text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Mission FLN</span>
           </div>
           <p className="text-slate-500 text-sm">Sign in to access your school dashboard</p>
         </div>

@@ -13,12 +13,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FLN Tracker – Pratham ASER",
+  title: "Mission FLN – Pratham ASER",
   description: "Field assessment tool for Foundational Literacy & Numeracy",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "FLN Tracker",
+    title: "Mission FLN",
   },
   other: {
     "mobile-web-app-capable": "yes",
