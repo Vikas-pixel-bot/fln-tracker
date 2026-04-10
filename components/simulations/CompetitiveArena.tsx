@@ -10,20 +10,25 @@ interface CompetitiveArenaProps {
   description: string;
   icon: ReactNode;
   duration?: number;
+  player1?: { id: string; name: string } | null;
+  player2?: { id: string; name: string } | null;
   onGameEnd?: (winner: 'A' | 'B' | 'Draw', scores: { a: number, b: number }) => void;
-  children: (props: { 
-    gameState: GameState; 
+  children: (props: {
+    gameState: GameState;
     addPoint: (team: 'A' | 'B') => void;
     scores: { a: number; b: number };
   }) => ReactNode;
 }
 
-export default function CompetitiveArena({ 
-  title, 
-  description, 
-  icon, 
+export default function CompetitiveArena({
+  title,
+  description,
+  icon,
   duration = 60,
-  children 
+  player1,
+  player2,
+  onGameEnd,
+  children
 }: CompetitiveArenaProps) {
   const [gameState, setGameState] = useState<GameState>('waiting');
   const [timeLeft, setTimeLeft] = useState(duration);
@@ -34,7 +39,9 @@ export default function CompetitiveArena({
     if (gameState === 'running' && timeLeft > 0) {
       timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
     } else if (timeLeft === 0 && gameState === 'running') {
+      const winner = scores.a > scores.b ? 'A' : scores.b > scores.a ? 'B' : 'Draw';
       setGameState('finished');
+      onGameEnd?.(winner, scores);
     }
     return () => clearInterval(timer);
   }, [gameState, timeLeft]);
@@ -50,7 +57,9 @@ export default function CompetitiveArena({
     setScores(prev => ({ ...prev, [team.toLowerCase()]: prev[team.toLowerCase() as 'a' | 'b'] + 1 }));
   };
 
-  const winner = scores.a > scores.b ? 'Team A' : scores.b > scores.a ? 'Team B' : 'Draw';
+  const p1Name = player1?.name ?? 'Player 1';
+  const p2Name = player2?.name ?? 'Player 2';
+  const winner = scores.a > scores.b ? p1Name : scores.b > scores.a ? p2Name : 'Draw';
 
   return (
     <div className="bg-slate-950 rounded-[48px] border border-slate-800 shadow-2xl p-8 max-w-6xl mx-auto overflow-hidden relative min-h-[750px] flex flex-col text-white">
@@ -125,15 +134,16 @@ export default function CompetitiveArena({
               <h3 className="text-6xl font-black mb-2 tracking-tighter">
                  {winner === 'Draw' ? "IT'S A DRAW!" : `${winner} WINS!`}
               </h3>
+              <p className="text-slate-500 text-sm font-bold mb-2">{p1Name} vs {p2Name}</p>
               <p className="text-slate-400 text-xl font-medium mb-12">Congratulations to all participants!</p>
               
               <div className="flex items-center gap-12 mb-12">
                  <div className="text-center p-8 bg-white/5 rounded-[40px] border border-white/10 min-w-[180px]">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Team A Score</div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">{p1Name}</div>
                     <div className="text-6xl font-black text-blue-500">{scores.a}</div>
                  </div>
                  <div className="text-center p-8 bg-white/5 rounded-[40px] border border-white/10 min-w-[180px]">
-                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Team B Score</div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">{p2Name}</div>
                     <div className="text-6xl font-black text-emerald-500">{scores.b}</div>
                  </div>
               </div>
@@ -152,10 +162,10 @@ export default function CompetitiveArena({
       <div className="mt-8 flex items-center justify-between pointer-events-none">
          <div className={cn("px-8 py-4 rounded-3xl border-2 transition-all flex items-center gap-4", scores.a >= scores.b ? "bg-blue-600/20 border-blue-600 text-blue-400" : "bg-white/5 border-white/10 text-white")}>
             <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-            <span className="text-xs font-black uppercase tracking-widest">Team A: <span className="text-2xl ml-2">{scores.a}</span></span>
+            <span className="text-xs font-black uppercase tracking-widest">{p1Name}: <span className="text-2xl ml-2">{scores.a}</span></span>
          </div>
          <div className={cn("px-8 py-4 rounded-3xl border-2 transition-all flex items-center gap-4", scores.b >= scores.a ? "bg-emerald-600/20 border-emerald-600 text-emerald-400" : "bg-white/5 border-white/10 text-white")}>
-            <span className="text-xs font-black uppercase tracking-widest">Team B: <span className="text-2xl mr-2">{scores.b}</span></span>
+            <span className="text-xs font-black uppercase tracking-widest">{p2Name}: <span className="text-2xl mr-2">{scores.b}</span></span>
             <div className="w-3 h-3 rounded-full bg-emerald-600"></div>
          </div>
       </div>

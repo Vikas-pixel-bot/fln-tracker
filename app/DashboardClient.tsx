@@ -28,31 +28,41 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
   const [rankings, setRankings] = useState<any[]>([]);
   const [trendType, setTrendType] = useState<'literacy' | 'numeracy'>('literacy');
   const [showPct, setShowPct] = useState(true);
-  const [query, setQuery] = useState("");
   const [struggling, setStruggling] = useState<any[]>([]);
   const [velocity, setVelocity] = useState<any>(null);
   const [plan, setPlan] = useState<any>(null);
   const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
-  const [aiInsight, setAiInsight] = useState<{ insight: string; recommendation?: string; summary?: string } | null>(null);
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant'; content: string; recommendation?: string; summary?: string }[]>([]);
+  const [chatInput, setChatInput] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isBotOpen, setIsBotOpen] = useState(false);
 
-  // AI Smart Filter Logic
-  const handleQuery = (val: string) => {
-    setQuery(val);
-    const v = val.toLowerCase();
-    
-    // Class matching
-    const classMatch = v.match(/class\s+(\d)/);
-    if (classMatch) setSelectedClass(Number(classMatch[1]));
-    
-    // Type matching
-    if (v.includes("literacy") || v.includes("read")) setTrendType("literacy");
-    if (v.includes("numeracy") || v.includes("math")) setTrendType("numeracy");
-    
-    // Tab switching
-    if (v.includes("trend") || v.includes("growth")) setActiveTab("trends");
-    if (v.includes("overview") || v.includes("summary")) setActiveTab("overview");
+  const handleSubmit = async (text: string) => {
+    if (!text.trim() || isAnalyzing) return;
+    const userMsg = { role: 'user' as const, content: text };
+    setMessages(prev => [...prev, userMsg]);
+    setChatInput("");
+    setIsAnalyzing(true);
+    try {
+      const history = messages.map(m => ({ role: m.role, content: m.content }));
+      const result = await analyzeDashboardQuery(text, { stats, hierarchy, rankings, struggling, velocity }, history);
+      if (result.filters) {
+        if (result.filters.classNum) setSelectedClass(result.filters.classNum);
+        if (result.filters.subject === 'literacy') setTrendType('literacy');
+        if (result.filters.subject === 'numeracy') setTrendType('numeracy');
+        if (result.tab) setActiveTab(result.tab);
+      }
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: result.insight,
+        recommendation: result.recommendation,
+        summary: result.summary
+      }]);
+    } catch {
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Sorry, something went wrong. Please try again.' }]);
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const activeDivision = hierarchy.find(d => d.id === divId);
@@ -210,7 +220,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
       </div>
 
       {/* STRUGGLING STUDENTS ALERT */}
-      {(query.toLowerCase().includes("struggle") || query.toLowerCase().includes("zero") || struggling.length > 5) && (
+      {struggling.length > 5 && (
         <div className="animate-in slide-in-from-top-4 duration-500 my-8">
           <div className="bg-red-50 dark:bg-red-950/20 rounded-[40px] p-8 border border-red-100 dark:border-red-900/30 flex flex-col md:flex-row items-center gap-8 shadow-xl shadow-red-500/5">
              <div className="w-20 h-20 bg-red-500 rounded-[32px] flex items-center justify-center shadow-2xl shadow-red-500/20 shrink-0">
@@ -505,100 +515,91 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
              </div>
 
              {/* Content Area */}
-             <div className="p-6 space-y-6 max-h-[500px] overflow-y-auto">
-                {aiInsight ? (
-                  <div className="space-y-4 animate-in fade-in zoom-in-95 duration-500">
-                     <div className="flex gap-2 items-center">
-                        <span className="px-3 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 text-[10px] font-black rounded-full uppercase tracking-widest border border-blue-100 dark:border-blue-800">
-                           {aiInsight.summary || "Executive Insight"}
-                        </span>
-                     </div>
-                     <p className="text-slate-700 dark:text-slate-200 font-bold leading-relaxed">{aiInsight.insight}</p>
-                     
-                     {aiInsight.recommendation && (
-                        <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-3xl border border-slate-100 dark:border-slate-800 flex gap-3 items-start">
-                           <Lightbulb className="w-5 h-5 text-yellow-500 shrink-0 mt-1" />
-                           <div>
-                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Strategist's Recommendation</p>
-                              <p className="text-sm font-bold text-slate-600 dark:text-slate-300">{aiInsight.recommendation}</p>
-                           </div>
-                        </div>
-                     )}
-
-                     <button onClick={() => setAiInsight(null)} className="w-full py-3 text-xs font-black text-blue-600 uppercase tracking-widest hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-2xl transition-all">
-                        Ask another question
-                     </button>
-                  </div>
-                ) : (
+             <div className="p-4 space-y-3 max-h-[460px] overflow-y-auto flex flex-col">
+                {messages.length === 0 ? (
                   <div className="space-y-4 py-4 text-center">
-                     <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-[24px] flex items-center justify-center mx-auto mb-4 border border-slate-100 dark:border-slate-800">
+                     <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-[24px] flex items-center justify-center mx-auto border border-slate-100 dark:border-slate-800">
                         <Sparkles className="w-8 h-8 text-blue-500 animate-pulse" />
                      </div>
-                     <p className="text-slate-600 dark:text-slate-400 font-medium px-4">Hello! I am "The Brain". I have access to all Mission data including rankings, struggling students, and regional performance. How can I assist today?</p>
-                     
-                     <div className="grid grid-cols-1 gap-2 pt-4">
+                     <p className="text-slate-600 dark:text-slate-400 font-medium px-4 text-sm">I'm "The Brain" — I have access to all mission data: rankings, struggling students, regional performance. Ask me anything.</p>
+                     <div className="grid grid-cols-1 gap-2 pt-2">
                         {[
                           "Compare Baseline vs Endline results",
                           "Which PO is the top performer?",
-                          "Summarize status of struggling students",
+                          "Show students with zero progress",
                           "How is Class 3 literacy moving?"
                         ].map(q => (
-                          <button key={q} onClick={() => { setQuery(q); }} className="text-left px-4 py-3 bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl text-[11px] font-bold text-slate-500 hover:text-blue-600 transition-all border border-slate-100 dark:border-slate-800">
+                          <button key={q} onClick={() => handleSubmit(q)}
+                            className="text-left px-4 py-3 bg-slate-50 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl text-[11px] font-bold text-slate-500 hover:text-blue-600 transition-all border border-slate-100 dark:border-slate-800">
                              {q}
                           </button>
                         ))}
                      </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                     {messages.map((msg, i) => (
+                       <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                         {msg.role === 'user' ? (
+                           <div className="max-w-[80%] px-4 py-2.5 bg-blue-600 text-white rounded-3xl rounded-br-md text-sm font-medium leading-relaxed">
+                             {msg.content}
+                           </div>
+                         ) : (
+                           <div className="max-w-[90%] space-y-2">
+                             {msg.summary && (
+                               <span className="inline-block px-3 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 text-[10px] font-black rounded-full uppercase tracking-widest border border-blue-100 dark:border-blue-800">
+                                 {msg.summary}
+                               </span>
+                             )}
+                             <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-3xl rounded-bl-md text-sm font-medium text-slate-700 dark:text-slate-200 leading-relaxed">
+                               {msg.content}
+                             </div>
+                             {msg.recommendation && (
+                               <div className="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/30 flex gap-2 items-start">
+                                 <Lightbulb className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
+                                 <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">{msg.recommendation}</p>
+                               </div>
+                             )}
+                           </div>
+                         )}
+                       </div>
+                     ))}
+                     {isAnalyzing && (
+                       <div className="flex justify-start">
+                         <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-3xl rounded-bl-md flex items-center gap-2">
+                           <div className="flex gap-1">
+                             {[0,1,2].map(n => <div key={n} className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: `${n * 0.15}s` }} />)}
+                           </div>
+                           <span className="text-xs text-slate-400 font-medium">Analyzing...</span>
+                         </div>
+                       </div>
+                     )}
                   </div>
                 )}
              </div>
 
              {/* Input Area */}
              <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30">
-                <form 
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    if (!query.trim()) return;
-                    setIsAnalyzing(true);
-                    try {
-                      const result = await analyzeDashboardQuery(query, {
-                        stats,
-                        hierarchy,
-                        rankings,
-                        struggling,
-                        velocity
-                      });
-                      if (result.filters) {
-                         if (result.filters.classNum) setSelectedClass(result.filters.classNum);
-                         if (result.filters.subject === 'literacy') setTrendType('literacy');
-                         if (result.filters.subject === 'numeracy') setTrendType('numeracy');
-                         if (result.tab) setActiveTab(result.tab);
-                      }
-                      setAiInsight(result);
-                    } catch (err) {
-                      console.error(err);
-                    } finally {
-                      setIsAnalyzing(false);
-                    }
-                  }}
-                  className="relative flex items-center"
-                >
-                   <input 
+                {messages.length > 0 && (
+                  <button onClick={() => setMessages([])} className="w-full mb-2 py-1.5 text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-all">
+                    Clear conversation
+                  </button>
+                )}
+                <form onSubmit={(e) => { e.preventDefault(); handleSubmit(chatInput); }} className="relative flex items-center">
+                   <input
                       type="text"
                       className="w-full bg-white dark:bg-slate-900 rounded-2xl px-5 py-3.5 pr-14 text-sm font-medium border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-blue-500 shadow-sm outline-none"
                       placeholder="Ask the Mission Brain..."
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      disabled={isAnalyzing}
                    />
-                   <button 
-                     type="submit" 
-                     disabled={isAnalyzing}
+                   <button
+                     type="submit"
+                     disabled={isAnalyzing || !chatInput.trim()}
                      className="absolute right-2 p-2 bg-blue-600 text-white rounded-xl shadow-lg hover:scale-110 active:scale-95 transition-all disabled:opacity-50"
                    >
-                      {isAnalyzing ? (
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      ) : (
-                        <Search className="w-5 h-5" />
-                      )}
+                      <Search className="w-5 h-5" />
                    </button>
                 </form>
              </div>

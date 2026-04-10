@@ -40,7 +40,7 @@ export default function WordRace({ player1, player2, schoolId, classNum }: any) 
     generateRound();
   }, []);
 
-  const handleEnd = async (winner: 'A' | 'B' | 'Draw', scores: { a: number, b: number }) => {
+  const handleEnd = async (winner: 'A' | 'B' | 'Draw', _scores: { a: number, b: number }) => {
     if (!player1 || !player2 || !schoolId) return;
     await recordBattleResult({
       schoolId,
@@ -59,6 +59,8 @@ export default function WordRace({ player1, player2, schoolId, classNum }: any) 
       title="शब्द वाचन (Word Race)"
       description="योग्य श्रेणी निवडा! पहिला टॅप करणारा जिंकतो."
       icon={<span className="text-2xl">📖</span>}
+      player1={player1}
+      player2={player2}
       onGameEnd={handleEnd}
     >
       {({ addPoint, gameState }) => (

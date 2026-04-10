@@ -1,8 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { Volume2, SpellCheck, Star, Zap, Swords } from 'lucide-react';
+import { useState } from 'react';
+import { Volume2, SpellCheck, Swords } from 'lucide-react';
 import CompetitiveArena from './CompetitiveArena';
 import { cn } from "@/lib/utils";
+import { recordBattleResult } from '@/app/actions';
 
 const MARATHI_LETTERS = ["अ", "ब", "क", "ड", "ए", "फ", "ग", "ह", "इ", "ज"];
 
@@ -12,20 +13,37 @@ function generateSoundProblem(): { t: string; options: string[] } {
   return { t, options: [t, ...others].sort(() => 0.5 - Math.random()) };
 }
 
-export default function SoundDuel() {
+export default function SoundDuel({ player1, player2, schoolId, classNum }: any) {
   const [probA, setProbA] = useState(generateSoundProblem());
   const [probB, setProbB] = useState(generateSoundProblem());
   const [feedbackA, setFeedbackA] = useState<'idle' | 'success' | 'error'>('idle');
   const [feedbackB, setFeedbackB] = useState<'idle' | 'success' | 'error'>('idle');
 
+  const handleEnd = async (winner: 'A' | 'B' | 'Draw', _scores: { a: number, b: number }) => {
+    if (!player1 || !player2 || !schoolId) return;
+    await recordBattleResult({
+      schoolId,
+      classNum: classNum || 3,
+      subject: 'literacy',
+      level: 1,
+      gameSlug: 'sound-duel',
+      player1Id: player1.id,
+      player2Id: player2.id,
+      winnerId: winner === 'A' ? player1.id : winner === 'B' ? player2.id : null
+    });
+  };
+
   return (
-    <CompetitiveArena 
-      title="Phonics Sound Duel" 
+    <CompetitiveArena
+      title="Phonics Sound Duel"
       description="2v2 Literacy Battle: Identify the correct letter sound faster than the opposing team!"
       icon={<SpellCheck className="w-10 h-10 text-white" />}
       duration={60}
+      player1={player1}
+      player2={player2}
+      onGameEnd={handleEnd}
     >
-      {({ gameState, addPoint, scores }) => (
+      {({ gameState, addPoint }) => (
         <div className="flex-1 flex gap-px bg-white/5 overflow-hidden rounded-[40px] border border-white/5">
           
           {/* TEAM A ARENA */}

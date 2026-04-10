@@ -27,7 +27,7 @@ export default function LetterFlash({ player1, player2, schoolId, classNum }: an
     generateRound();
   }, []);
 
-  const handleEnd = async (winner: 'A' | 'B' | 'Draw', scores: { a: number, b: number }) => {
+  const handleEnd = async (winner: 'A' | 'B' | 'Draw', _scores: { a: number, b: number }) => {
     if (!player1 || !player2 || !schoolId) return;
     await recordBattleResult({
       schoolId,
@@ -46,6 +46,8 @@ export default function LetterFlash({ player1, player2, schoolId, classNum }: an
       title="अक्षर ओळख (Letter Flash)"
       description="पहिला खेळाडू ज्याने योग्य अक्षरावर टॅप केले त्याला गुण मिळेल!"
       icon={<span className="text-2xl">अ</span>}
+      player1={player1}
+      player2={player2}
       onGameEnd={handleEnd}
     >
       {({ addPoint, gameState }) => (

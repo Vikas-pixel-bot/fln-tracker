@@ -37,7 +37,7 @@ export default function MathDuel({ player1, player2, schoolId, classNum }: any) 
     generateRound();
   }, []);
 
-  const handleEnd = async (winner: 'A' | 'B' | 'Draw', scores: { a: number, b: number }) => {
+  const handleEnd = async (winner: 'A' | 'B' | 'Draw', _scores: { a: number, b: number }) => {
     if (!player1 || !player2 || !schoolId) return;
     await recordBattleResult({
       schoolId,
@@ -56,6 +56,8 @@ export default function MathDuel({ player1, player2, schoolId, classNum }: any) 
       title="Math Duel (वजाबाकी आणि भागाकार)"
       description="Quickly solve the math problem! Speed is key to winning the point."
       icon={<span className="text-2xl">⚡</span>}
+      player1={player1}
+      player2={player2}
       onGameEnd={handleEnd}
     >
       {({ addPoint, gameState }) => (

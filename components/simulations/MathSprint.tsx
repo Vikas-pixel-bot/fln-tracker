@@ -1,8 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { Binary, Plus, Percent as Minus, Sparkles, Zap, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
+import { Binary, Zap } from 'lucide-react';
 import CompetitiveArena from './CompetitiveArena';
 import { cn } from "@/lib/utils";
+import { recordBattleResult } from '@/app/actions';
 
 type Problem = { q: string; a: number; options: number[] };
 
@@ -16,20 +17,37 @@ function generateProblem(): Problem {
   return { q, a, options };
 }
 
-export default function MathSprint() {
+export default function MathSprint({ player1, player2, schoolId, classNum }: any) {
   const [probA, setProbA] = useState<Problem>(generateProblem());
   const [probB, setProbB] = useState<Problem>(generateProblem());
   const [feedbackA, setFeedbackA] = useState<'idle' | 'success' | 'error'>('idle');
   const [feedbackB, setFeedbackB] = useState<'idle' | 'success' | 'error'>('idle');
 
+  const handleEnd = async (winner: 'A' | 'B' | 'Draw', _scores: { a: number, b: number }) => {
+    if (!player1 || !player2 || !schoolId) return;
+    await recordBattleResult({
+      schoolId,
+      classNum: classNum || 3,
+      subject: 'numeracy',
+      level: 2,
+      gameSlug: 'math-sprint',
+      player1Id: player1.id,
+      player2Id: player2.id,
+      winnerId: winner === 'A' ? player1.id : winner === 'B' ? player2.id : null
+    });
+  };
+
   return (
-    <CompetitiveArena 
-      title="Flash Math Sprint" 
+    <CompetitiveArena
+      title="Flash Math Sprint"
       description="2v2 Arithmetic Race: Solve addition and subtraction problems as fast as you can!"
       icon={<Binary className="w-10 h-10 text-white" />}
       duration={60}
+      player1={player1}
+      player2={player2}
+      onGameEnd={handleEnd}
     >
-      {({ gameState, addPoint, scores }) => (
+      {({ gameState, addPoint }) => (
         <div className="flex-1 flex gap-px bg-white/5 overflow-hidden rounded-[40px] border border-white/5">
           
           {/* TEAM A ARENA */}

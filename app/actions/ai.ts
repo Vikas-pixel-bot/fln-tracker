@@ -4,7 +4,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_GENERATIVE_AI_API_KEY || "");
 
-export async function analyzeDashboardQuery(query: string, context: any) {
+export async function analyzeDashboardQuery(query: string, context: any, history: { role: 'user' | 'assistant'; content: string }[] = []) {
   const apiKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY;
   
   if (!apiKey) {
@@ -32,16 +32,20 @@ export async function analyzeDashboardQuery(query: string, context: any) {
 
     const rankings = context.rankings?.slice(0, 3).concat(context.rankings?.slice(-3)); // Top 3 and Bottom 3
     
+    const historyText = history.length > 0
+      ? `\n      CONVERSATION SO FAR:\n${history.map(m => `      ${m.role === 'user' ? 'User' : 'Brain'}: ${m.content}`).join('\n')}\n`
+      : '';
+
     const prompt = `
-      You are "The Brain" — the FLN Mission Strategist AI. 
+      You are "The Brain" — the FLN Mission Strategist AI.
       Analyze the summarized mission data below.
 
       DATA SUMMARY:
       - Totals: ${JSON.stringify(stats)}
       - Key Rankings (Top/Bottom): ${JSON.stringify(rankings)}
       - Struggle Sample: ${JSON.stringify(context.struggling?.slice(0, 3))}
-
-      QUERY: "${query}"
+${historyText}
+      CURRENT QUERY: "${query}"
 
       INSTRUCTIONS:
       - Return JSON ONLY. No preamble.

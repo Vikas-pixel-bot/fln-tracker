@@ -30,7 +30,7 @@ export default function SentenceFill({ player1, player2, schoolId, classNum }: a
     generateRound();
   }, []);
 
-  const handleEnd = async (winner: 'A' | 'B' | 'Draw', scores: { a: number, b: number }) => {
+  const handleEnd = async (winner: 'A' | 'B' | 'Draw', _scores: { a: number, b: number }) => {
     if (!player1 || !player2 || !schoolId) return;
     await recordBattleResult({
       schoolId,
@@ -49,6 +49,8 @@ export default function SentenceFill({ player1, player2, schoolId, classNum }: a
       title="वाक्य पूर्ण करा (Sentence Fill)"
       description="योग्य शब्द निवडून वाक्य पूर्ण करा! पहिला टॅप करणारा खेळाडू गुण मिळवेल."
       icon={<span className="text-2xl">📝</span>}
+      player1={player1}
+      player2={player2}
       onGameEnd={handleEnd}
     >
       {({ addPoint, gameState }) => (
