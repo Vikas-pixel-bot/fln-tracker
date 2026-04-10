@@ -191,6 +191,24 @@ function MissionControl() {
     return SIM_COMPONENTS[selectedActivity.simulationId] || null;
   }, [selectedActivity]);
 
+  const getNextDetail = () => {
+    if (!selectedDetail || !sessionPlan) return null;
+    const { groupIdx, actIdx } = selectedDetail;
+    const group = sessionPlan.groups[groupIdx];
+    const visible = getVisibleActivities(group);
+    const curVis = visible.findIndex(a => group.activities.indexOf(a) === actIdx);
+    if (curVis < visible.length - 1) {
+      const next = visible[curVis + 1];
+      return { groupIdx, actIdx: group.activities.indexOf(next) };
+    }
+    if (groupIdx < sessionPlan.groups.length - 1) {
+      const ng = sessionPlan.groups[groupIdx + 1];
+      const nv = getVisibleActivities(ng);
+      if (nv.length > 0) return { groupIdx: groupIdx + 1, actIdx: ng.activities.indexOf(nv[0]) };
+    }
+    return null;
+  };
+
   const resetSession = () => {
     setStep('setup'); setClassNum(null); setSubject(null); setIsFocusMode(false);
     setGroupActivityIdx([0, 0]); setCompletedActivities(new Set());
@@ -339,13 +357,13 @@ function MissionControl() {
               </div>
             </div>
 
-            {/* Class 1–8 */}
+            {/* Class 1–4 */}
             <div className="space-y-3">
               <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Classroom</p>
-              <div className="grid grid-cols-8 gap-2">
-                {[1,2,3,4,5,6,7,8].map(n => (
+              <div className="grid grid-cols-4 gap-3">
+                {[1,2,3,4].map(n => (
                   <button key={n} onClick={() => { setClassNum(n); setSubject(null); }}
-                    className={cn("h-12 rounded-2xl font-black text-base transition-all",
+                    className={cn("h-14 rounded-2xl font-black text-xl transition-all",
                       classNum === n ? "bg-blue-600 text-white shadow-xl scale-105" : "bg-slate-50 dark:bg-slate-800 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700")}>
                     {n}
                   </button>
@@ -481,43 +499,52 @@ function MissionControl() {
                         {completedActivities.has(`0-${sessionPlan.groups[0].activities.indexOf(selectedActivity)}`) ? "✓ Done" : "Mark Done"}
                       </button>
                     </div>
-                    <div className="flex-1 overflow-y-auto p-8 space-y-8">
-                      <div className="space-y-4">
-                        <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Step-by-Step Instructions</h4>
-                        <ol className="space-y-3">
-                          {selectedActivity.instructions.map((ins, i) => (
-                            <li key={i} className="flex gap-4 items-start">
-                              <span className="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-600 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                              <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{ins}</p>
-                            </li>
-                          ))}
-                        </ol>
-                      </div>
-                      {selectedActivity.materials.length > 0 && (
-                        <div className="space-y-4">
-                          <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Materials Needed</h4>
-                          <ul className="flex flex-wrap gap-2">
+                    {/* Simulation gets the full stage when present */}
+                    {ActiveSimulation ? (
+                      <div className="flex-1 flex flex-col min-h-0">
+                        <div className="flex-1 min-h-[520px] bg-slate-950 overflow-hidden">
+                          <ActiveSimulation player1={battleContext?.p1} player2={battleContext?.p2} schoolId={battleContext?.schoolId || "mock-school-id"} classNum={classNum || 1} />
+                        </div>
+                        {/* Compact strip: materials only */}
+                        {selectedActivity.materials.length > 0 && (
+                          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3 flex-wrap">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Materials:</span>
                             {selectedActivity.materials.map((m, i) => (
-                              <li key={i} className="px-4 py-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 rounded-xl text-sm font-medium">{m}</li>
+                              <span key={i} className="px-3 py-1 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 rounded-lg text-xs font-medium">{m}</span>
                             ))}
-                          </ul>
-                        </div>
-                      )}
-                      {ActiveSimulation && (
-                        <div className="space-y-4">
-                          <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Digital Simulation</h4>
-                          <div className="rounded-[24px] overflow-hidden border border-slate-100 dark:border-slate-800">
-                            <ActiveSimulation player1={battleContext?.p1} player2={battleContext?.p2} schoolId={battleContext?.schoolId || "mock-school-id"} classNum={classNum || 1} />
                           </div>
+                        )}
+                      </div>
+                    ) : selectedActivity.name === "The Battle Arena" ? (
+                      <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8">
+                        <div className="w-24 h-24 bg-orange-100 dark:bg-orange-950/30 rounded-3xl flex items-center justify-center text-orange-600"><Swords className="w-12 h-12" /></div>
+                        <button onClick={() => setShowMatchmaker(true)} className="px-10 py-5 bg-orange-500 text-white font-black rounded-2xl shadow-lg hover:scale-105 transition-all text-lg">OPEN MATCHMAKER</button>
+                      </div>
+                    ) : (
+                      <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                        <div className="space-y-4">
+                          <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Step-by-Step Instructions</h4>
+                          <ol className="space-y-3">
+                            {selectedActivity.instructions.map((ins, i) => (
+                              <li key={i} className="flex gap-4 items-start">
+                                <span className="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-600 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{ins}</p>
+                              </li>
+                            ))}
+                          </ol>
                         </div>
-                      )}
-                      {selectedActivity.name === "The Battle Arena" && (
-                        <div className="text-center space-y-4">
-                          <div className="w-20 h-20 bg-orange-100 dark:bg-orange-950/30 rounded-3xl flex items-center justify-center text-orange-600 mx-auto"><Swords className="w-10 h-10" /></div>
-                          <button onClick={() => setShowMatchmaker(true)} className="px-8 py-4 bg-orange-500 text-white font-black rounded-2xl shadow-lg hover:scale-105 transition-all">OPEN MATCHMAKER</button>
-                        </div>
-                      )}
-                    </div>
+                        {selectedActivity.materials.length > 0 && (
+                          <div className="space-y-3">
+                            <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Materials Needed</h4>
+                            <ul className="flex flex-wrap gap-2">
+                              {selectedActivity.materials.map((m, i) => (
+                                <li key={i} className="px-4 py-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 rounded-xl text-sm font-medium">{m}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </>
                 ) : (
                   <div className="flex-1 flex items-center justify-center text-slate-300 dark:text-slate-700">
@@ -602,6 +629,7 @@ function MissionControl() {
                       {selectedDetail && completedActivities.has(`${selectedDetail.groupIdx}-${selectedDetail.actIdx}`) ? "✓ Done" : "Mark Done"}
                     </button>
                   </div>
+                  {/* Instructions + Materials (compact 2-col) */}
                   <div className="p-6 grid md:grid-cols-2 gap-6">
                     <div className="space-y-3">
                       <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Instructions</h4>
@@ -621,16 +649,16 @@ function MissionControl() {
                           <li key={i} className="px-3 py-1.5 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 rounded-xl text-xs font-medium">{m}</li>
                         ))}
                       </ul>
-                      {ActiveSimulation && (
-                        <div className="mt-4">
-                          <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[4px] mb-3">Digital Simulation</h4>
-                          <div className="rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-800 max-h-64 overflow-y-auto">
-                            <ActiveSimulation player1={battleContext?.p1} player2={battleContext?.p2} schoolId={battleContext?.schoolId || "mock-school-id"} classNum={classNum || 3} />
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
+                  {/* Simulation — full-width, tall */}
+                  {ActiveSimulation && (
+                    <div className="border-t border-slate-100 dark:border-slate-800">
+                      <div className="min-h-[520px] bg-slate-950 overflow-hidden rounded-b-[32px]">
+                        <ActiveSimulation player1={battleContext?.p1} player2={battleContext?.p2} schoolId={battleContext?.schoolId || "mock-school-id"} classNum={classNum || 3} />
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="bg-slate-50 dark:bg-slate-900/40 rounded-[32px] border border-slate-100 dark:border-slate-800 p-8 text-center text-slate-400 dark:text-slate-600">
@@ -639,11 +667,18 @@ function MissionControl() {
                 </div>
               )}
 
-              <div className="flex justify-end">
-                <button onClick={() => setStep('summary')}
-                  className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl shadow-xl flex items-center gap-3">
-                  FINISH SESSION <ChevronRight className="w-6 h-6" />
-                </button>
+              <div className="flex justify-end gap-4">
+                {getNextDetail() ? (
+                  <button onClick={() => setSelectedDetail(getNextDetail())}
+                    className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl shadow-xl flex items-center gap-3 hover:scale-105 transition-all">
+                    NEXT ACTIVITY <ChevronRight className="w-6 h-6" />
+                  </button>
+                ) : (
+                  <button onClick={() => setStep('summary')}
+                    className="px-10 py-5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black rounded-3xl shadow-xl flex items-center gap-3 hover:scale-105 transition-all">
+                    FINISH SESSION <CheckCircle2 className="w-6 h-6" />
+                  </button>
+                )}
               </div>
             </div>
           )}
