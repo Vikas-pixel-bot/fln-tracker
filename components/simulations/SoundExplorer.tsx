@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Volume2, Star, Music } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
@@ -14,11 +14,36 @@ const MARATHI_LETTERS = [
   "श", "ष", "स", "ह", "ळ",
 ];
 
+function speakMarathi(text: string) {
+  if (typeof window === 'undefined' || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  // mr-IN for Marathi; falls back gracefully to hi-IN or default on devices without Marathi TTS
+  u.lang = 'mr-IN';
+  u.rate = 0.75;
+  u.pitch = 1.0;
+  window.speechSynthesis.speak(u);
+}
+
 export default function SoundExplorer() {
   const [target, setTarget] = useState("");
   const [options, setOptions] = useState<string[]>([]);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState<'idle' | 'success' | 'error'>('idle');
+  const [speaking, setSpeaking] = useState(false);
+
+  const speak = (letter: string) => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(letter);
+    u.lang = 'mr-IN';
+    u.rate = 0.75;
+    u.pitch = 1.0;
+    setSpeaking(true);
+    u.onend = () => setSpeaking(false);
+    u.onerror = () => setSpeaking(false);
+    window.speechSynthesis.speak(u);
+  };
 
   const generateNew = () => {
     const t = MARATHI_LETTERS[Math.floor(Math.random() * MARATHI_LETTERS.length)];
@@ -26,6 +51,8 @@ export default function SoundExplorer() {
     setTarget(t);
     setOptions([t, ...others].sort(() => 0.5 - Math.random()));
     setFeedback('idle');
+    // Auto-play after a short delay so state has settled
+    setTimeout(() => speak(t), 300);
   };
 
   useEffect(() => {
@@ -33,10 +60,11 @@ export default function SoundExplorer() {
   }, []);
 
   const checkLetter = (l: string) => {
+    if (feedback !== 'idle') return;
     if (l === target) {
       setFeedback('success');
       setScore(prev => prev + 1);
-      setTimeout(() => generateNew(), 1500);
+      setTimeout(() => generateNew(), 1600);
     } else {
       setFeedback('error');
       setTimeout(() => setFeedback('idle'), 1000);
@@ -58,17 +86,22 @@ export default function SoundExplorer() {
 
       <div className="flex-1 flex flex-col items-center justify-center space-y-12">
 
-         {/* THE SOUND BUTTON — teacher says the letter, children tap */}
+         {/* SOUND BUTTON — tap to replay the letter sound */}
          <div className="relative group">
             <button
-              onClick={() => {}}
+              onClick={() => speak(target)}
+              disabled={!target}
               className={cn(
-                "w-48 h-48 rounded-[60px] bg-blue-600 text-white flex flex-col items-center justify-center gap-2 shadow-2xl shadow-blue-600/20 active:scale-95 transition-all group-hover:bg-blue-700",
-                feedback === 'success' && "bg-emerald-500 shadow-emerald-500/20 group-hover:bg-emerald-500"
+                "w-48 h-48 rounded-[60px] text-white flex flex-col items-center justify-center gap-2 shadow-2xl active:scale-95 transition-all",
+                feedback === 'success'
+                  ? "bg-emerald-500 shadow-emerald-500/20"
+                  : "bg-blue-600 shadow-blue-600/20 hover:bg-blue-700"
               )}
             >
-               <Volume2 className="w-16 h-16 animate-pulse" />
-               <span className="text-[10px] font-black uppercase tracking-widest opacity-60">ध्वनी ऐका</span>
+               <Volume2 className={cn("w-16 h-16", speaking && "animate-pulse")} />
+               <span className="text-[10px] font-black uppercase tracking-widest opacity-70">
+                 {speaking ? "बोलत आहे…" : "ध्वनी ऐका"}
+               </span>
             </button>
             {feedback === 'success' && (
                <div className="absolute -top-4 -right-4 bg-yellow-400 text-black px-4 py-1 rounded-full font-black text-xs animate-bounce">
@@ -86,7 +119,11 @@ export default function SoundExplorer() {
                 disabled={feedback === 'success'}
                 className={cn(
                   "aspect-square rounded-[32px] bg-slate-50 dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 text-6xl font-black transition-all active:scale-90",
-                  feedback === 'success' && opt === target ? "bg-emerald-500 border-emerald-500 text-white" : "text-slate-900 dark:text-white hover:border-blue-600 hover:text-blue-600",
+                  feedback === 'success' && opt === target
+                    ? "bg-emerald-500 border-emerald-500 text-white"
+                    : feedback === 'error' && opt === target
+                    ? "bg-blue-100 border-blue-400 text-blue-700"
+                    : "text-slate-900 dark:text-white hover:border-blue-600 hover:text-blue-600",
                   feedback === 'error' && opt !== target ? "opacity-30" : ""
                 )}
               >
@@ -103,7 +140,7 @@ export default function SoundExplorer() {
             <div className="space-y-1">
                <h4 className="text-sm font-black text-white uppercase tracking-widest">शिक्षकांसाठी मार्गदर्शन</h4>
                <p className="text-xs text-slate-400 font-medium leading-relaxed">
-                  शिक्षकाने अक्षराचा ध्वनी उच्चारायचा, विद्यार्थ्याने तो अक्षर टॅप करायचे. बोलणे आणि लिखित भाषेमधला सेतू बांधायला हा खेळ उपयुक्त आहे.
+                  "ध्वनी ऐका" बटण दाबा — अक्षर बोलले जाईल. विद्यार्थ्याने तो ध्वनी ऐकून योग्य अक्षर टॅप करायचे. पुन्हा ऐकायचे असेल तर बटण पुन्हा दाबा.
                </p>
             </div>
          </div>
