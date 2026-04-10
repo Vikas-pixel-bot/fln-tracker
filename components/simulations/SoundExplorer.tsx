@@ -1,7 +1,8 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Volume2, Star, Music } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { speakLetter } from '@/lib/speak';
 
 const MARATHI_LETTERS = [
   "क", "ख", "ग", "घ",
@@ -13,74 +14,17 @@ const MARATHI_LETTERS = [
   "श", "ष", "स", "ह", "ळ",
 ];
 
-// Pick the best available voice: prefer mr-IN, then hi-IN, then any available
-function getBestVoice(): SpeechSynthesisVoice | null {
-  if (typeof window === 'undefined') return null;
-  const voices = window.speechSynthesis.getVoices();
-  return (
-    voices.find(v => v.lang === 'mr-IN') ||
-    voices.find(v => v.lang.startsWith('mr')) ||
-    voices.find(v => v.lang === 'hi-IN') ||
-    voices.find(v => v.lang.startsWith('hi')) ||
-    voices[0] ||
-    null
-  );
-}
-
-function speak(text: string, onEnd?: () => void) {
-  if (typeof window === 'undefined' || !window.speechSynthesis) return;
-  window.speechSynthesis.cancel();
-
-  const u = new SpeechSynthesisUtterance(text);
-  const voice = getBestVoice();
-  if (voice) u.voice = voice;
-  u.lang = voice?.lang ?? 'hi-IN';
-  u.rate = 0.7;
-  u.pitch = 1.1;
-  u.volume = 1;
-
-  if (onEnd) u.onend = onEnd;
-  window.speechSynthesis.speak(u);
-}
-
 export default function SoundExplorer() {
   const [target, setTarget] = useState("");
   const [options, setOptions] = useState<string[]>([]);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState<'idle' | 'success' | 'error'>('idle');
   const [speaking, setSpeaking] = useState(false);
-  const [voiceReady, setVoiceReady] = useState(false);
-  const pendingPlay = useRef<string>("");
-
-  // Voices load asynchronously — wait for them before first play
-  useEffect(() => {
-    const init = () => {
-      setVoiceReady(true);
-      if (pendingPlay.current) {
-        speak(pendingPlay.current);
-        pendingPlay.current = "";
-      }
-    };
-
-    if (window.speechSynthesis.getVoices().length > 0) {
-      init();
-    } else {
-      window.speechSynthesis.addEventListener('voiceschanged', init, { once: true });
-    }
-
-    return () => {
-      window.speechSynthesis.removeEventListener('voiceschanged', init);
-    };
-  }, []);
 
   const playLetter = (letter: string) => {
     if (!letter) return;
-    if (!voiceReady) {
-      pendingPlay.current = letter;
-      return;
-    }
     setSpeaking(true);
-    speak(letter, () => setSpeaking(false));
+    speakLetter(letter, () => setSpeaking(false));
   };
 
   const generateNew = (autoPlay = true) => {
@@ -89,18 +33,12 @@ export default function SoundExplorer() {
     setTarget(t);
     setOptions([t, ...others].sort(() => 0.5 - Math.random()));
     setFeedback('idle');
-    if (autoPlay) setTimeout(() => playLetter(t), 400);
+    if (autoPlay) setTimeout(() => playLetter(t), 300);
   };
 
-  // First round — wait for voices, then generate
   useEffect(() => {
-    generateNew(false); // generate options immediately, no autoplay yet
+    generateNew();
   }, []);
-
-  // Once voices are ready, play the first letter
-  useEffect(() => {
-    if (voiceReady && target) playLetter(target);
-  }, [voiceReady]);
 
   const checkLetter = (l: string) => {
     if (feedback !== 'idle') return;
