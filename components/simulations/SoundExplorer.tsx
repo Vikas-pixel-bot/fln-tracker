@@ -1,22 +1,28 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Volume2, CheckCircle2, XCircle, RotateCcw, HelpCircle, Star, Music } from 'lucide-react';
+import { Volume2, Star, Music } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
-const MARATHI_LETTERS = ["अ", "ब", "क", "ड", "ए", "फ", "ग", "ह", "इ", "ज"];
-const ENGLISH_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
+// Full Marathi consonant set (व्यंजने)
+const MARATHI_LETTERS = [
+  "क", "ख", "ग", "घ",
+  "च", "छ", "ज", "झ",
+  "ट", "ठ", "ड", "ढ",
+  "त", "थ", "द", "ध", "न",
+  "प", "फ", "ब", "भ", "म",
+  "य", "र", "ल", "व",
+  "श", "ष", "स", "ह", "ळ",
+];
 
 export default function SoundExplorer() {
-  const [lang, setLang] = useState<'marathi' | 'english'>('marathi');
   const [target, setTarget] = useState("");
   const [options, setOptions] = useState<string[]>([]);
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState<'idle' | 'success' | 'error'>('idle');
 
-  const generateNew = (l = lang) => {
-    const pool = l === 'marathi' ? MARATHI_LETTERS : ENGLISH_LETTERS;
-    const t = pool[Math.floor(Math.random() * pool.length)];
-    const others = pool.filter(x => x !== t).sort(() => 0.5 - Math.random()).slice(0, 3);
+  const generateNew = () => {
+    const t = MARATHI_LETTERS[Math.floor(Math.random() * MARATHI_LETTERS.length)];
+    const others = MARATHI_LETTERS.filter(x => x !== t).sort(() => 0.5 - Math.random()).slice(0, 3);
     setTarget(t);
     setOptions([t, ...others].sort(() => 0.5 - Math.random()));
     setFeedback('idle');
@@ -25,11 +31,6 @@ export default function SoundExplorer() {
   useEffect(() => {
     generateNew();
   }, []);
-
-  const handleLangChange = (l: 'marathi' | 'english') => {
-    setLang(l);
-    generateNew(l);
-  };
 
   const checkLetter = (l: string) => {
     if (l === target) {
@@ -44,49 +45,34 @@ export default function SoundExplorer() {
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-[48px] border border-slate-100 dark:border-slate-800 shadow-2xl p-8 max-w-4xl mx-auto overflow-hidden relative min-h-[600px] flex flex-col">
-      
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-12">
         <div className="space-y-1 text-center sm:text-left">
            <div className="inline-flex items-center gap-2 px-3 py-1 bg-violet-50 dark:bg-violet-900/40 text-violet-600 dark:text-violet-400 rounded-full text-[10px] font-black uppercase tracking-widest">
-              <Music className="w-3 h-3" /> Literacy: Letter Level
+              <Music className="w-3 h-3" /> साक्षरता: अक्षर पातळी
            </div>
-           <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Sound Explorer</h2>
-        </div>
-        
-        <div className="flex items-center gap-2 bg-slate-100/50 dark:bg-slate-800/40 p-1 rounded-2xl">
-          <button 
-            onClick={() => handleLangChange('marathi')}
-            className={cn("px-4 py-2 rounded-xl text-xs font-black transition-all", lang === 'marathi' ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm" : "text-slate-500")}
-          >
-            मराठी
-          </button>
-          <button 
-            onClick={() => handleLangChange('english')}
-            className={cn("px-4 py-2 rounded-xl text-xs font-black transition-all", lang === 'english' ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm" : "text-slate-500")}
-          >
-            English
-          </button>
+           <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">ध्वनी शोधा</h2>
         </div>
       </div>
 
       <div className="flex-1 flex flex-col items-center justify-center space-y-12">
-         
-         {/* THE SOUND BUTTON */}
+
+         {/* THE SOUND BUTTON — teacher says the letter, children tap */}
          <div className="relative group">
-            <button 
-              onClick={() => {}} // In a real app, play audio here
+            <button
+              onClick={() => {}}
               className={cn(
                 "w-48 h-48 rounded-[60px] bg-blue-600 text-white flex flex-col items-center justify-center gap-2 shadow-2xl shadow-blue-600/20 active:scale-95 transition-all group-hover:bg-blue-700",
                 feedback === 'success' && "bg-emerald-500 shadow-emerald-500/20 group-hover:bg-emerald-500"
               )}
             >
                <Volume2 className="w-16 h-16 animate-pulse" />
-               <span className="text-[10px] font-black uppercase tracking-widest opacity-60">Listen to Sound</span>
+               <span className="text-[10px] font-black uppercase tracking-widest opacity-60">ध्वनी ऐका</span>
             </button>
             {feedback === 'success' && (
                <div className="absolute -top-4 -right-4 bg-yellow-400 text-black px-4 py-1 rounded-full font-black text-xs animate-bounce">
-                  +1 Star
+                  +१ ⭐
                </div>
             )}
          </div>
@@ -109,26 +95,26 @@ export default function SoundExplorer() {
             ))}
          </div>
 
-         {/* Instructional HUD */}
-         <div className="w-full max-w-xl bg-slate-50 dark:bg-slate-800/50 p-6 rounded-[32px] border border-slate-100 dark:border-slate-700 flex items-start gap-4">
-            <div className="p-3 bg-violet-100 dark:bg-violet-900/40 rounded-2xl">
-               <Star className="w-6 h-6 text-violet-600" />
+         {/* Teacher guide */}
+         <div className="w-full max-w-xl bg-slate-900 p-6 rounded-[32px] flex items-start gap-4">
+            <div className="p-3 bg-violet-600 rounded-2xl">
+               <Star className="w-6 h-6 text-white" />
             </div>
             <div className="space-y-1">
-               <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Teacher Guide</h4>
-               <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                  Focus on students identifying the <span className="text-violet-600 font-bold">Phonetic Sound</span>. Play the sound and ask the student to touch the letter they hear. Use this to bridge the gap between spoken and written language.
+               <h4 className="text-sm font-black text-white uppercase tracking-widest">शिक्षकांसाठी मार्गदर्शन</h4>
+               <p className="text-xs text-slate-400 font-medium leading-relaxed">
+                  शिक्षकाने अक्षराचा ध्वनी उच्चारायचा, विद्यार्थ्याने तो अक्षर टॅप करायचे. बोलणे आणि लिखित भाषेमधला सेतू बांधायला हा खेळ उपयुक्त आहे.
                </p>
             </div>
          </div>
       </div>
 
-      {/* Persistence Hud */}
+      {/* Score */}
       <div className="absolute bottom-10 left-10 flex items-center gap-3">
          <div className="w-12 h-12 bg-yellow-400 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg shadow-yellow-400/20 text-black">
             {score}
          </div>
-         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Total Stars</span>
+         <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">गुण</span>
       </div>
     </div>
   );

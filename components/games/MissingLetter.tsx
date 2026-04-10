@@ -1,17 +1,18 @@
 "use client";
 import { useState } from 'react';
 
+// Marathi CVC words with one letter missing
 const ROUNDS = [
-  { template: '_at', answer: 'C', options: ['C', 'B', 'X', 'Z'], image: '🐱', hint: 'It says meow' },
-  { template: '_og', answer: 'D', options: ['D', 'L', 'M', 'R'], image: '🐶', hint: 'Man\'s best friend' },
-  { template: 'su_', answer: 'N', options: ['N', 'M', 'G', 'P'], image: '☀️', hint: 'Shines in the sky' },
-  { template: 'tre_', answer: 'E', options: ['E', 'A', 'S', 'T'], image: '🌳', hint: 'Has leaves and branches' },
-  { template: '_ish', answer: 'F', options: ['F', 'D', 'W', 'H'], image: '🐟', hint: 'Lives in water' },
-  { template: 'bir_', answer: 'D', options: ['D', 'T', 'G', 'S'], image: '🐦', hint: 'It can fly' },
-  { template: 'bo_k', answer: 'O', options: ['O', 'A', 'E', 'I'], image: '📚', hint: 'You read this' },
-  { template: '_oon', answer: 'M', options: ['M', 'S', 'B', 'N'], image: '🌙', hint: 'Shines at night' },
-  { template: 'r_in', answer: 'A', options: ['A', 'E', 'U', 'O'], image: '🌧️', hint: 'Comes from clouds' },
-  { template: 'han_', answer: 'D', options: ['D', 'G', 'K', 'S'], image: '✋', hint: 'At the end of your arm' },
+  { template: '_प', answer: 'क', options: ['क', 'ग', 'त', 'प'], image: '☕', hint: 'पाणी पितात त्यात' },
+  { template: 'घ_', answer: 'र', options: ['र', 'न', 'ल', 'म'], image: '🏠', hint: 'आपण राहतो ते ठिकाण' },
+  { template: '_न', answer: 'व', options: ['व', 'म', 'ज', 'न'], image: '🌲', hint: 'झाडे भरपूर असतात' },
+  { template: 'ज_', answer: 'ग', options: ['ग', 'र', 'न', 'ल'], image: '🌍', hint: 'आपण सगळे राहतो त्यावर' },
+  { template: '_ल', answer: 'द', options: ['द', 'त', 'न', 'म'], image: '🫘', hint: 'डाळीचे दुसरे नाव' },
+  { template: 'न_', answer: 'भ', options: ['भ', 'म', 'ल', 'व'], image: '🌤️', hint: 'आकाशाचे दुसरे नाव' },
+  { template: 'म_', answer: 'न', options: ['न', 'र', 'ल', 'व'], image: '💭', hint: 'विचार येतात तिथे' },
+  { template: 'क_ल', answer: 'म', options: ['म', 'न', 'ल', 'व'], image: '🪷', hint: 'पाण्यात उगवणारे फूल' },
+  { template: '_र', answer: 'घ', options: ['घ', 'क', 'त', 'म'], image: '🏠', hint: 'आपण राहतो ते ठिकाण' },
+  { template: 'क_', answer: 'प', options: ['प', 'म', 'न', 'ल'], image: '☕', hint: 'पाणी पितात त्यात' },
 ];
 
 function shuffle<T>(arr: T[]): T[] {
@@ -44,14 +45,14 @@ export default function MissingLetter() {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-teal-100 shadow-sm space-y-6">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">Score: {score}/{idx}</span>
+        <span className="text-sm font-bold text-teal-600 bg-teal-50 px-3 py-1 rounded-full">गुण: {score}/{idx}</span>
         <span className="text-2xl">🔡</span>
       </div>
 
       <div className="text-center space-y-3">
         <div className="text-6xl">{round.image}</div>
         <p className="text-slate-400 text-sm italic">{round.hint}</p>
-        <div className="text-5xl font-extrabold text-slate-800 tracking-widest uppercase">
+        <div className="text-5xl font-extrabold text-slate-800 tracking-widest">
           {completed.split('').map((ch, i) => (
             <span key={i} className={ch === '_' ? 'text-teal-400 underline' : ''}>
               {ch === '_' ? '?' : ch}
@@ -81,7 +82,9 @@ export default function MissingLetter() {
 
       {feedback && (
         <div className={`text-center text-xl font-extrabold animate-bounce ${feedback === 'correct' ? 'text-green-500' : 'text-red-400'}`}>
-          {feedback === 'correct' ? `⭐ Yes! "${round.template.replace('_', round.answer)}"` : `❌ It was "${round.answer}"`}
+          {feedback === 'correct'
+            ? `⭐ शाब्बास! "${round.template.replace('_', round.answer)}"`
+            : `❌ उत्तर: "${round.answer}"`}
         </div>
       )}
     </div>

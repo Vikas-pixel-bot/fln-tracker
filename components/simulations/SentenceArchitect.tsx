@@ -36,7 +36,7 @@ export default function SentenceArchitect({ onScore, isBattle, player }: { onSco
       <div className="bg-white dark:bg-slate-800 p-10 rounded-[40px] shadow-2xl border-4 border-indigo-100 dark:border-indigo-900 flex flex-col items-center gap-4 min-w-[300px]">
          <div className="text-6xl animate-bounce mb-4">{prob.emoji}</div>
          <p className="text-xs font-black text-indigo-400 uppercase tracking-widest flex items-center gap-2">
-            <Brain className="w-4 h-4" /> Translate to Marathi
+            <Brain className="w-4 h-4" /> बरोबर वाक्य निवडा
          </p>
       </div>
 
@@ -58,7 +58,7 @@ export default function SentenceArchitect({ onScore, isBattle, player }: { onSco
       </div>
 
       <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
-         <Sparkles className="w-3 h-3 text-yellow-500" /> Powered by FLN AI Engine
+         <Sparkles className="w-3 h-3 text-yellow-500" /> Mission FLN
       </div>
     </div>
   );

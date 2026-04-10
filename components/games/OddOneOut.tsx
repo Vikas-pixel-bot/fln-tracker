@@ -2,14 +2,14 @@
 import { useState } from 'react';
 
 const ROUNDS = [
-  { items: ['🐶', '🐱', '🐟', '🐰'], odd: '🐟', reason: 'Fish lives in water, others are land animals' },
-  { items: ['🍎', '🍌', '🥕', '🍇'], odd: '🥕', reason: 'Carrot is a vegetable, others are fruits' },
-  { items: ['🚗', '🚌', '✈️', '🚲'], odd: '✈️', reason: 'Aeroplane flies, others are on the road' },
-  { items: ['📚', '✏️', '🖊️', '⚽'], odd: '⚽', reason: 'Ball is for play, others are for studying' },
-  { items: ['🌹', '🌸', '🌻', '🍀'], odd: '🍀', reason: 'Clover is a leaf, others are flowers' },
-  { items: ['🍕', '🍔', '🍜', '🍦'], odd: '🍦', reason: 'Ice cream is a dessert, others are main meals' },
-  { items: ['🦁', '🐯', '🦊', '🐄'], odd: '🐄', reason: 'Cow is a farm animal, others are wild' },
-  { items: ['☀️', '🌙', '⭐', '🌈'], odd: '🌈', reason: 'Rainbow appears after rain, others are always in sky' },
+  { items: ['🐶', '🐱', '🐟', '🐰'], odd: '🐟', reason: 'मासा पाण्यात राहतो, बाकी जमिनीवर राहतात' },
+  { items: ['🍎', '🍌', '🥕', '🍇'], odd: '🥕', reason: 'गाजर भाजी आहे, बाकी फळे आहेत' },
+  { items: ['🚗', '🚌', '✈️', '🚲'], odd: '✈️', reason: 'विमान आकाशात उडते, बाकी रस्त्यावर जातात' },
+  { items: ['📚', '✏️', '🖊️', '⚽'], odd: '⚽', reason: 'चेंडू खेळण्यासाठी, बाकी शिकण्यासाठी' },
+  { items: ['🌹', '🌸', '🌻', '🍀'], odd: '🍀', reason: 'तिन्ही पान आहे, बाकी फुले आहेत' },
+  { items: ['🍕', '🍔', '🍜', '🍦'], odd: '🍦', reason: 'आईसक्रीम गोड पदार्थ, बाकी जेवण आहे' },
+  { items: ['🦁', '🐯', '🦊', '🐄'], odd: '🐄', reason: 'गाय पाळीव आहे, बाकी जंगली प्राणी आहेत' },
+  { items: ['☀️', '🌙', '⭐', '🌈'], odd: '🌈', reason: 'इंद्रधनुष्य पावसानंतर येते, बाकी नेहमी आकाशात असतात' },
 ];
 
 function shuffle<T>(arr: T[]): T[] {
@@ -24,7 +24,6 @@ export default function OddOneOut() {
   const [feedback, setFeedback] = useState<'correct' | 'wrong' | null>(null);
 
   const round = rounds[idx % rounds.length];
-  const [shuffledItems] = useState(() => shuffle(round.items));
 
   function pick(item: string) {
     if (feedback) return;
@@ -42,11 +41,11 @@ export default function OddOneOut() {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-yellow-100 shadow-sm space-y-6">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-bold text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full">Score: {score}/{idx}</span>
+        <span className="text-sm font-bold text-yellow-600 bg-yellow-50 px-3 py-1 rounded-full">गुण: {score}/{idx}</span>
         <span className="text-2xl">🔍</span>
       </div>
 
-      <p className="text-center font-bold text-slate-700 text-lg">Which one does NOT belong?</p>
+      <p className="text-center font-bold text-slate-700 text-lg">कोणते वेगळे आहे?</p>
 
       <div className="grid grid-cols-2 gap-4">
         {round.items.map(item => {
@@ -70,7 +69,7 @@ export default function OddOneOut() {
       {feedback && (
         <div className={`text-center space-y-1 ${feedback === 'correct' ? 'text-green-600' : 'text-red-500'}`}>
           <p className="text-xl font-extrabold animate-bounce">
-            {feedback === 'correct' ? '🎉 Correct!' : `❌ It was ${round.odd}`}
+            {feedback === 'correct' ? '🎉 बरोबर!' : `❌ उत्तर: ${round.odd}`}
           </p>
           <p className="text-sm text-slate-500">{round.reason}</p>
         </div>

@@ -2,13 +2,16 @@
 import { useState } from 'react';
 
 const ROUNDS = [
-  { prompt: 'Find the letter  A', target: 'A', options: ['A', 'M', 'O', 'E', 'S', 'N'] },
-  { prompt: 'Find the letter  B', target: 'B', options: ['D', 'B', 'P', 'R', 'G', 'Q'] },
-  { prompt: 'Find the letter  K', target: 'K', options: ['H', 'X', 'K', 'Y', 'F', 'Z'] },
-  { prompt: 'Find the letter  T', target: 'T', options: ['I', 'L', 'J', 'T', 'F', 'E'] },
-  { prompt: 'Find the letter  म', target: 'म', options: ['म', 'न', 'र', 'ल', 'स', 'व'] },
-  { prompt: 'Find the letter  क', target: 'क', options: ['ख', 'ग', 'क', 'घ', 'च', 'छ'] },
-  { prompt: 'Find the letter  प', target: 'प', options: ['फ', 'ब', 'भ', 'प', 'म', 'य'] },
+  { prompt: 'हे अक्षर शोधा:  क', target: 'क', options: ['क', 'ख', 'ग', 'घ', 'च', 'छ'] },
+  { prompt: 'हे अक्षर शोधा:  म', target: 'म', options: ['म', 'न', 'र', 'ल', 'स', 'व'] },
+  { prompt: 'हे अक्षर शोधा:  प', target: 'प', options: ['फ', 'ब', 'भ', 'प', 'म', 'त'] },
+  { prompt: 'हे अक्षर शोधा:  स', target: 'स', options: ['स', 'श', 'ष', 'ह', 'न', 'त'] },
+  { prompt: 'हे अक्षर शोधा:  ट', target: 'ट', options: ['ट', 'ठ', 'ड', 'ढ', 'त', 'थ'] },
+  { prompt: 'हे अक्षर शोधा:  र', target: 'र', options: ['र', 'ल', 'ळ', 'व', 'य', 'न'] },
+  { prompt: 'हे अक्षर शोधा:  घ', target: 'घ', options: ['घ', 'ग', 'ख', 'क', 'च', 'ज'] },
+  { prompt: 'हे अक्षर शोधा:  ज', target: 'ज', options: ['ज', 'झ', 'य', 'ड', 'द', 'ब'] },
+  { prompt: 'हे अक्षर शोधा:  भ', target: 'भ', options: ['भ', 'ब', 'प', 'फ', 'म', 'व'] },
+  { prompt: 'हे अक्षर शोधा:  ध', target: 'ध', options: ['ध', 'द', 'त', 'थ', 'न', 'ट'] },
 ];
 
 function shuffle<T>(arr: T[]): T[] {
@@ -40,7 +43,7 @@ export default function LetterPicker() {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-green-100 shadow-sm space-y-8">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">Score: {score}/{idx}</span>
+        <span className="text-sm font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full">गुण: {score}/{idx}</span>
         <span className="text-2xl">🔤</span>
       </div>
 
@@ -72,7 +75,7 @@ export default function LetterPicker() {
 
       {feedback && (
         <div className={`text-center text-2xl font-extrabold animate-bounce ${feedback === 'correct' ? 'text-green-500' : 'text-red-400'}`}>
-          {feedback === 'correct' ? '⭐ Great!' : '❌ That was ' + round.target}
+          {feedback === 'correct' ? '⭐ शाब्बास!' : '❌ हे होते → ' + round.target}
         </div>
       )}
     </div>

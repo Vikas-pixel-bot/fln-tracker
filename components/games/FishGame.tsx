@@ -1,22 +1,20 @@
 "use client";
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 
 const ROUNDS = [
-  { image: '🌳', word: 'Tree', distractors: ['Bird', 'Fish', 'Leaf'] },
-  { image: '🐶', word: 'Dog', distractors: ['Cat', 'Cow', 'Fox'] },
-  { image: '🏠', word: 'House', distractors: ['Room', 'Door', 'Wall'] },
-  { image: '🌙', word: 'Moon', distractors: ['Star', 'Sun', 'Sky'] },
-  { image: '🍎', word: 'Apple', distractors: ['Mango', 'Grape', 'Lemon'] },
-  { image: '🐟', word: 'Fish', distractors: ['Frog', 'Crab', 'Duck'] },
-  { image: '✏️', word: 'Pencil', distractors: ['Eraser', 'Ruler', 'Chalk'] },
-  { image: '🎒', word: 'Bag', distractors: ['Book', 'Box', 'Pen'] },
+  { image: '🌳', word: 'झाड', distractors: ['फूल', 'पान', 'फांदी'] },
+  { image: '🐶', word: 'कुत्रा', distractors: ['मांजर', 'गाय', 'कोंबडी'] },
+  { image: '🏠', word: 'घर', distractors: ['दार', 'खिडकी', 'भिंत'] },
+  { image: '🌙', word: 'चंद्र', distractors: ['तारा', 'सूर्य', 'आकाश'] },
+  { image: '🍎', word: 'सफरचंद', distractors: ['आंबा', 'केळे', 'द्राक्षे'] },
+  { image: '🐟', word: 'मासा', distractors: ['बेडूक', 'खेकडा', 'बदक'] },
+  { image: '✏️', word: 'पेन्सिल', distractors: ['खोडरबर', 'पट्टी', 'खडू'] },
+  { image: '🎒', word: 'दप्तर', distractors: ['पुस्तक', 'पेटी', 'पेन'] },
 ];
 
 function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5);
 }
-
-type Fish = { id: number; word: string; x: number; speed: number; caught: boolean; correct: boolean };
 
 export default function FishGame() {
   const [roundIdx, setRoundIdx] = useState(0);
@@ -44,13 +42,12 @@ export default function FishGame() {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-blue-100 shadow-sm">
       <div className="flex justify-between items-center px-6 py-4">
-        <span className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">Score: {score}/{roundIdx}</span>
+        <span className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">गुण: {score}/{roundIdx}</span>
         <span className="text-2xl">🐟</span>
       </div>
 
       {/* River scene */}
       <div className="relative bg-gradient-to-b from-sky-300 to-blue-500 h-48 flex items-center justify-center overflow-hidden">
-        {/* Water ripples */}
         <div className="absolute inset-0 opacity-20">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="absolute rounded-full border-2 border-white" style={{
@@ -60,13 +57,11 @@ export default function FishGame() {
           ))}
         </div>
 
-        {/* Emoji to identify */}
         <div className="relative z-10 text-center">
           <div className="text-8xl select-none drop-shadow-lg">{round.image}</div>
-          <p className="text-white font-bold text-sm mt-2 drop-shadow">What is this? Catch the right word!</p>
+          <p className="text-white font-bold text-sm mt-2 drop-shadow">हे काय आहे? बरोबर शब्द पकडा!</p>
         </div>
 
-        {/* Swimming fish labels */}
         {options.map((word, i) => (
           <div key={word} className="absolute bottom-3 text-xs font-bold bg-white/90 rounded-full px-2 py-0.5 text-blue-700 animate-pulse"
             style={{ left: `${10 + i * 22}%` }}>
@@ -76,7 +71,7 @@ export default function FishGame() {
       </div>
 
       <div className="p-6 space-y-4">
-        <p className="text-center font-semibold text-slate-600">Tap the correct word to catch it!</p>
+        <p className="text-center font-semibold text-slate-600">बरोबर शब्दावर टॅप करा!</p>
         <div className="grid grid-cols-2 gap-3">
           {options.map(word => {
             let cls = 'border-2 border-blue-200 text-blue-800 bg-blue-50 hover:bg-blue-100';
@@ -98,7 +93,7 @@ export default function FishGame() {
 
         {feedback && (
           <div className={`text-center text-2xl font-extrabold animate-bounce ${feedback === 'correct' ? 'text-green-500' : 'text-red-400'}`}>
-            {feedback === 'correct' ? '🎣 Caught it!' : '❌ Missed! It was ' + round.word}
+            {feedback === 'correct' ? '🎣 पकडले!' : '❌ चुकले! उत्तर: ' + round.word}
           </div>
         )}
       </div>

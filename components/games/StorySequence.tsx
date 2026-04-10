@@ -3,39 +3,39 @@ import { useState } from 'react';
 
 const STORIES = [
   {
-    title: 'The Hungry Caterpillar',
+    title: 'अंड्यातून फुलपाखरू',
     frames: [
-      { emoji: '🥚', caption: 'An egg on a leaf' },
-      { emoji: '🐛', caption: 'A tiny caterpillar hatches' },
-      { emoji: '🍎', caption: 'It eats lots of food' },
-      { emoji: '🦋', caption: 'A beautiful butterfly!' },
+      { emoji: '🥚', caption: 'झाडावर अंडे असते' },
+      { emoji: '🐛', caption: 'छोटी अळी बाहेर येते' },
+      { emoji: '🍃', caption: 'अळी भरपूर पाने खाते' },
+      { emoji: '🦋', caption: 'सुंदर फुलपाखरू होते!' },
     ]
   },
   {
-    title: 'Plant a Seed',
+    title: 'बी लावणे',
     frames: [
-      { emoji: '🌱', caption: 'A small seed in the soil' },
-      { emoji: '💧', caption: 'Water the seed every day' },
-      { emoji: '🌿', caption: 'A green sprout appears' },
-      { emoji: '🌸', caption: 'A flower blooms!' },
+      { emoji: '🌱', caption: 'जमिनीत छोटी बी लावतो' },
+      { emoji: '💧', caption: 'रोज पाणी घालतो' },
+      { emoji: '🌿', caption: 'हिरवी कोंब येते' },
+      { emoji: '🌸', caption: 'सुंदर फूल फुलते!' },
     ]
   },
   {
-    title: 'Rainy Day',
+    title: 'पावसाळा',
     frames: [
-      { emoji: '☁️', caption: 'Dark clouds in the sky' },
-      { emoji: '🌧️', caption: 'Rain starts falling' },
-      { emoji: '🌈', caption: 'Rainbow after the rain' },
-      { emoji: '☀️', caption: 'Sunny day again!' },
+      { emoji: '☁️', caption: 'आकाशात काळे ढग येतात' },
+      { emoji: '🌧️', caption: 'पाऊस पडायला लागतो' },
+      { emoji: '🌈', caption: 'इंद्रधनुष्य दिसते' },
+      { emoji: '☀️', caption: 'पुन्हा ऊन पडते!' },
     ]
   },
   {
-    title: 'Going to School',
+    title: 'शाळेत जाणे',
     frames: [
-      { emoji: '⏰', caption: 'Wake up early morning' },
-      { emoji: '🍽️', caption: 'Eat breakfast at home' },
-      { emoji: '🎒', caption: 'Pack your school bag' },
-      { emoji: '🏫', caption: 'Arrive at school!' },
+      { emoji: '⏰', caption: 'सकाळी लवकर उठतो' },
+      { emoji: '🍽️', caption: 'घरी नाश्ता करतो' },
+      { emoji: '🎒', caption: 'दप्तर भरतो' },
+      { emoji: '🏫', caption: 'शाळेत पोहोचतो!' },
     ]
   },
 ];
@@ -88,12 +88,12 @@ export default function StorySequence() {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-violet-100 shadow-sm space-y-5">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-bold text-violet-600 bg-violet-50 px-3 py-1 rounded-full">Score: {score}/{total}</span>
+        <span className="text-sm font-bold text-violet-600 bg-violet-50 px-3 py-1 rounded-full">गुण: {score}/{total}</span>
         <span className="text-2xl">📖</span>
       </div>
 
       <div className="text-center">
-        <p className="text-slate-500 font-semibold text-sm">Put the story in order — drag to swap!</p>
+        <p className="text-slate-500 font-semibold text-sm">गोष्ट क्रमाने लावा — ड्रॅग करा!</p>
         <p className="text-lg font-extrabold text-violet-700 mt-1">{story.title}</p>
       </div>
 
@@ -127,23 +127,23 @@ export default function StorySequence() {
 
       {checked && feedback === 'wrong' && (
         <div className="text-xs text-slate-500 text-center">
-          Correct order: {story.frames.map(f => f.emoji).join(' → ')}
+          बरोबर क्रम: {story.frames.map(f => f.emoji).join(' → ')}
         </div>
       )}
 
       {!checked ? (
         <button onClick={check}
           className="w-full py-3 rounded-2xl font-bold text-white bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90 transition-all">
-          Check Order ✓
+          क्रम तपासा ✓
         </button>
       ) : (
         <div className="space-y-3">
           <div className={`text-center text-xl font-extrabold ${feedback === 'correct' ? 'text-green-500' : 'text-red-400'}`}>
-            {feedback === 'correct' ? '📖 Perfect story!' : '❌ Not quite right'}
+            {feedback === 'correct' ? '📖 उत्तम गोष्ट!' : '❌ क्रम बरोबर नाही'}
           </div>
           <button onClick={next}
             className="w-full py-3 rounded-2xl font-bold text-white bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90 transition-all">
-            Next Story →
+            पुढील गोष्ट →
           </button>
         </div>
       )}

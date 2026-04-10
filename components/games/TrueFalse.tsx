@@ -2,18 +2,18 @@
 import { useState } from 'react';
 
 const ROUNDS = [
-  { image: '🐟', statement: 'Fish can fly in the sky.', answer: false },
-  { image: '☀️', statement: 'The sun gives us light and heat.', answer: true },
-  { image: '🐘', statement: 'An elephant is smaller than a mouse.', answer: false },
-  { image: '🌧️', statement: 'Rain comes from clouds.', answer: true },
-  { image: '🐝', statement: 'Bees make honey.', answer: true },
-  { image: '🦅', statement: 'Eagles live deep under the ocean.', answer: false },
-  { image: '🌙', statement: 'We can see the moon at night.', answer: true },
-  { image: '🌿', statement: 'Plants need sunlight to grow.', answer: true },
-  { image: '🔥', statement: 'Ice is very hot.', answer: false },
-  { image: '🐸', statement: 'Frogs can live in water and on land.', answer: true },
-  { image: '🦁', statement: 'Lions eat only grass.', answer: false },
-  { image: '📚', statement: 'We read books to learn new things.', answer: true },
+  { image: '🐟', statement: 'मासा आकाशात उडतो.', answer: false },
+  { image: '☀️', statement: 'सूर्य आपल्याला उजेड आणि ऊब देतो.', answer: true },
+  { image: '🐘', statement: 'हत्ती उंदरापेक्षा लहान असतो.', answer: false },
+  { image: '🌧️', statement: 'पाऊस ढगांमधून येतो.', answer: true },
+  { image: '🐝', statement: 'मधमाश्या मध बनवतात.', answer: true },
+  { image: '🦅', statement: 'गरुड समुद्रात खोल राहतो.', answer: false },
+  { image: '🌙', statement: 'चंद्र रात्री दिसतो.', answer: true },
+  { image: '🌿', statement: 'झाडांना सूर्यप्रकाश लागतो.', answer: true },
+  { image: '🔥', statement: 'बर्फ खूप गरम असतो.', answer: false },
+  { image: '🐸', statement: 'बेडूक पाण्यात आणि जमिनीवर राहतो.', answer: true },
+  { image: '🦁', statement: 'सिंह फक्त गवत खातो.', answer: false },
+  { image: '📚', statement: 'आपण पुस्तके वाचून नवीन गोष्टी शिकतो.', answer: true },
 ];
 
 function shuffle<T>(arr: T[]): T[] {
@@ -45,7 +45,7 @@ export default function TrueFalse() {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-emerald-100 shadow-sm space-y-6">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">Score: {score}/{idx}</span>
+        <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">गुण: {score}/{idx}</span>
         <span className="text-2xl">✅</span>
       </div>
 
@@ -57,7 +57,6 @@ export default function TrueFalse() {
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        {/* True */}
         <button onClick={() => pick(true)}
           className={`rounded-2xl py-6 text-2xl font-extrabold transition-all duration-200 active:scale-95 ${
             chosen === true
@@ -68,9 +67,8 @@ export default function TrueFalse() {
               ? 'bg-green-500 text-white'
               : 'bg-green-100 text-green-700 border-2 border-green-300 hover:bg-green-200'
           }`}>
-          ✅ TRUE
+          ✅ बरोबर
         </button>
-        {/* False */}
         <button onClick={() => pick(false)}
           className={`rounded-2xl py-6 text-2xl font-extrabold transition-all duration-200 active:scale-95 ${
             chosen === false
@@ -81,13 +79,13 @@ export default function TrueFalse() {
               ? 'bg-green-500 text-white'
               : 'bg-red-100 text-red-700 border-2 border-red-300 hover:bg-red-200'
           }`}>
-          ❌ FALSE
+          ❌ चूक
         </button>
       </div>
 
       {feedback && (
         <div className={`text-center text-xl font-extrabold animate-bounce ${feedback === 'correct' ? 'text-green-500' : 'text-red-400'}`}>
-          {feedback === 'correct' ? '🎉 Correct!' : `❌ It is ${round.answer ? 'TRUE' : 'FALSE'}`}
+          {feedback === 'correct' ? '🎉 बरोबर!' : `❌ उत्तर: ${round.answer ? 'बरोबर' : 'चूक'}`}
         </div>
       )}
     </div>

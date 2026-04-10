@@ -3,27 +3,27 @@ import { useState } from 'react';
 
 const ROUNDS = [
   {
-    sentence: ['The', 'cat', 'sat', 'on', 'the', 'mat'],
+    sentence: ['मांजर', 'चटईवर', 'बसते'],
     emoji: ['🐱', '🛋️'],
   },
   {
-    sentence: ['A', 'dog', 'runs', 'in', 'the', 'park'],
+    sentence: ['कुत्रा', 'बागेत', 'धावतो'],
     emoji: ['🐕', '🌳'],
   },
   {
-    sentence: ['The', 'sun', 'is', 'very', 'bright'],
+    sentence: ['सूर्य', 'खूप', 'तेजस्वी', 'आहे'],
     emoji: ['☀️', '😎'],
   },
   {
-    sentence: ['I', 'eat', 'rice', 'with', 'dal'],
+    sentence: ['मी', 'भात', 'आणि', 'डाळ', 'खातो'],
     emoji: ['🍚', '🫕'],
   },
   {
-    sentence: ['The', 'bird', 'flew', 'over', 'the', 'tree'],
+    sentence: ['पक्षी', 'झाडावरून', 'उडतो'],
     emoji: ['🐦', '🌳'],
   },
   {
-    sentence: ['She', 'reads', 'a', 'big', 'book'],
+    sentence: ['मुलगी', 'मोठे', 'पुस्तक', 'वाचते'],
     emoji: ['👧', '📚'],
   },
 ];
@@ -80,15 +80,15 @@ export default function SentenceBuilder() {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-pink-100 shadow-sm space-y-5">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-bold text-pink-600 bg-pink-50 px-3 py-1 rounded-full">Score: {score}/{roundIdx}</span>
+        <span className="text-sm font-bold text-pink-600 bg-pink-50 px-3 py-1 rounded-full">गुण: {score}/{roundIdx}</span>
         <span className="text-2xl">{round.emoji.join('')}</span>
       </div>
 
-      <p className="text-center font-semibold text-slate-600">Arrange the words to make a sentence!</p>
+      <p className="text-center font-semibold text-slate-600">शब्द लावून वाक्य बनवा!</p>
 
       {/* Drop zone */}
       <div className="min-h-[64px] border-2 border-dashed border-pink-300 rounded-2xl p-3 flex flex-wrap gap-2 bg-pink-50/50">
-        {placed.length === 0 && <span className="text-slate-300 text-sm self-center mx-auto">Tap words below to build the sentence</span>}
+        {placed.length === 0 && <span className="text-slate-300 text-sm self-center mx-auto">खालील शब्द टॅप करून वाक्य बनवा</span>}
         {placed.map((word, i) => (
           <button key={i} onClick={() => tapPlaced(word, i)}
             className="bg-pink-500 text-white px-3 py-1.5 rounded-xl font-semibold text-sm hover:bg-pink-600 transition-all active:scale-95">
@@ -111,15 +111,15 @@ export default function SentenceBuilder() {
       {feedback === null ? (
         <button onClick={check} disabled={placed.length !== round.sentence.length}
           className="w-full py-3 rounded-2xl font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 disabled:opacity-40 hover:opacity-90 transition-all">
-          Check ✓
+          तपासा ✓
         </button>
       ) : (
         <div className="space-y-3">
           <div className={`text-center text-xl font-extrabold ${feedback === 'correct' ? 'text-green-500' : 'text-red-400'}`}>
-            {feedback === 'correct' ? '🎉 Perfect sentence!' : '❌ Not quite — correct: ' + round.sentence.join(' ')}
+            {feedback === 'correct' ? '🎉 उत्तम वाक्य!' : '❌ बरोबर वाक्य: ' + round.sentence.join(' ')}
           </div>
           <button onClick={next} className="w-full py-3 rounded-2xl font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 hover:opacity-90 transition-all">
-            Next →
+            पुढे →
           </button>
         </div>
       )}

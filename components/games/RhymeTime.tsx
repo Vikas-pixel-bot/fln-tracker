@@ -1,17 +1,18 @@
 "use client";
 import { useState } from 'react';
 
+// Marathi rhyming words — sharing the same ending sound
 const ROUNDS = [
-  { word: 'Cat', image: '🐱', rhyme: 'Hat', options: ['Hat', 'Dog', 'Tree', 'Book'] },
-  { word: 'Sun', image: '☀️', rhyme: 'Run', options: ['Run', 'Moon', 'Bird', 'Fish'] },
-  { word: 'Bat', image: '🦇', rhyme: 'Mat', options: ['Mat', 'Cup', 'Ball', 'Frog'] },
-  { word: 'Bee', image: '🐝', rhyme: 'Tree', options: ['Tree', 'Dog', 'Hat', 'Cake'] },
-  { word: 'Frog', image: '🐸', rhyme: 'Log', options: ['Log', 'Fish', 'Sun', 'Bird'] },
-  { word: 'Star', image: '⭐', rhyme: 'Car', options: ['Car', 'Moon', 'Sun', 'Rain'] },
-  { word: 'Hen', image: '🐔', rhyme: 'Ten', options: ['Ten', 'Cat', 'Dog', 'Fish'] },
-  { word: 'Cake', image: '🎂', rhyme: 'Lake', options: ['Lake', 'Book', 'Tree', 'Bird'] },
-  { word: 'Ring', image: '💍', rhyme: 'Sing', options: ['Sing', 'Fish', 'Moon', 'Hat'] },
-  { word: 'Boat', image: '⛵', rhyme: 'Goat', options: ['Goat', 'Fish', 'Bird', 'Sun'] },
+  { word: 'मन', image: '💭', rhyme: 'वन', options: ['वन', 'काम', 'घर', 'फूल'] },
+  { word: 'काम', image: '💼', rhyme: 'नाम', options: ['नाम', 'मन', 'घर', 'पान'] },
+  { word: 'घर', image: '🏠', rhyme: 'नर', options: ['नर', 'फूल', 'काम', 'वन'] },
+  { word: 'फूल', image: '🌸', rhyme: 'धूल', options: ['धूल', 'घर', 'नाम', 'मन'] },
+  { word: 'पान', image: '🍃', rhyme: 'मान', options: ['मान', 'घर', 'मन', 'फूल'] },
+  { word: 'दार', image: '🚪', rhyme: 'यार', options: ['यार', 'मन', 'काम', 'पान'] },
+  { word: 'माल', image: '🏪', rhyme: 'ताल', options: ['ताल', 'घर', 'फूल', 'पान'] },
+  { word: 'नाव', image: '⛵', rhyme: 'भाव', options: ['भाव', 'मन', 'काम', 'घर'] },
+  { word: 'जग', image: '🌍', rhyme: 'मग', options: ['मग', 'घर', 'पान', 'फूल'] },
+  { word: 'रात', image: '🌙', rhyme: 'बात', options: ['बात', 'मन', 'काम', 'नाव'] },
 ];
 
 function shuffle<T>(arr: T[]): T[] {
@@ -44,12 +45,12 @@ export default function RhymeTime() {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-orange-100 shadow-sm space-y-6">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-bold text-orange-600 bg-orange-50 px-3 py-1 rounded-full">Score: {score}/{idx}</span>
+        <span className="text-sm font-bold text-orange-600 bg-orange-50 px-3 py-1 rounded-full">गुण: {score}/{idx}</span>
         <span className="text-2xl">🎵</span>
       </div>
 
       <div className="text-center space-y-2">
-        <p className="text-slate-500 font-semibold">Which word rhymes with...</p>
+        <p className="text-slate-500 font-semibold">कोणता शब्द यमक जुळतो?</p>
         <div className="inline-flex flex-col items-center gap-1 bg-orange-50 border-2 border-orange-200 rounded-3xl px-10 py-5">
           <span className="text-6xl">{round.image}</span>
           <span className="text-3xl font-extrabold text-orange-700">{round.word}</span>
@@ -77,7 +78,7 @@ export default function RhymeTime() {
 
       {feedback && (
         <div className={`text-center text-xl font-extrabold animate-bounce ${feedback === 'correct' ? 'text-green-500' : 'text-red-400'}`}>
-          {feedback === 'correct' ? `🎵 Yes! ${round.word} & ${round.rhyme} rhyme!` : `❌ It was "${round.rhyme}"`}
+          {feedback === 'correct' ? `🎵 शाब्बास! ${round.word} आणि ${round.rhyme} यमक जुळतात!` : `❌ उत्तर: "${round.rhyme}"`}
         </div>
       )}
     </div>
