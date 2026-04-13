@@ -1,16 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Search, BookOpen, Lightbulb, X } from "lucide-react";
+import { Send, X } from "lucide-react";
 import { askPratham } from "@/app/actions/chat";
 
-type Message = {
-  role: "user" | "assistant";
-  content: string;
-  summary?: string;
-  recommendation?: string | null;
-  activitySuggestion?: string | null;
-};
+type Message = { role: "user" | "assistant"; content: string };
 
 function PrathamAvatar({ size = 40, className = "" }: { size?: number; className?: string }) {
   return (
@@ -34,13 +28,52 @@ function PrathamAvatar({ size = 40, className = "" }: { size?: number; className
   );
 }
 
+// Render assistant text — converts basic markdown to styled spans
+function BotText({ text }: { text: string }) {
+  const lines = text.split("\n");
+  return (
+    <div className="space-y-1.5 text-sm leading-relaxed text-slate-700 dark:text-slate-200">
+      {lines.map((line, i) => {
+        if (!line.trim()) return <div key={i} className="h-1" />;
+        // Heading: **text** on its own line or ## heading
+        if (/^#{1,3}\s/.test(line)) {
+          return <p key={i} className="font-black text-slate-900 dark:text-white text-sm mt-2">{line.replace(/^#{1,3}\s/, '')}</p>;
+        }
+        // Bullet
+        if (/^[-•*]\s/.test(line) || /^\d+\.\s/.test(line)) {
+          const content = line.replace(/^[-•*]\s/, '').replace(/^\d+\.\s/, '');
+          return (
+            <div key={i} className="flex gap-2 items-start">
+              <span className="text-[#E8232A] font-black mt-0.5 shrink-0">•</span>
+              <span>{renderInline(content)}</span>
+            </div>
+          );
+        }
+        return <p key={i}>{renderInline(line)}</p>;
+      })}
+    </div>
+  );
+}
+
+function renderInline(text: string): React.ReactNode {
+  // Split on **bold** patterns
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) =>
+    /^\*\*[^*]+\*\*$/.test(part)
+      ? <strong key={i} className="font-bold text-slate-900 dark:text-white">{part.slice(2, -2)}</strong>
+      : <span key={i}>{part}</span>
+  );
+}
+
 const SUGGESTED_QUESTIONS = [
-  { q: "What activity should I run for Level 1 literacy students?", icon: "📖" },
-  { q: "Compare Baseline vs Endline results", icon: "📊" },
-  { q: "How do I handle students stuck at Numeracy Beginner?", icon: "🔢" },
-  { q: "Suggest today's session plan for Class 3 Maths", icon: "🗓️" },
-  { q: "Which schools need the most support?", icon: "🏫" },
-  { q: "What is the TaRL daily 90-minute flow?", icon: "⏱️" },
+  { q: "What activity works best for a student who can't recognise letters yet?", icon: "📖" },
+  { q: "How do I teach matras to a child who mixes up ि and ी?", icon: "✍️" },
+  { q: "What does the research say about early reading in mother tongue?", icon: "🔬" },
+  { q: "How do I keep 40 students engaged at different levels?", icon: "🏫" },
+  { q: "What is the difference between TaRL and traditional teaching?", icon: "💡" },
+  { q: "Suggest a number sense activity for a child at ASER Numeracy Level 1", icon: "🔢" },
+  { q: "How do I involve parents in their child's reading practice at home?", icon: "👨‍👩‍👧" },
+  { q: "What does NEP 2020 say about foundational literacy?", icon: "📜" },
 ];
 
 export default function PrathamChat() {
@@ -49,10 +82,15 @@ export default function PrathamChat() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
+
+  useEffect(() => {
+    if (isOpen) setTimeout(() => inputRef.current?.focus(), 100);
+  }, [isOpen]);
 
   async function send(query: string) {
     if (!query.trim() || loading) return;
@@ -61,21 +99,12 @@ export default function PrathamChat() {
     setInput("");
     setLoading(true);
 
-    const history = messages.map(m => ({ role: m.role, content: m.content }));
+    const history = [...messages, userMsg].slice(-12); // last 12 for context window
     try {
-      const res = await askPratham(query, history);
-      setMessages(prev => [...prev, {
-        role: "assistant",
-        content: res.insight || "Sorry, I couldn't understand that.",
-        summary: res.summary,
-        recommendation: res.recommendation,
-        activitySuggestion: res.activitySuggestion,
-      }]);
+      const res = await askPratham(query, history.map(m => ({ role: m.role, content: m.content })));
+      setMessages(prev => [...prev, { role: "assistant", content: res.content }]);
     } catch {
-      setMessages(prev => [...prev, {
-        role: "assistant",
-        content: "Something went wrong. Please try again.",
-      }]);
+      setMessages(prev => [...prev, { role: "assistant", content: "Something went wrong. Please try again." }]);
     } finally {
       setLoading(false);
     }
@@ -85,90 +114,77 @@ export default function PrathamChat() {
     <div className="fixed bottom-8 right-8 z-[200] flex flex-col items-end">
       {/* Chat Panel */}
       {isOpen && (
-        <div className="mb-4 w-[360px] md:w-[440px] bg-white dark:bg-slate-900 rounded-[32px] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col"
-          style={{ maxHeight: "calc(100dvh - 140px)" }}>
+        <div
+          className="mb-4 w-[360px] md:w-[460px] bg-white dark:bg-slate-900 rounded-[28px] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col"
+          style={{ maxHeight: "calc(100dvh - 140px)" }}
+        >
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#E8232A] to-[#c41e24] p-5 flex justify-between items-center relative overflow-hidden shrink-0">
+          <div className="bg-gradient-to-r from-[#E8232A] to-[#c41e24] px-5 py-4 flex items-center gap-3 relative overflow-hidden shrink-0">
             <div className="absolute top-0 right-0 w-40 h-40 bg-orange-400/20 blur-3xl -mr-16 -mt-16" />
-            <div className="absolute -bottom-6 -left-4 w-24 h-24 bg-red-800/30 blur-2xl" />
-            <div className="flex items-center gap-3 relative z-10">
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-xl ring-2 ring-orange-300/40">
-                <PrathamAvatar size={52} />
-              </div>
-              <div>
-                <h4 className="text-white font-black text-lg tracking-tight">Hi, I'm Pratham!</h4>
-                <p className="text-red-100 text-[11px] font-semibold">How may I help you? 🌟</p>
-              </div>
+            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg ring-2 ring-orange-200/40 shrink-0 relative z-10">
+              <PrathamAvatar size={44} />
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-red-200 hover:text-white transition-colors relative z-10 p-1">
-              <X className="w-6 h-6" />
+            <div className="relative z-10 flex-1 min-w-0">
+              <h4 className="text-white font-black text-base leading-tight">Hi, I'm Pratham!</h4>
+              <p className="text-red-100 text-[11px]">Your FLN &amp; education expert 🌟</p>
+            </div>
+            <button onClick={() => setIsOpen(false)} className="text-red-200 hover:text-white transition-colors relative z-10 shrink-0">
+              <X className="w-5 h-5" />
             </button>
           </div>
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
             {messages.length === 0 ? (
-              <div className="space-y-4 py-2 text-center">
-                <PrathamAvatar size={72} className="mx-auto drop-shadow-md" />
-                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium px-2">
-                  I know TaRL pedagogy, your mission data, and how to use this platform. Ask me anything!
-                </p>
-                <div className="grid grid-cols-1 gap-2 pt-1">
+              <div className="space-y-4 py-2">
+                <div className="text-center space-y-2">
+                  <PrathamAvatar size={64} className="mx-auto drop-shadow-md" />
+                  <p className="text-slate-500 dark:text-slate-400 text-sm font-medium px-3">
+                    Ask me anything about FLN, early childhood education, TaRL, ASER, teaching strategies, or your mission data.
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 gap-1.5">
                   {SUGGESTED_QUESTIONS.map(({ q, icon }) => (
                     <button key={q} onClick={() => send(q)}
-                      className="text-left px-4 py-3 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-2xl text-[11px] font-bold text-slate-500 hover:text-[#E8232A] transition-all border border-slate-100 dark:border-slate-700 flex items-center gap-2">
-                      <span>{icon}</span> {q}
+                      className="text-left px-3 py-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-[11px] font-semibold text-slate-500 hover:text-[#E8232A] transition-all border border-slate-100 dark:border-slate-700 flex items-center gap-2">
+                      <span className="text-base shrink-0">{icon}</span>
+                      <span>{q}</span>
                     </button>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {messages.map((msg, i) => (
-                  <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                    {msg.role === "user" ? (
-                      <div className="max-w-[80%] px-4 py-2.5 bg-[#E8232A] text-white rounded-3xl rounded-br-md text-sm font-medium leading-relaxed">
-                        {msg.content}
-                      </div>
-                    ) : (
-                      <div className="max-w-[92%] space-y-2">
-                        {msg.summary && (
-                          <span className="inline-block px-3 py-0.5 bg-red-50 dark:bg-red-900/30 text-[#E8232A] text-[10px] font-black rounded-full uppercase tracking-widest border border-red-100 dark:border-red-800">
-                            {msg.summary}
-                          </span>
-                        )}
-                        <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-3xl rounded-bl-md text-sm font-medium text-slate-700 dark:text-slate-200 leading-relaxed">
-                          {msg.content}
-                        </div>
-                        {msg.recommendation && (
-                          <div className="px-4 py-3 bg-amber-50 dark:bg-amber-900/20 rounded-2xl border border-amber-100 dark:border-amber-800/30 flex gap-2 items-start">
-                            <Lightbulb className="w-4 h-4 text-yellow-500 shrink-0 mt-0.5" />
-                            <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">{msg.recommendation}</p>
-                          </div>
-                        )}
-                        {msg.activitySuggestion && (
-                          <div className="px-4 py-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-800/40 flex gap-2 items-start">
-                            <BookOpen className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                            <div>
-                              <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-1">Activity</p>
-                              <p className="text-xs font-semibold text-emerald-900 dark:text-emerald-200 leading-relaxed">{msg.activitySuggestion}</p>
-                            </div>
-                          </div>
-                        )}
+                  <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                    {msg.role === "assistant" && (
+                      <div className="w-7 h-7 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 shrink-0 mt-0.5">
+                        <PrathamAvatar size={24} />
                       </div>
                     )}
+                    <div className={`max-w-[85%] ${msg.role === "user" ? "" : "flex-1 min-w-0"}`}>
+                      {msg.role === "user" ? (
+                        <div className="px-4 py-2.5 bg-[#E8232A] text-white rounded-2xl rounded-br-sm text-sm font-medium leading-relaxed">
+                          {msg.content}
+                        </div>
+                      ) : (
+                        <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl rounded-bl-sm border border-slate-100 dark:border-slate-700">
+                          <BotText text={msg.content} />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
                 {loading && (
-                  <div className="flex justify-start">
-                    <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-3xl rounded-bl-md flex items-center gap-2">
-                      <div className="flex gap-1">
-                        {[0, 1, 2].map(n => (
-                          <div key={n} className="w-1.5 h-1.5 bg-[#E8232A] rounded-full animate-bounce"
-                            style={{ animationDelay: `${n * 0.15}s` }} />
-                        ))}
-                      </div>
-                      <span className="text-xs text-slate-400 font-medium">Pratham is thinking...</span>
+                  <div className="flex gap-2 justify-start">
+                    <div className="w-7 h-7 bg-white dark:bg-slate-800 rounded-lg flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 shrink-0">
+                      <PrathamAvatar size={24} />
+                    </div>
+                    <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-2xl rounded-bl-sm border border-slate-100 dark:border-slate-700 flex items-center gap-1.5">
+                      {[0, 1, 2].map(n => (
+                        <div key={n} className="w-2 h-2 bg-[#E8232A] rounded-full animate-bounce"
+                          style={{ animationDelay: `${n * 0.18}s` }} />
+                      ))}
                     </div>
                   </div>
                 )}
@@ -178,25 +194,26 @@ export default function PrathamChat() {
           </div>
 
           {/* Input */}
-          <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 shrink-0">
+          <div className="px-4 pb-4 pt-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
             {messages.length > 0 && (
               <button onClick={() => setMessages([])}
-                className="w-full mb-2 py-1.5 text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-all">
+                className="w-full mb-2 py-1 text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 uppercase tracking-widest transition-all">
                 Clear conversation
               </button>
             )}
-            <form onSubmit={e => { e.preventDefault(); send(input); }} className="relative flex items-center">
+            <form onSubmit={e => { e.preventDefault(); send(input); }} className="flex gap-2">
               <input
+                ref={inputRef}
                 type="text"
-                className="w-full bg-white dark:bg-slate-900 rounded-2xl px-5 py-3.5 pr-14 text-sm font-medium border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-[#E8232A]/40 shadow-sm outline-none"
-                placeholder="Ask Pratham anything..."
+                className="flex-1 bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-3 text-sm font-medium border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-[#E8232A]/30 focus:border-[#E8232A] outline-none transition-all"
+                placeholder="Ask anything about FLN or education..."
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 disabled={loading}
               />
               <button type="submit" disabled={loading || !input.trim()}
-                className="absolute right-2 p-2 bg-[#E8232A] text-white rounded-xl shadow-lg hover:scale-110 active:scale-95 transition-all disabled:opacity-40">
-                <Search className="w-5 h-5" />
+                className="p-3 bg-[#E8232A] text-white rounded-xl shadow-md hover:bg-[#c41e24] active:scale-95 transition-all disabled:opacity-40 shrink-0">
+                <Send className="w-4 h-4" />
               </button>
             </form>
           </div>
@@ -205,8 +222,8 @@ export default function PrathamChat() {
 
       {/* FAB */}
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={`group flex items-center gap-2 px-3 py-2 rounded-[32px] shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 ${
+        onClick={() => setIsOpen(o => !o)}
+        className={`group flex items-center gap-2 px-3 py-2 rounded-[28px] shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 ${
           isOpen
             ? "bg-slate-900 dark:bg-slate-800"
             : "bg-gradient-to-r from-[#E8232A] to-[#f97316] hover:from-[#c41e24] hover:to-[#ea6c0a]"
@@ -217,13 +234,10 @@ export default function PrathamChat() {
             Ask Pratham!
           </span>
         )}
-        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-transform duration-500 ${
-          isOpen ? "bg-white/10" : "bg-white shadow-xl"
+        <div className={`w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 ${
+          isOpen ? "bg-white/10" : "bg-white shadow-lg"
         }`}>
-          {isOpen
-            ? <X className="w-5 h-5 text-white" />
-            : <PrathamAvatar size={40} />
-          }
+          {isOpen ? <X className="w-5 h-5 text-white" /> : <PrathamAvatar size={40} />}
         </div>
       </button>
     </div>
