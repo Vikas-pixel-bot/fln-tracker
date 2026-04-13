@@ -3,6 +3,7 @@ import { getStudentProfile } from "@/app/actions";
 import { User, BookOpen, Calculator, MapPin, Calendar, Lightbulb, GraduationCap, Flame, ArrowRight, Clock, ShieldCheck, TrendingUp, Minus, TrendingDown, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { LITERACY_ACTIVITIES, NUMERACY_ACTIVITIES, TaRLActivity } from "@/lib/tarl_data";
+import ProgressChart from "@/components/ProgressChart";
 
 const LEVEL_LABELS_LIT = ['Beginner', 'Letter', 'Word', 'Paragraph', 'Story'];
 const LEVEL_LABELS_NUM = ['Beginner', 'Num 1-9', 'Num 10-99', 'Num 100-999', 'Addition', 'Subtraction', 'Multiplication', 'Division'];
@@ -113,6 +114,13 @@ export default async function StudentProfilePage({ params }: { params: Promise<{
                   )}
                </div>
             </div>
+
+            {/* Progress Chart */}
+            {student.assessments.length > 0 && (
+              <div className="mt-12">
+                <ProgressChart assessments={student.assessments} />
+              </div>
+            )}
 
             {/* Audit Trail Timeline */}
             <div className="mt-12 space-y-6">
