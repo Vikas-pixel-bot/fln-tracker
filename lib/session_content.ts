@@ -179,6 +179,21 @@ export const CLASS_3_4_LANGUAGE_PLAN: SessionPlan = {
           simulationId: "marathi-words"
         },
         {
+          name: "Matra Practice",
+          marathiName: "मात्रा सराव",
+          duration: 10,
+          description: "Vowel diacritic (matra) recognition — for Shabdgandh / Level 2 students",
+          instructions: [
+            "Use this for students who can recognize letters but confuse matras when reading words",
+            "Point to the highlighted syllable in each word — ask 'कोणती मात्रा आहे?'",
+            "Use the filter tabs to focus on one matra at a time (e.g. only ा or only ी)",
+            "After correct identification, have students find the same matra in their reader",
+            "Key matras: आ (ा), इ (ि), ई (ी), उ (ु), ऊ (ू)"
+          ],
+          materials: ["Chaudakhadi chart for reference", "Student readers"],
+          simulationId: "g-matra"
+        },
+        {
           name: "Write",
           marathiName: "लेखन",
           duration: 20,
@@ -205,20 +220,20 @@ export const CLASS_3_4_LANGUAGE_PLAN: SessionPlan = {
       activities: [
         // DAY 1
         {
-          name: "Story Related Activities",
-          marathiName: "गोष्ट / पाठ संबंधित कृती",
+          name: "Story Reading",
+          marathiName: "कथावाचन — पुष्पगंध",
           duration: 30,
-          description: "Deep reading and comprehension activities around the story",
+          description: "Interactive digital story reader with comprehension questions — for Level 4 students",
           instructions: [
-            "Teacher reads the story once with full expression",
-            "Choral reading — group reads together",
-            "Silent reading — students read alone, circling unknown words",
-            "Form groups of 3–4; each group reads a section and discusses",
-            "Ask inference questions: 'Why did the character do this? What will happen next?'",
-            "Each group summarizes their section for the class"
+            "Select a story appropriate to the group's reading level",
+            "Students take turns tapping each word to hear its pronunciation",
+            "Read page-by-page — pause after each page and ask 'काय समजले?'",
+            "After completing the story, attempt the 3 comprehension questions together",
+            "Discuss wrong answers — locate the answer back in the story text",
+            "For physical readers: use Basic Stories booklet alongside"
           ],
           materials: ["Basic Stories booklet", "Anuched Pustika", "Notebooks"],
-          simulationId: "g-true",
+          simulationId: "story-reader",
           daySpecific: 1
         },
         {

@@ -55,6 +55,8 @@ import MarketMath from "@/components/games/MarketMath";
 import NumberRiver from "@/components/games/NumberRiver";
 import ClockReader from "@/components/games/ClockReader";
 import SortingHat from "@/components/games/SortingHat";
+import MatraPractice from "@/components/games/MatraPractice";
+import StoryReader from "@/components/simulations/StoryReader";
 import TiliBundleDuel from "@/components/simulations/TiliBundleDuel";
 import SankhyaChakra from "@/components/simulations/SankhyaChakra";
 import DigitalAbacus from "@/components/simulations/DigitalAbacus";
@@ -97,6 +99,8 @@ const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "g-river": NumberRiver,
   "g-clock": ClockReader,
   "g-sorting": SortingHat,
+  "g-matra": MatraPractice,
+  "story-reader": StoryReader,
   "tili-bundle-duel": TiliBundleDuel,
   "sankhya-chakra": SankhyaChakra,
   "digital-abacus": DigitalAbacus,
