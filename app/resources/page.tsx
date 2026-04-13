@@ -125,6 +125,7 @@ function MissionControl() {
   const [step, setStep] = useState<'setup' | 'session' | 'summary'>('setup');
   const [classNum, setClassNum] = useState<number | null>(null);
   const [subject, setSubject] = useState<'language' | 'maths' | null>(null);
+  const [selectedGroupIdx, setSelectedGroupIdx] = useState<number | null>(null);
   const [dayNum, setDayNum] = useState<1 | 2>(1);
   const [teacherName, setTeacherName] = useState("");
   const [schoolName, setSchoolName] = useState("");
@@ -143,8 +144,11 @@ function MissionControl() {
   const [allSchools, setAllSchools] = useState<any[]>([]);
 
   const isAdmin = session?.user?.role === 'admin' || session?.user?.role === 'ADMIN';
-  const isSingleGroup = !sessionPlan || sessionPlan.groups.length === 1;
-  const hasDayToggle = sessionPlan?.subject === 'language' && sessionPlan.groups.length > 1;
+  // If teacher picked a specific group, treat as single-group session for that group only
+  const activeGroupIdx = selectedGroupIdx ?? 0;
+  const needsGroupPick = !!sessionPlan && sessionPlan.groups.length > 1;
+  const isSingleGroup = !sessionPlan || sessionPlan.groups.length === 1 || selectedGroupIdx !== null;
+  const hasDayToggle = sessionPlan?.subject === 'language' && selectedGroupIdx === 1; // only Pushpagandh
 
   const getVisibleActivities = (group: LevelGroup) =>
     group.activities.filter(a => !a.daySpecific || a.daySpecific === dayNum);
@@ -173,8 +177,9 @@ function MissionControl() {
     const plan = getSessionPlan(classNum, subject || undefined);
     setSessionPlan(plan);
     setGroupActivityIdx(plan.groups.map(() => 0));
-    setSelectedDetail(plan.groups.length > 0 ? { groupIdx: 0, actIdx: 0 } : null);
+    setSelectedDetail(null);
     setCompletedActivities(new Set());
+    setSelectedGroupIdx(null);
   }, [classNum, subject]);
 
   useEffect(() => {
@@ -197,9 +202,11 @@ function MissionControl() {
     });
   };
 
-  const totalActivities = sessionPlan?.groups.reduce(
-    (s, g) => s + getVisibleActivities(g).length, 0
-  ) || 0;
+  const totalActivities = sessionPlan
+    ? (selectedGroupIdx !== null
+        ? getVisibleActivities(sessionPlan.groups[selectedGroupIdx]).length
+        : sessionPlan.groups.reduce((s, g) => s + getVisibleActivities(g).length, 0))
+    : 0;
   const totalCompleted = completedActivities.size;
 
   const selectedActivity = selectedDetail && sessionPlan
@@ -217,11 +224,13 @@ function MissionControl() {
     const group = sessionPlan.groups[groupIdx];
     const visible = getVisibleActivities(group);
     const curVis = visible.findIndex(a => group.activities.indexOf(a) === actIdx);
+    // Still have activities in this group
     if (curVis < visible.length - 1) {
       const next = visible[curVis + 1];
       return { groupIdx, actIdx: group.activities.indexOf(next) };
     }
-    if (groupIdx < sessionPlan.groups.length - 1) {
+    // Only advance to next group if teacher is running all groups (isSingleGroup = false)
+    if (!isSingleGroup && groupIdx < sessionPlan.groups.length - 1) {
       const ng = sessionPlan.groups[groupIdx + 1];
       const nv = getVisibleActivities(ng);
       if (nv.length > 0) return { groupIdx: groupIdx + 1, actIdx: ng.activities.indexOf(nv[0]) };
@@ -230,7 +239,7 @@ function MissionControl() {
   };
 
   const resetSession = () => {
-    setStep('setup'); setClassNum(null); setSubject(null); setIsFocusMode(false);
+    setStep('setup'); setClassNum(null); setSubject(null); setSelectedGroupIdx(null); setIsFocusMode(false);
     setGroupActivityIdx([0, 0]); setCompletedActivities(new Set());
     setElapsed(0); setLogSuccess(false); setSelectedDetail(null);
   };
@@ -280,7 +289,7 @@ function MissionControl() {
                 {isTimerRunning && <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-ping" />}
               </div>
               <h1 className={cn("font-black text-white tracking-tighter", isFocusMode ? "text-xl" : "text-4xl")}>
-                {step === 'setup' ? "Ready for Action?" : `Class ${classNum}${subject ? ` — ${subject === 'maths' ? 'Maths' : 'Language'}` : ''}`}
+                {step === 'setup' ? "Ready for Action?" : `Class ${classNum}${subject ? ` — ${subject === 'maths' ? 'Maths' : 'Language'}` : ''}${selectedGroupIdx !== null && sessionPlan ? ` · ${sessionPlan.groups[selectedGroupIdx].name}` : ''}`}
               </h1>
             </div>
           </div>
@@ -413,7 +422,42 @@ function MissionControl() {
               </div>
             )}
 
-            {/* Day toggle (Language dual-group only) */}
+            {/* Group Selection (Class 3+) */}
+            {needsGroupPick && sessionPlan && (
+              <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2">
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Which Group Will You Conduct?</p>
+                <div className="grid grid-cols-1 gap-3">
+                  {sessionPlan.groups.map((g, gi) => {
+                    const clr = GROUP_COLORS[g.color] || GROUP_COLORS.blue;
+                    const isSelected = selectedGroupIdx === gi;
+                    return (
+                      <button key={gi} onClick={() => { setSelectedGroupIdx(gi); setSelectedDetail(null); }}
+                        className={cn(
+                          "p-4 rounded-2xl border-2 text-left transition-all flex items-center justify-between gap-4",
+                          isSelected
+                            ? `${clr.bg} ${clr.border} shadow-lg scale-[1.01]`
+                            : "bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                        )}>
+                        <div className="flex items-center gap-3">
+                          <div className={cn("w-3 h-3 rounded-full shrink-0", isSelected ? clr.badge : "bg-slate-300")} />
+                          <div>
+                            <p className={cn("font-black text-sm", isSelected ? clr.text : "text-slate-700 dark:text-slate-200")}>{g.name}</p>
+                            {g.marathiName && <p className="text-xs text-slate-400">{g.marathiName}</p>}
+                            <p className="text-xs text-slate-400 mt-0.5">{g.subtitle}</p>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <p className={cn("font-black text-sm", isSelected ? clr.text : "text-slate-500")}>{g.totalTime}m</p>
+                          <p className="text-xs text-slate-400">{g.activities.length} activities</p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Day toggle (Pushpagandh only) */}
             {hasDayToggle && (
               <div className="space-y-3 animate-in fade-in">
                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Day in Story Cycle (Pushpagandh)</p>
@@ -431,7 +475,7 @@ function MissionControl() {
             )}
 
             {/* Plan preview */}
-            {sessionPlan && (
+            {sessionPlan && !needsGroupPick && (
               <div className="space-y-2 animate-in fade-in">
                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Today&apos;s Groups</p>
                 <div className="space-y-2">
@@ -458,10 +502,14 @@ function MissionControl() {
             )}
 
             <button
-              onClick={() => { setStep('session'); setIsTimerRunning(true); if (sessionPlan) setSelectedDetail({ groupIdx: 0, actIdx: 0 }); }}
-              disabled={!classNum || (classNum >= 3 && !subject) || !teacherName || !schoolName || !sessionPlan}
+              onClick={() => {
+                setStep('session');
+                setIsTimerRunning(true);
+                if (sessionPlan) setSelectedDetail({ groupIdx: activeGroupIdx, actIdx: 0 });
+              }}
+              disabled={!classNum || (classNum >= 3 && !subject) || !teacherName || !schoolName || !sessionPlan || (needsGroupPick && selectedGroupIdx === null)}
               className="w-full py-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black rounded-3xl text-2xl shadow-2xl flex items-center justify-center gap-4 group transition-all transform hover:scale-105 disabled:opacity-40 disabled:scale-100">
-              INITIATE SESSION <Play className="w-8 h-8 fill-current group-hover:scale-110 transition-transform" />
+              {needsGroupPick && selectedGroupIdx === null ? 'SELECT A GROUP ABOVE' : 'INITIATE SESSION'} <Play className="w-8 h-8 fill-current group-hover:scale-110 transition-transform" />
             </button>
           </div>
         </div>
@@ -471,108 +519,138 @@ function MissionControl() {
       {step === 'session' && sessionPlan && (
         <div className={cn("flex-1 flex flex-col min-h-0 animate-in slide-in-from-bottom-8", isFocusMode ? "gap-4" : "gap-6")}>
           {isSingleGroup ? (
-            /* Single group (Class 1–2): sidebar list + detail panel */
-            <div className="flex gap-6 flex-1 min-h-0">
-              <div className="w-72 shrink-0 bg-slate-50 dark:bg-slate-900/60 rounded-[32px] border border-slate-100 dark:border-slate-800 overflow-y-auto p-4 space-y-2">
-                {getVisibleActivities(sessionPlan.groups[0]).map((act, ai) => {
-                  const realIdx = sessionPlan.groups[0].activities.indexOf(act);
-                  const isDone = completedActivities.has(`0-${realIdx}`);
-                  const isSel = selectedDetail?.groupIdx === 0 && selectedDetail?.actIdx === realIdx;
-                  return (
-                    <button key={ai} onClick={() => setSelectedDetail({ groupIdx: 0, actIdx: realIdx })}
-                      className={cn("w-full text-left p-4 rounded-2xl transition-all",
-                        isSel ? "bg-blue-600 text-white shadow-lg" :
-                        isDone ? "bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300" :
-                        "bg-white dark:bg-slate-800 hover:shadow-md text-slate-700 dark:text-slate-300")}>
-                      <div className="flex items-center gap-3">
-                        <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0",
-                          isSel ? "bg-white/20 text-white" : isDone ? "bg-emerald-500 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-500")}>
-                          {isDone ? <CheckCircle2 className="w-4 h-4" /> : ai + 1}
+            /* Single group layout — Class 1-2 OR teacher picked one group from Class 3-4 */
+            <div className="flex flex-col flex-1 min-h-0 gap-4">
+              <div className="flex gap-6 flex-1 min-h-0">
+                {/* Sidebar */}
+                <div className="w-72 shrink-0 bg-slate-50 dark:bg-slate-900/60 rounded-[32px] border border-slate-100 dark:border-slate-800 overflow-y-auto p-4 space-y-2">
+                  {/* Group badge for Class 3+ */}
+                  {selectedGroupIdx !== null && (() => {
+                    const grp = sessionPlan.groups[activeGroupIdx];
+                    const clr = GROUP_COLORS[grp.color] || GROUP_COLORS.blue;
+                    return (
+                      <div className={cn("px-4 py-3 rounded-2xl mb-2 flex items-center gap-2 border", clr.bg, clr.border)}>
+                        <div className={cn("w-2.5 h-2.5 rounded-full shrink-0", clr.badge)} />
+                        <div>
+                          <p className={cn("font-black text-xs", clr.text)}>{grp.name}</p>
+                          {grp.marathiName && <p className="text-[10px] text-slate-500">{grp.marathiName}</p>}
                         </div>
-                        <div className="min-w-0">
-                          <p className="font-black text-sm truncate">{act.name}</p>
-                          {act.marathiName && act.marathiName !== act.name && <p className={cn("text-xs truncate", isSel ? "text-blue-100" : "text-slate-400")}>{act.marathiName}</p>}
+                      </div>
+                    );
+                  })()}
+                  {getVisibleActivities(sessionPlan.groups[activeGroupIdx]).map((act, ai) => {
+                    const realIdx = sessionPlan.groups[activeGroupIdx].activities.indexOf(act);
+                    const isDone = completedActivities.has(`${activeGroupIdx}-${realIdx}`);
+                    const isSel = selectedDetail?.groupIdx === activeGroupIdx && selectedDetail?.actIdx === realIdx;
+                    return (
+                      <button key={ai} onClick={() => setSelectedDetail({ groupIdx: activeGroupIdx, actIdx: realIdx })}
+                        className={cn("w-full text-left p-4 rounded-2xl transition-all",
+                          isSel ? "bg-blue-600 text-white shadow-lg" :
+                          isDone ? "bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300" :
+                          "bg-white dark:bg-slate-800 hover:shadow-md text-slate-700 dark:text-slate-300")}>
+                        <div className="flex items-center gap-3">
+                          <div className={cn("w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0",
+                            isSel ? "bg-white/20 text-white" : isDone ? "bg-emerald-500 text-white" : "bg-slate-100 dark:bg-slate-700 text-slate-500")}>
+                            {isDone ? <CheckCircle2 className="w-4 h-4" /> : ai + 1}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-black text-sm truncate">{act.name}</p>
+                            {act.marathiName && act.marathiName !== act.name && <p className={cn("text-xs truncate", isSel ? "text-blue-100" : "text-slate-400")}>{act.marathiName}</p>}
+                          </div>
+                          <span className={cn("ml-auto text-xs font-bold shrink-0", isSel ? "text-blue-100" : "text-slate-400")}>{act.duration}m</span>
                         </div>
-                        <span className={cn("ml-auto text-xs font-bold shrink-0", isSel ? "text-blue-100" : "text-slate-400")}>{act.duration}m</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="flex-1 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col min-h-0">
-                {selectedActivity ? (
-                  <>
-                    <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
-                      <div className="space-y-1">
-                        <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{selectedActivity.duration} minutes</span>
-                        <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{selectedActivity.name}</h3>
-                        {selectedActivity.marathiName && selectedActivity.marathiName !== selectedActivity.name && (
-                          <p className="text-lg text-slate-500 font-medium">{selectedActivity.marathiName}</p>
-                        )}
-                        <p className="text-slate-500 mt-2">{selectedActivity.description}</p>
-                      </div>
-                      <button
-                        onClick={() => { const ri = sessionPlan.groups[0].activities.indexOf(selectedActivity); toggleComplete(0, ri); }}
-                        className={cn("shrink-0 px-5 py-3 rounded-2xl font-black text-sm transition-all",
-                          completedActivities.has(`0-${sessionPlan.groups[0].activities.indexOf(selectedActivity)}`)
-                            ? "bg-emerald-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-600")}>
-                        {completedActivities.has(`0-${sessionPlan.groups[0].activities.indexOf(selectedActivity)}`) ? "✓ Done" : "Mark Done"}
                       </button>
-                    </div>
-                    {/* Simulation gets the full stage when present */}
-                    {ActiveSimulation ? (
-                      <div className="flex-1 flex flex-col min-h-0">
-                        <div className="flex-1 min-h-[520px] bg-slate-950 overflow-hidden">
-                          <ActiveSimulation player1={battleContext?.p1} player2={battleContext?.p2} schoolId={battleContext?.schoolId || "mock-school-id"} classNum={classNum || 1} />
+                    );
+                  })}
+                </div>
+                {/* Detail panel */}
+                <div className="flex-1 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col min-h-0">
+                  {selectedActivity ? (
+                    <>
+                      <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
+                        <div className="space-y-1">
+                          <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{selectedActivity.duration} minutes</span>
+                          <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{selectedActivity.name}</h3>
+                          {selectedActivity.marathiName && selectedActivity.marathiName !== selectedActivity.name && (
+                            <p className="text-lg text-slate-500 font-medium">{selectedActivity.marathiName}</p>
+                          )}
+                          <p className="text-slate-500 mt-2">{selectedActivity.description}</p>
                         </div>
-                        {/* Compact strip: materials only */}
-                        {selectedActivity.materials.length > 0 && (
-                          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3 flex-wrap">
-                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Materials:</span>
-                            {selectedActivity.materials.map((m, i) => (
-                              <span key={i} className="px-3 py-1 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 rounded-lg text-xs font-medium">{m}</span>
-                            ))}
+                        <button
+                          onClick={() => { const ri = sessionPlan.groups[activeGroupIdx].activities.indexOf(selectedActivity); toggleComplete(activeGroupIdx, ri); }}
+                          className={cn("shrink-0 px-5 py-3 rounded-2xl font-black text-sm transition-all",
+                            completedActivities.has(`${activeGroupIdx}-${sessionPlan.groups[activeGroupIdx].activities.indexOf(selectedActivity)}`)
+                              ? "bg-emerald-500 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-600")}>
+                          {completedActivities.has(`${activeGroupIdx}-${sessionPlan.groups[activeGroupIdx].activities.indexOf(selectedActivity)}`) ? "✓ Done" : "Mark Done"}
+                        </button>
+                      </div>
+                      {ActiveSimulation ? (
+                        <div className="flex-1 flex flex-col min-h-0">
+                          <div className="flex-1 min-h-[520px] bg-slate-950 overflow-hidden">
+                            <ActiveSimulation player1={battleContext?.p1} player2={battleContext?.p2} schoolId={battleContext?.schoolId || "mock-school-id"} classNum={classNum || 1} />
                           </div>
-                        )}
-                      </div>
-                    ) : selectedActivity.name === "The Battle Arena" ? (
-                      <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8">
-                        <div className="w-24 h-24 bg-orange-100 dark:bg-orange-950/30 rounded-3xl flex items-center justify-center text-orange-600"><Swords className="w-12 h-12" /></div>
-                        <button onClick={() => setShowMatchmaker(true)} className="px-10 py-5 bg-orange-500 text-white font-black rounded-2xl shadow-lg hover:scale-105 transition-all text-lg">OPEN MATCHMAKER</button>
-                      </div>
-                    ) : (
-                      <div className="flex-1 overflow-y-auto p-8 space-y-8">
-                        <div className="space-y-4">
-                          <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Step-by-Step Instructions</h4>
-                          <ol className="space-y-3">
-                            {selectedActivity.instructions.map((ins, i) => (
-                              <li key={i} className="flex gap-4 items-start">
-                                <span className="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-600 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
-                                <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{ins}</p>
-                              </li>
-                            ))}
-                          </ol>
-                        </div>
-                        {selectedActivity.materials.length > 0 && (
-                          <div className="space-y-3">
-                            <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Materials Needed</h4>
-                            <ul className="flex flex-wrap gap-2">
+                          {selectedActivity.materials.length > 0 && (
+                            <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center gap-3 flex-wrap">
+                              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Materials:</span>
                               {selectedActivity.materials.map((m, i) => (
-                                <li key={i} className="px-4 py-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 rounded-xl text-sm font-medium">{m}</li>
+                                <span key={i} className="px-3 py-1 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 rounded-lg text-xs font-medium">{m}</span>
                               ))}
-                            </ul>
+                            </div>
+                          )}
+                        </div>
+                      ) : selectedActivity.name === "The Battle Arena" ? (
+                        <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8">
+                          <div className="w-24 h-24 bg-orange-100 dark:bg-orange-950/30 rounded-3xl flex items-center justify-center text-orange-600"><Swords className="w-12 h-12" /></div>
+                          <button onClick={() => setShowMatchmaker(true)} className="px-10 py-5 bg-orange-500 text-white font-black rounded-2xl shadow-lg hover:scale-105 transition-all text-lg">OPEN MATCHMAKER</button>
+                        </div>
+                      ) : (
+                        <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                          <div className="space-y-4">
+                            <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Step-by-Step Instructions</h4>
+                            <ol className="space-y-3">
+                              {selectedActivity.instructions.map((ins, i) => (
+                                <li key={i} className="flex gap-4 items-start">
+                                  <span className="w-7 h-7 rounded-full bg-blue-50 dark:bg-blue-950/30 text-blue-600 text-xs font-black flex items-center justify-center shrink-0 mt-0.5">{i + 1}</span>
+                                  <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{ins}</p>
+                                </li>
+                              ))}
+                            </ol>
                           </div>
-                        )}
+                          {selectedActivity.materials.length > 0 && (
+                            <div className="space-y-3">
+                              <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Materials Needed</h4>
+                              <ul className="flex flex-wrap gap-2">
+                                {selectedActivity.materials.map((m, i) => (
+                                  <li key={i} className="px-4 py-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 rounded-xl text-sm font-medium">{m}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center text-slate-300 dark:text-slate-700">
+                      <div className="text-center space-y-4">
+                        <BookOpen className="w-16 h-16 mx-auto opacity-30" />
+                        <p className="font-black text-xl">Select an activity to see details</p>
                       </div>
-                    )}
-                  </>
-                ) : (
-                  <div className="flex-1 flex items-center justify-center text-slate-300 dark:text-slate-700">
-                    <div className="text-center space-y-4">
-                      <BookOpen className="w-16 h-16 mx-auto opacity-30" />
-                      <p className="font-black text-xl">Select an activity to see details</p>
                     </div>
-                  </div>
+                  )}
+                </div>
+              </div>
+              {/* Next / Finish for single-group (always present) */}
+              <div className="flex justify-end gap-4 pb-2">
+                {getNextDetail() ? (
+                  <button onClick={() => setSelectedDetail(getNextDetail())}
+                    className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl shadow-xl flex items-center gap-3 hover:scale-105 transition-all">
+                    NEXT ACTIVITY <ChevronRight className="w-6 h-6" />
+                  </button>
+                ) : (
+                  <button onClick={() => setStep('summary')}
+                    className="px-10 py-5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black rounded-3xl shadow-xl flex items-center gap-3 hover:scale-105 transition-all">
+                    FINISH SESSION <CheckCircle2 className="w-6 h-6" />
+                  </button>
                 )}
               </div>
             </div>
@@ -730,7 +808,10 @@ function MissionControl() {
                 <span className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-xl">{totalCompleted}/{totalActivities} done</span>
               </div>
             </div>
-            {sessionPlan.groups.map((group, gi) => {
+            {sessionPlan.groups
+              .filter((_, gi) => selectedGroupIdx === null || gi === selectedGroupIdx)
+              .map((group, _idx) => {
+              const gi = selectedGroupIdx ?? _idx;
               const clr = GROUP_COLORS[group.color] || GROUP_COLORS.blue;
               const visible = getVisibleActivities(group);
               return (
