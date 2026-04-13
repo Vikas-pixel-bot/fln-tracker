@@ -60,6 +60,9 @@ import SankhyaChakra from "@/components/simulations/SankhyaChakra";
 import DigitalAbacus from "@/components/simulations/DigitalAbacus";
 import MultiplicationSim from "@/components/simulations/MultiplicationSim";
 import DivisionSim from "@/components/simulations/DivisionSim";
+import RepeatedAddition from "@/components/simulations/RepeatedAddition";
+import FractionViz from "@/components/simulations/FractionViz";
+import EqualSharing from "@/components/simulations/EqualSharing";
 
 const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "bundle-builder": BundleBuilder,
@@ -99,6 +102,9 @@ const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "digital-abacus": DigitalAbacus,
   "multiplication-sim": MultiplicationSim,
   "division-sim": DivisionSim,
+  "repeated-addition": RepeatedAddition,
+  "fraction-viz": FractionViz,
+  "equal-sharing": EqualSharing,
 };
 
 interface BattleContext {

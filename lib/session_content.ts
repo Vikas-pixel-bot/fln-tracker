@@ -543,6 +543,51 @@ export const CLASS_3_4_MATHS_PLAN: SessionPlan = {
           ],
           materials: ["Tablet / screen", "Physical objects (stones, seeds) for parallel activity"],
           simulationId: "division-sim"
+        },
+        {
+          name: "वारंवार बेरीज → गुणाकार",
+          marathiName: "गट बेरीज",
+          duration: 15,
+          description: "Multiplication as repeated addition — add groups one at a time to see the pattern",
+          instructions: [
+            "A problem appears: e.g. '3 groups of 5 apples'",
+            "Student taps '+ गट जोडा' to reveal one group at a time",
+            "Watch the addition string grow: 5 + 5 + 5 = 15",
+            "Then student enters the answer for 3 × 5",
+            "Connect explicitly: 'वारंवार बेरीज = गुणाकार'"
+          ],
+          materials: ["Tablet / screen", "Physical objects for parallel grouping"],
+          simulationId: "repeated-addition"
+        },
+        {
+          name: "अपूर्णांक — आकृतीद्वारे",
+          marathiName: "अपूर्णांक शिका",
+          duration: 15,
+          description: "Fractions through real-world graphics — pie and bar models with everyday objects",
+          instructions: [
+            "A fraction is shown using a pie chart or bar model (pizza, chocolate, watermelon...)",
+            "Student identifies which fraction the shaded portion represents",
+            "Toggle between pie and bar view to reinforce the same concept two ways",
+            "Read aloud: '४ भागांपैकी १ भाग = एक चतुर्थांश'",
+            "Use physical chapati or paper folding alongside this activity"
+          ],
+          materials: ["Tablet / screen", "Paper for folding (optional)", "Chapati / circular object"],
+          simulationId: "fraction-viz"
+        },
+        {
+          name: "समान वाटणी — भागाकार",
+          marathiName: "वाटणी करा",
+          duration: 15,
+          description: "Division through meaningful equal sharing — children, fruits, story context",
+          instructions: [
+            "A story appears: 'आईने 12 सफरचंद 4 मुलांमध्ये समान वाटायची आहेत'",
+            "Student taps each child's box to place one item at a time",
+            "Must distribute equally — unequal distribution shows an error",
+            "Success screen shows: 12 ÷ 4 = 3",
+            "After each round, ask: 'प्रत्येकाला किती मिळाले? समान आहे का?'"
+          ],
+          materials: ["Tablet / screen", "Physical stones or seeds for parallel distribution"],
+          simulationId: "equal-sharing"
         }
       ]
     }
