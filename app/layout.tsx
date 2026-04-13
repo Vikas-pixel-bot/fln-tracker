@@ -28,6 +28,7 @@ export const metadata: Metadata = {
 import Navbar from "@/components/Navbar";
 import OfflineSync from "@/components/OfflineSync";
 import SessionWrapper from "@/components/SessionWrapper";
+import PrathamChat from "@/components/PrathamChat";
 
 export default function RootLayout({
   children,
@@ -48,6 +49,7 @@ export default function RootLayout({
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {children}
           </main>
+          <PrathamChat />
         </SessionWrapper>
       </body>
     </html>
