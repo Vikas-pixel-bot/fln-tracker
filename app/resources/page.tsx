@@ -55,6 +55,11 @@ import MarketMath from "@/components/games/MarketMath";
 import NumberRiver from "@/components/games/NumberRiver";
 import ClockReader from "@/components/games/ClockReader";
 import SortingHat from "@/components/games/SortingHat";
+import TiliBundleDuel from "@/components/simulations/TiliBundleDuel";
+import SankhyaChakra from "@/components/simulations/SankhyaChakra";
+import DigitalAbacus from "@/components/simulations/DigitalAbacus";
+import MultiplicationSim from "@/components/simulations/MultiplicationSim";
+import DivisionSim from "@/components/simulations/DivisionSim";
 
 const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "bundle-builder": BundleBuilder,
@@ -88,7 +93,12 @@ const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "g-market": MarketMath,
   "g-river": NumberRiver,
   "g-clock": ClockReader,
-  "g-sorting": SortingHat
+  "g-sorting": SortingHat,
+  "tili-bundle-duel": TiliBundleDuel,
+  "sankhya-chakra": SankhyaChakra,
+  "digital-abacus": DigitalAbacus,
+  "multiplication-sim": MultiplicationSim,
+  "division-sim": DivisionSim,
 };
 
 interface BattleContext {

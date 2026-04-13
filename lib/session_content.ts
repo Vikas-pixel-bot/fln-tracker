@@ -470,6 +470,79 @@ export const CLASS_3_4_MATHS_PLAN: SessionPlan = {
           ],
           materials: ["Word Problem Cards", "Blackboard for group presentations", "Slates"],
           simulationId: "g-market"
+        },
+        {
+          name: "टिली-बंडल द्वंद्व",
+          marathiName: "टिली-बंडल द्वंद्व",
+          duration: 15,
+          description: "2v2 battle — build a 2-digit number using bundles (tens) and sticks (ones)",
+          instructions: [
+            "Pair students into two teams",
+            "Teacher calls out a 2-digit number (e.g. 34)",
+            "Both teams race to build the number using digital bundles and sticks",
+            "First team to show correct bundles + sticks scores a point",
+            "Repeat for 5–6 rounds; highest score wins"
+          ],
+          materials: ["Tablet / screen", "Physical bundle sticks (optional reference)"],
+          simulationId: "tili-bundle-duel"
+        },
+        {
+          name: "संख्या चक्र",
+          marathiName: "संख्या चक्र — स्थानिक किंमत",
+          duration: 15,
+          description: "Place value challenge — decompose 3-digit numbers into hundreds, tens, ones",
+          instructions: [
+            "A 3-digit number appears on screen",
+            "Student taps digits to fill the Hundreds, Tens, Ones slots",
+            "Correct answer scores a point and a new number appears",
+            "Use alongside the blackboard — write the number and ask a student to decompose it"
+          ],
+          materials: ["Tablet / screen", "Blackboard"],
+          simulationId: "sankhya-chakra"
+        },
+        {
+          name: "डिजिटल अबॅकस",
+          marathiName: "डिजिटल मणी-फ्रेम",
+          duration: 15,
+          description: "Interactive abacus — build numbers up to 999 using coloured beads",
+          instructions: [
+            "Free mode: teacher calls a number, student moves beads to show it",
+            "Challenge mode: number appears on screen, student replicates on abacus",
+            "Emphasise each row: purple = hundreds, blue = tens, green = ones",
+            "Cross-check: bead total must match the target number"
+          ],
+          materials: ["Tablet / screen", "Physical abacus (optional)"],
+          simulationId: "digital-abacus"
+        },
+        {
+          name: "गुणाकार शिका",
+          marathiName: "गुणाकार — आयत पद्धत",
+          duration: 15,
+          description: "Visual array model for multiplication — count dots to discover the product",
+          instructions: [
+            "A multiplication problem appears (e.g. 4 × 6)",
+            "The array shows 4 rows of 6 dots — student counts or uses skip-counting",
+            "Student enters the answer on the numpad",
+            "Hide the array for advanced students; show it for scaffolding",
+            "Reinforce: 4 × 6 is '4 groups of 6', not just a fact to memorise"
+          ],
+          materials: ["Tablet / screen", "Counters or pebbles for physical modelling"],
+          simulationId: "multiplication-sim"
+        },
+        {
+          name: "समान वाटणी — भागाकार",
+          marathiName: "भागाकार — समान वाटणी",
+          duration: 15,
+          description: "Division as equal sharing — drag items into groups to find the quotient",
+          instructions: [
+            "A sharing problem appears: e.g. '12 ÷ 3 = ?'",
+            "Student taps each group box to place one item at a time",
+            "Items must be distributed equally across all groups",
+            "Once all placed equally, the answer is revealed",
+            "Ask: 'each child gets how many?' — connect to the quotient"
+          ],
+          materials: ["Tablet / screen", "Physical objects (stones, seeds) for parallel activity"],
+          simulationId: "division-sim"
         }
       ]
     }
