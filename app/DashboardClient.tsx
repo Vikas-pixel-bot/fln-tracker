@@ -5,7 +5,38 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend, Cell
 } from 'recharts';
-import { BookOpen, Calculator, Users, School, Filter, TrendingUp, LayoutDashboard, Search, Sparkles, AlertCircle, TrendingDown, Trophy, Medal, BrainCircuit, Lightbulb } from 'lucide-react';
+import { BookOpen, Calculator, Users, School, Filter, TrendingUp, LayoutDashboard, Search, Sparkles, AlertCircle, TrendingDown, Trophy, Medal, Lightbulb } from 'lucide-react';
+
+function PrathamAvatar({ size = 40, className = "" }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      {/* Body */}
+      <ellipse cx="32" cy="52" rx="14" ry="9" fill="#E8232A" />
+      {/* Shirt collar */}
+      <path d="M24 46 Q32 50 40 46 L38 53 Q32 56 26 53 Z" fill="#c41e24" />
+      {/* Head */}
+      <circle cx="32" cy="26" r="15" fill="#FDBCB4" />
+      {/* Hair */}
+      <path d="M17 24 Q17 10 32 11 Q47 10 47 24 Q47 16 32 15 Q17 16 17 24Z" fill="#2D1B00" />
+      {/* Eyes */}
+      <circle cx="27" cy="25" r="2.2" fill="#1a1a1a" />
+      <circle cx="37" cy="25" r="2.2" fill="#1a1a1a" />
+      <circle cx="27.8" cy="24.2" r="0.7" fill="white" />
+      <circle cx="37.8" cy="24.2" r="0.7" fill="white" />
+      {/* Smile */}
+      <path d="M26 31 Q32 36 38 31" stroke="#c0736a" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+      {/* Book */}
+      <rect x="20" y="44" width="11" height="8" rx="1.5" fill="#F97316" />
+      <rect x="20.5" y="44.5" width="10" height="7" rx="1" fill="#FED7AA" />
+      <line x1="26" y1="44.5" x2="26" y2="51.5" stroke="#F97316" strokeWidth="0.8" />
+      {/* Book lines (text) */}
+      <line x1="22" y1="47" x2="25" y2="47" stroke="#F97316" strokeWidth="0.7" />
+      <line x1="22" y1="49" x2="25" y2="49" stroke="#F97316" strokeWidth="0.7" />
+      {/* Star accent */}
+      <path d="M49 10 L50.2 13.6 L54 13.6 L51 15.8 L52.2 19.4 L49 17.2 L45.8 19.4 L47 15.8 L44 13.6 L47.8 13.6 Z" fill="#F97316" />
+    </svg>
+  );
+}
 import { getDashboardStats, getStrugglingStudents, getGrowthVelocity, getInterventionPlan, getPORankings } from "@/app/actions";
 import { analyzeDashboardQuery } from "@/app/actions/ai";
 
@@ -499,18 +530,19 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
         {isBotOpen && (
           <div className="mb-4 w-[380px] md:w-[450px] bg-white dark:bg-slate-900 rounded-[40px] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden animate-in slide-in-from-bottom-10 fade-in duration-500 group text-left">
              {/* Header */}
-             <div className="bg-slate-900 p-6 flex justify-between items-center relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/20 blur-3xl -mr-16 -mt-16" />
+             <div className="bg-gradient-to-r from-[#E8232A] to-[#c41e24] p-5 flex justify-between items-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-40 h-40 bg-orange-400/20 blur-3xl -mr-16 -mt-16" />
+                <div className="absolute -bottom-6 -left-4 w-24 h-24 bg-red-800/30 blur-2xl" />
                 <div className="flex items-center gap-3 relative z-10">
-                   <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
-                      <BrainCircuit className="w-6 h-6 text-white" />
+                   <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-xl ring-2 ring-orange-300/40">
+                      <PrathamAvatar size={52} />
                    </div>
                    <div>
-                      <h4 className="text-white font-black tracking-tight">Mission Brain</h4>
-                      <p className="text-blue-400 text-[10px] font-black uppercase tracking-widest">Data + TaRL Pedagogy</p>
+                      <h4 className="text-white font-black text-lg tracking-tight">Hi, I'm Pratham!</h4>
+                      <p className="text-red-100 text-[11px] font-semibold">How may I help you? 🌟</p>
                    </div>
                 </div>
-                <button onClick={() => setIsBotOpen(false)} className="text-slate-400 hover:text-white transition-colors">
+                <button onClick={() => setIsBotOpen(false)} className="text-red-200 hover:text-white transition-colors relative z-10">
                    <AlertCircle className="w-6 h-6 rotate-45" />
                 </button>
              </div>
@@ -519,10 +551,10 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
              <div className="p-4 space-y-3 max-h-[460px] overflow-y-auto flex flex-col">
                 {messages.length === 0 ? (
                   <div className="space-y-4 py-4 text-center">
-                     <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-[24px] flex items-center justify-center mx-auto border border-slate-100 dark:border-slate-800">
-                        <Sparkles className="w-8 h-8 text-blue-500 animate-pulse" />
+                     <div className="flex justify-center">
+                        <PrathamAvatar size={72} className="drop-shadow-md" />
                      </div>
-                     <p className="text-slate-600 dark:text-slate-400 font-medium px-4 text-sm">I'm "The Brain" — I analyze mission data AND know the full TaRL manual. Ask about results or what to teach today.</p>
+                     <p className="text-slate-600 dark:text-slate-400 font-medium px-4 text-sm">I analyze your mission data <span className="text-[#E8232A] font-bold">and</span> know the full TaRL manual. Ask about results or what to teach today.</p>
                      <div className="grid grid-cols-1 gap-2 pt-2">
                         {[
                           { q: "Compare Baseline vs Endline results", icon: "📊" },
@@ -544,7 +576,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
                      {messages.map((msg, i) => (
                        <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                          {msg.role === 'user' ? (
-                           <div className="max-w-[80%] px-4 py-2.5 bg-blue-600 text-white rounded-3xl rounded-br-md text-sm font-medium leading-relaxed">
+                           <div className="max-w-[80%] px-4 py-2.5 bg-[#E8232A] text-white rounded-3xl rounded-br-md text-sm font-medium leading-relaxed">
                              {msg.content}
                            </div>
                          ) : (
@@ -580,9 +612,9 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
                        <div className="flex justify-start">
                          <div className="px-4 py-3 bg-slate-50 dark:bg-slate-800 rounded-3xl rounded-bl-md flex items-center gap-2">
                            <div className="flex gap-1">
-                             {[0,1,2].map(n => <div key={n} className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: `${n * 0.15}s` }} />)}
+                             {[0,1,2].map(n => <div key={n} className="w-1.5 h-1.5 bg-[#E8232A] rounded-full animate-bounce" style={{ animationDelay: `${n * 0.15}s` }} />)}
                            </div>
-                           <span className="text-xs text-slate-400 font-medium">Analyzing...</span>
+                           <span className="text-xs text-slate-400 font-medium">Pratham is thinking...</span>
                          </div>
                        </div>
                      )}
@@ -601,7 +633,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
                    <input
                       type="text"
                       className="w-full bg-white dark:bg-slate-900 rounded-2xl px-5 py-3.5 pr-14 text-sm font-medium border border-slate-200 dark:border-slate-800 focus:ring-2 focus:ring-blue-500 shadow-sm outline-none"
-                      placeholder="Ask the Mission Brain..."
+                      placeholder="Ask Pratham anything..."
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       disabled={isAnalyzing}
@@ -609,7 +641,7 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
                    <button
                      type="submit"
                      disabled={isAnalyzing || !chatInput.trim()}
-                     className="absolute right-2 p-2 bg-blue-600 text-white rounded-xl shadow-lg hover:scale-110 active:scale-95 transition-all disabled:opacity-50"
+                     className="absolute right-2 p-2 bg-[#E8232A] text-white rounded-xl shadow-lg hover:scale-110 active:scale-95 transition-all disabled:opacity-50"
                    >
                       <Search className="w-5 h-5" />
                    </button>
@@ -619,13 +651,16 @@ export default function DashboardClient({ initialStats, hierarchy }: { initialSt
         )}
 
         {/* FAB Button */}
-        <button 
+        <button
           onClick={() => setIsBotOpen(!isBotOpen)}
-          className={`group flex items-center gap-3 p-4 rounded-[32px] shadow-2xl transition-all hover:scale-105 active:scale-95 ${isBotOpen ? 'bg-slate-900 dark:bg-slate-800 scale-90' : 'bg-blue-600 hover:bg-blue-700'}`}
+          className={`group flex items-center gap-2 px-4 py-2 rounded-[32px] shadow-2xl transition-all hover:scale-105 active:scale-95 ${isBotOpen ? 'bg-slate-900 dark:bg-slate-800 scale-90 pr-3' : 'bg-gradient-to-r from-[#E8232A] to-[#f97316] hover:from-[#c41e24] hover:to-[#ea6c0a]'}`}
         >
-           {!isBotOpen && <span className="text-white text-sm font-black uppercase tracking-widest pl-2 hidden md:inline">Ask Mission Brain</span>}
-           <div className={`w-10 h-10 rounded-2xl flex items-center justify-center transition-transform duration-500 ${isBotOpen ? 'rotate-90 bg-white/10' : 'bg-white shadow-xl'}`}>
-              <BrainCircuit className={`w-6 h-6 ${isBotOpen ? 'text-white' : 'text-blue-600'}`} />
+           {!isBotOpen && <span className="text-white text-sm font-black tracking-wide pl-1 hidden md:inline">Ask Pratham!</span>}
+           <div className={`w-11 h-11 rounded-2xl flex items-center justify-center transition-transform duration-500 ${isBotOpen ? 'bg-white/10' : 'bg-white shadow-xl'}`}>
+              {isBotOpen
+                ? <AlertCircle className="w-5 h-5 text-white rotate-45" />
+                : <PrathamAvatar size={40} />
+              }
            </div>
         </button>
       </div>
