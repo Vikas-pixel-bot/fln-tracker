@@ -32,7 +32,7 @@ function makeQuestion() {
   return { a, b, op, answer, options };
 }
 
-const STONES = 5; // stones to cross
+const STONES = 5;
 
 export default function NumberRiver() {
   const [position, setPosition] = useState(0);
@@ -83,28 +83,24 @@ export default function NumberRiver() {
   if (won) return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-10 border border-indigo-100 shadow-sm text-center space-y-6">
       <div className="text-7xl animate-bounce">🏆</div>
-      <h2 className="text-3xl font-extrabold text-indigo-700">You crossed the river!</h2>
-      <p className="text-slate-500 text-lg">You got <span className="font-bold text-indigo-600">{score}</span> out of <span className="font-bold">{total}</span> correct!</p>
+      <h2 className="text-3xl font-extrabold text-indigo-700">नदी पार केली!</h2>
+      <p className="text-slate-500 text-lg"><span className="font-bold text-indigo-600">{score}</span> / <span className="font-bold">{total}</span> बरोबर!</p>
       <button onClick={restart} className="px-8 py-3 rounded-2xl font-bold text-white bg-gradient-to-r from-indigo-500 to-blue-600 hover:opacity-90 transition-all">
-        Play Again 🌊
+        पुन्हा खेळा 🌊
       </button>
     </div>
   );
 
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-indigo-100 shadow-sm">
-      {/* River header */}
       <div className="bg-gradient-to-b from-sky-400 to-blue-600 p-6 space-y-4">
         <div className="flex justify-between items-center">
-          <span className="text-sm font-bold text-white/80 bg-white/20 px-3 py-1 rounded-full">Score: {score}/{total}</span>
-          <span className="text-white font-bold text-sm">Cross {STONES} stones to win!</span>
+          <span className="text-sm font-bold text-white/80 bg-white/20 px-3 py-1 rounded-full">गुण: {score}/{total}</span>
+          <span className="text-white font-bold text-sm">{STONES} दगड पार करा!</span>
         </div>
 
-        {/* Stepping stones */}
         <div className="flex items-end justify-between gap-1 px-2">
-          {/* Start bank */}
           <div className="text-2xl shrink-0">🌿</div>
-
           {Array.from({ length: STONES }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-1">
               {position === i && <span className="text-xl animate-bounce">🐸</span>}
@@ -119,21 +115,17 @@ export default function NumberRiver() {
               </div>
             </div>
           ))}
-
-          {/* End bank */}
           <div className="text-2xl shrink-0">🏡</div>
         </div>
 
-        {/* Water effect */}
         <div className="flex justify-center gap-4 text-blue-300 text-xs opacity-60">
           {['〰️', '〰️', '〰️', '〰️', '〰️'].map((w, i) => <span key={i}>{w}</span>)}
         </div>
       </div>
 
-      {/* Question */}
       <div className="p-6 space-y-5">
         <div className="text-center">
-          <p className="text-slate-400 text-sm font-semibold mb-1">Solve to hop to the next stone!</p>
+          <p className="text-slate-400 text-sm font-semibold mb-1">उत्तर द्या — पुढचा दगड!</p>
           <div className="text-4xl font-extrabold text-indigo-700">
             {question.a} {question.op} {question.b} = ?
           </div>
@@ -160,7 +152,7 @@ export default function NumberRiver() {
 
         {feedback && (
           <div className={`text-center text-xl font-extrabold animate-bounce ${feedback === 'correct' ? 'text-green-500' : 'text-red-400'}`}>
-            {feedback === 'correct' ? '🐸 Hop! Next stone!' : `❌ Answer was ${question.answer}`}
+            {feedback === 'correct' ? '🐸 उडी! पुढचा दगड!' : `❌ उत्तर: ${question.answer}`}
           </div>
         )}
       </div>

@@ -3,24 +3,24 @@ import { useState } from 'react';
 
 const CATEGORIES = [
   {
-    name: 'Animals vs Food',
+    name: 'प्राणी की अन्न?',
     bins: [
-      { label: 'Animals 🐾', color: 'bg-green-100 border-green-400', textColor: 'text-green-700', items: ['🐶', '🐱', '🐸', '🦁', '🐟', '🐦'] },
-      { label: 'Food 🍽️', color: 'bg-orange-100 border-orange-400', textColor: 'text-orange-700', items: ['🍎', '🍕', '🍌', '🥕', '🍔', '🍦'] },
+      { label: 'प्राणी 🐾', color: 'bg-green-100 border-green-400', textColor: 'text-green-700', items: ['🐶', '🐱', '🐸', '🦁', '🐟', '🐦'] },
+      { label: 'अन्न 🍽️', color: 'bg-orange-100 border-orange-400', textColor: 'text-orange-700', items: ['🍎', '🍕', '🍌', '🥕', '🍔', '🍦'] },
     ]
   },
   {
-    name: 'Sky vs Water',
+    name: 'आकाश की पाणी?',
     bins: [
-      { label: 'In the Sky ☁️', color: 'bg-sky-100 border-sky-400', textColor: 'text-sky-700', items: ['✈️', '🦅', '🌤️', '⭐', '🦋', '🎈'] },
-      { label: 'In Water 🌊', color: 'bg-blue-100 border-blue-400', textColor: 'text-blue-700', items: ['🐟', '🐙', '🦀', '🐬', '🐚', '🦑'] },
+      { label: 'आकाशात ☁️', color: 'bg-sky-100 border-sky-400', textColor: 'text-sky-700', items: ['✈️', '🦅', '🌤️', '⭐', '🦋', '🎈'] },
+      { label: 'पाण्यात 🌊', color: 'bg-blue-100 border-blue-400', textColor: 'text-blue-700', items: ['🐟', '🐙', '🦀', '🐬', '🐚', '🦑'] },
     ]
   },
   {
-    name: 'School vs Playground',
+    name: 'शाळा की मैदान?',
     bins: [
-      { label: 'School 📚', color: 'bg-violet-100 border-violet-400', textColor: 'text-violet-700', items: ['📚', '✏️', '📏', '🖊️', '🗂️', '📐'] },
-      { label: 'Playground ⚽', color: 'bg-red-100 border-red-400', textColor: 'text-red-700', items: ['⚽', '🏏', '🎯', '🏐', '🎪', '🏸'] },
+      { label: 'शाळा 📚', color: 'bg-violet-100 border-violet-400', textColor: 'text-violet-700', items: ['📚', '✏️', '📏', '🖊️', '🗂️', '📐'] },
+      { label: 'मैदान ⚽', color: 'bg-red-100 border-red-400', textColor: 'text-red-700', items: ['⚽', '🏏', '🎯', '🏐', '🎪', '🏸'] },
     ]
   },
 ];
@@ -80,8 +80,8 @@ export default function SortingHat() {
     return (
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-10 border border-slate-100 shadow-sm text-center space-y-5">
         <div className="text-6xl">🎩</div>
-        <h2 className="text-2xl font-extrabold text-slate-800">Sorted!</h2>
-        <p className="text-slate-500">You got <span className="font-bold text-green-600">{correct}/6</span> correct!</p>
+        <h2 className="text-2xl font-extrabold text-slate-800">वर्गीकरण झाले!</h2>
+        <p className="text-slate-500">तुम्हाला <span className="font-bold text-green-600">{correct}/6</span> बरोबर मिळाले!</p>
         <div className="flex gap-4 justify-center">
           {cat.bins.map(bin => (
             <div key={bin.label} className={`rounded-2xl border-2 p-4 ${bin.color} flex-1`}>
@@ -97,7 +97,7 @@ export default function SortingHat() {
         </div>
         <button onClick={() => { setCatIdx(i => i + 1); reset(catIdx + 1); }}
           className="px-8 py-3 rounded-2xl font-bold text-white bg-gradient-to-r from-violet-500 to-purple-600 hover:opacity-90 transition-all">
-          Next Round →
+          पुढील फेरी →
         </button>
       </div>
     );
@@ -106,22 +106,20 @@ export default function SortingHat() {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 shadow-sm space-y-5">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-bold text-violet-600 bg-violet-50 px-3 py-1 rounded-full">Score: {score}/{total}</span>
+        <span className="text-sm font-bold text-violet-600 bg-violet-50 px-3 py-1 rounded-full">गुण: {score}/{total}</span>
         <span className="text-2xl">🎩</span>
       </div>
 
-      <p className="text-center font-bold text-slate-700">{cat.name} — tap the right bin!</p>
+      <p className="text-center font-bold text-slate-700">{cat.name} — बरोबर डब्यात टाका!</p>
 
-      {/* Current item */}
       <div className="flex justify-center py-4">
         <div className={`w-28 h-28 rounded-3xl bg-slate-50 border-4 border-dashed border-slate-300 flex items-center justify-center text-7xl transition-all ${feedback === 'correct' ? 'border-green-400 bg-green-50' : feedback === 'wrong' ? 'border-red-400 bg-red-50' : ''}`}>
           {current}
         </div>
       </div>
 
-      <p className="text-center text-slate-400 text-sm">Tap the correct bin ↓</p>
+      <p className="text-center text-slate-400 text-sm">खालील डब्यावर टॅप करा ↓</p>
 
-      {/* Bins */}
       <div className="grid grid-cols-2 gap-4">
         {cat.bins.map(bin => (
           <button key={bin.label} onClick={() => drop(bin.label)}

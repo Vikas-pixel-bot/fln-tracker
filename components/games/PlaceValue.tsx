@@ -39,16 +39,15 @@ export default function PlaceValue() {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-lime-100 shadow-sm space-y-5">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-bold text-lime-600 bg-lime-50 px-3 py-1 rounded-full">Score: {score}/{total}</span>
+        <span className="text-sm font-bold text-lime-600 bg-lime-50 px-3 py-1 rounded-full">गुण: {score}/{total}</span>
         <span className="text-2xl">🏗️</span>
       </div>
 
       <div className="text-center space-y-1">
-        <p className="text-slate-500 font-semibold">Build this number using tens and ones!</p>
+        <p className="text-slate-500 font-semibold">दहे आणि एकके वापरून ही संख्या बनवा!</p>
         <div className="text-7xl font-extrabold text-lime-700">{round.num}</div>
       </div>
 
-      {/* Visual blocks */}
       <div className="flex justify-center gap-6 py-2">
         <div className="flex flex-col items-center gap-1">
           <div className="flex gap-0.5">
@@ -56,7 +55,7 @@ export default function PlaceValue() {
               <div key={i} className="w-4 h-16 bg-lime-400 rounded-sm" />
             ))}
           </div>
-          <span className="text-xs text-slate-400 font-semibold">Tens ({round.tens * 10})</span>
+          <span className="text-xs text-slate-400 font-semibold">दहे ({round.tens * 10})</span>
         </div>
         <div className="flex flex-col items-center gap-1">
           <div className="flex flex-wrap gap-0.5 w-20 justify-center">
@@ -64,13 +63,12 @@ export default function PlaceValue() {
               <div key={i} className="w-4 h-4 bg-orange-400 rounded-sm" />
             ))}
           </div>
-          <span className="text-xs text-slate-400 font-semibold">Ones ({round.ones})</span>
+          <span className="text-xs text-slate-400 font-semibold">एकके ({round.ones})</span>
         </div>
       </div>
 
-      {/* Tens picker */}
       <div>
-        <p className="text-xs font-bold text-slate-400 uppercase mb-2">Pick the TENS</p>
+        <p className="text-xs font-bold text-slate-400 uppercase mb-2">दहे निवडा</p>
         <div className="grid grid-cols-4 gap-2">
           {tensOptions.sort((a, b) => a - b).map(n => (
             <button key={n} onClick={() => !feedback && setSelectedTens(n)}
@@ -85,9 +83,8 @@ export default function PlaceValue() {
         </div>
       </div>
 
-      {/* Ones picker */}
       <div>
-        <p className="text-xs font-bold text-slate-400 uppercase mb-2">Pick the ONES</p>
+        <p className="text-xs font-bold text-slate-400 uppercase mb-2">एकके निवडा</p>
         <div className="grid grid-cols-4 gap-2">
           {onesOptions.sort((a, b) => a - b).map(n => (
             <button key={n} onClick={() => !feedback && setSelectedOnes(n)}
@@ -104,14 +101,14 @@ export default function PlaceValue() {
 
       <button onClick={check} disabled={selectedTens === null || selectedOnes === null || !!feedback}
         className="w-full py-3 rounded-2xl font-bold text-white bg-gradient-to-r from-lime-500 to-green-500 disabled:opacity-40 hover:opacity-90 transition-all">
-        Build it! 🏗️
+        बनवा! 🏗️
       </button>
 
       {feedback && (
         <div className={`text-center text-xl font-extrabold animate-bounce ${feedback === 'correct' ? 'text-green-500' : 'text-red-400'}`}>
           {feedback === 'correct'
-            ? `🎉 ${round.tens * 10} + ${round.ones} = ${round.num}!`
-            : `❌ It was ${round.tens * 10} tens + ${round.ones} ones`}
+            ? `🎉 शाब्बास! ${round.tens * 10} + ${round.ones} = ${round.num}`
+            : `❌ उत्तर: ${round.tens * 10} दहे + ${round.ones} एकके`}
         </div>
       )}
     </div>

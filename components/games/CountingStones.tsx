@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 const EMOJIS = ['🪨', '🍎', '⭐', '🐸', '🌸', '🎈', '🍌', '🐟'];
 const MAX = 9;
@@ -41,12 +41,12 @@ export default function CountingStones() {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-amber-100 shadow-sm space-y-8">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full">Score: {score}/{total}</span>
+        <span className="text-sm font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full">गुण: {score}/{total}</span>
         <span className="text-2xl">🪨</span>
       </div>
 
       <div className="text-center space-y-2">
-        <p className="text-slate-500 font-semibold">How many {round.emoji} do you see?</p>
+        <p className="text-slate-500 font-semibold">किती {round.emoji} दिसतात?</p>
         <div className="flex flex-wrap justify-center gap-2 py-4 min-h-[80px] items-center">
           {Array.from({ length: round.count }).map((_, i) => (
             <span key={i} className="text-4xl select-none">{round.emoji}</span>
@@ -75,7 +75,7 @@ export default function CountingStones() {
 
       {feedback && (
         <div className={`text-center text-2xl font-extrabold animate-bounce ${feedback === 'correct' ? 'text-green-500' : 'text-red-400'}`}>
-          {feedback === 'correct' ? '🎉 Correct!' : '❌ Try again!'}
+          {feedback === 'correct' ? '🎉 शाब्बास!' : '❌ पुन्हा करा!'}
         </div>
       )}
     </div>

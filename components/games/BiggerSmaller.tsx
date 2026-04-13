@@ -35,14 +35,13 @@ export default function BiggerSmaller() {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-cyan-100 shadow-sm space-y-6">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-bold text-cyan-600 bg-cyan-50 px-3 py-1 rounded-full">Score: {score}/{total}</span>
+        <span className="text-sm font-bold text-cyan-600 bg-cyan-50 px-3 py-1 rounded-full">गुण: {score}/{total}</span>
         <span className="text-2xl">🔢</span>
       </div>
 
-      <p className="text-center font-bold text-slate-700 text-lg">Which group has MORE?</p>
+      <p className="text-center font-bold text-slate-700 text-lg">कोणत्या गटात जास्त आहेत?</p>
 
       <div className="grid grid-cols-2 gap-4">
-        {/* Left group */}
         <button onClick={() => pick('left')}
           className={`rounded-3xl p-4 transition-all duration-200 border-2 active:scale-95 ${
             chosen === 'left'
@@ -59,7 +58,6 @@ export default function BiggerSmaller() {
           <p className="text-center text-2xl font-extrabold text-cyan-700 mt-2">{round.a}</p>
         </button>
 
-        {/* Right group */}
         <button onClick={() => pick('right')}
           className={`rounded-3xl p-4 transition-all duration-200 border-2 active:scale-95 ${
             chosen === 'right'
@@ -80,8 +78,8 @@ export default function BiggerSmaller() {
       {feedback && (
         <div className={`text-center text-xl font-extrabold animate-bounce ${feedback === 'correct' ? 'text-green-500' : 'text-red-400'}`}>
           {feedback === 'correct'
-            ? `🎉 Yes! ${round.answer === 'left' ? round.a : round.b} is more!`
-            : `❌ ${round.answer === 'left' ? round.a : round.b} was more`}
+            ? `🎉 शाब्बास! ${round.answer === 'left' ? round.a : round.b} जास्त आहे!`
+            : `❌ उत्तर: ${round.answer === 'left' ? round.a : round.b}`}
         </div>
       )}
     </div>

@@ -2,7 +2,7 @@
 import { useState } from 'react';
 
 function makeRound() {
-  const total = Math.floor(Math.random() * 14) + 4; // 4 to 17
+  const total = Math.floor(Math.random() * 14) + 4;
   const known = Math.floor(Math.random() * (total - 1)) + 1;
   const missing = total - known;
   const wrong1 = missing + 1;
@@ -35,20 +35,17 @@ export default function NumberBonds() {
   return (
     <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-sky-100 shadow-sm space-y-6">
       <div className="flex justify-between items-center">
-        <span className="text-sm font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full">Score: {score}/{total}</span>
+        <span className="text-sm font-bold text-sky-600 bg-sky-50 px-3 py-1 rounded-full">गुण: {score}/{total}</span>
         <span className="text-2xl">🔗</span>
       </div>
 
-      <p className="text-center font-bold text-slate-700 text-lg">Find the missing number!</p>
+      <p className="text-center font-bold text-slate-700 text-lg">गायब संख्या शोधा!</p>
 
-      {/* Bond diagram */}
       <div className="flex flex-col items-center gap-2">
-        {/* Total at top */}
         <div className="w-20 h-20 rounded-full bg-sky-500 text-white flex items-center justify-center text-3xl font-extrabold shadow-lg">
           {round.total}
         </div>
 
-        {/* Lines */}
         <div className="flex items-start gap-12 relative">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 flex gap-8">
             <div className="w-0.5 h-10 bg-slate-300 -rotate-12 origin-top" />
@@ -56,7 +53,6 @@ export default function NumberBonds() {
           </div>
         </div>
 
-        {/* Two halves */}
         <div className="flex gap-10 mt-6">
           <div className="w-20 h-20 rounded-full bg-sky-100 border-2 border-sky-300 flex items-center justify-center text-3xl font-extrabold text-sky-700">
             {round.known}
@@ -69,7 +65,6 @@ export default function NumberBonds() {
         <p className="text-slate-500 text-sm mt-2">{round.known} + ? = {round.total}</p>
       </div>
 
-      {/* Dot visual */}
       <div className="flex gap-3 justify-center flex-wrap">
         {Array.from({ length: round.total }).map((_, i) => (
           <div key={i} className={`w-6 h-6 rounded-full ${i < round.known ? 'bg-sky-400' : 'bg-sky-200 border-2 border-dashed border-sky-400'}`} />
@@ -97,7 +92,7 @@ export default function NumberBonds() {
 
       {feedback && (
         <div className={`text-center text-xl font-extrabold animate-bounce ${feedback === 'correct' ? 'text-green-500' : 'text-red-400'}`}>
-          {feedback === 'correct' ? `🔗 ${round.known} + ${round.missing} = ${round.total}!` : `❌ It was ${round.missing}`}
+          {feedback === 'correct' ? `🔗 शाब्बास! ${round.known} + ${round.missing} = ${round.total}` : `❌ उत्तर: ${round.missing}`}
         </div>
       )}
     </div>
