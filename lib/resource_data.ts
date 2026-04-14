@@ -134,6 +134,15 @@ export const SIMULATIONS: Resource[] = [
     link: "/resources/simulations"
   },
   {
+    title: "🍬 अक्षर कँडी",
+    category: "Simulation",
+    level: "Word",
+    tags: ["Marathi", "Match-3", "Matra"],
+    description: "Candy Crush–style matra matching game. Swap Marathi syllables to line up 3+ of the same vowel sound and clear the board.",
+    id: "akshar-crush",
+    link: "/resources/simulations"
+  },
+  {
     title: "📖 Vachan Pravas",
     category: "Simulation",
     level: "Para/Story",
