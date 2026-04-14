@@ -162,7 +162,7 @@ export const CLASS_3_4_LANGUAGE_PLAN: SessionPlan = {
             "Shabdgandh group: focus on building 2–3 letter words from those sounds"
           ],
           materials: ["Chaudakhadi chart", "Letter cards", "Slates or notebooks"],
-          simulationId: "marathi-letters"
+          simulationId: "chaudakhadi"
         },
         {
           name: "Play",
@@ -384,7 +384,7 @@ export const CLASS_3_4_MATHS_PLAN: SessionPlan = {
             "Ask students to find numbers in the room (on books, walls, etc.)"
           ],
           materials: ["Number Flash Cards", "Stones/seeds", "Bundles of 10 sticks", "Slates"],
-          simulationId: "num-race-b"
+          simulationId: "number-line"
         },
         {
           name: "Basic Operation & Word Problem",

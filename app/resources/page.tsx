@@ -65,6 +65,8 @@ import DivisionSim from "@/components/simulations/DivisionSim";
 import RepeatedAddition from "@/components/simulations/RepeatedAddition";
 import FractionViz from "@/components/simulations/FractionViz";
 import EqualSharing from "@/components/simulations/EqualSharing";
+import Chaudakhadi from "@/components/simulations/Chaudakhadi";
+import NumberLine from "@/components/simulations/NumberLine";
 
 const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "bundle-builder": BundleBuilder,
@@ -109,6 +111,8 @@ const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "repeated-addition": RepeatedAddition,
   "fraction-viz": FractionViz,
   "equal-sharing": EqualSharing,
+  "chaudakhadi": Chaudakhadi,
+  "number-line": NumberLine,
 };
 
 interface BattleContext {
