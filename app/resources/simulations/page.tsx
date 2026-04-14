@@ -43,6 +43,11 @@ import MarketMath from "@/components/games/MarketMath";
 import NumberRiver from "@/components/games/NumberRiver";
 import ClockReader from "@/components/games/ClockReader";
 import SortingHat from "@/components/games/SortingHat";
+import MatraPractice from "@/components/games/MatraPractice";
+import StoryReader from "@/components/simulations/StoryReader";
+import Chaudakhadi from "@/components/simulations/Chaudakhadi";
+import NumberLine from "@/components/simulations/NumberLine";
+import MathManiaMarket from "@/components/simulations/MathManiaMarket";
 
 type Item = {
   id: string;
@@ -76,7 +81,11 @@ const SIMS: Item[] = [
   { id: "addition-master", title: "Addition Master",    level: "Operations", battleLevel: 3, subject: "Math",     emoji: "➕", component: (p) => <AdditionMaster {...p} /> },
   { id: "sound-explorer",  title: "Sound Explorer",     level: "Letter",     battleLevel: 1, subject: "Literacy", emoji: "🔊", component: (p) => <SoundExplorer {...p} /> },
   { id: "word-builder",    title: "Word Builder",       level: "Word",       battleLevel: 2, subject: "Literacy", emoji: "🔤", component: (p) => <WordBuilder {...p} /> },
-  { id: "sentence-arch",   title: "Sentence Architect", level: "Para/Story", battleLevel: 4, subject: "Literacy", emoji: "📜", component: (p) => <SentenceArchitect {...p} /> },
+  { id: "sentence-arch",    title: "Sentence Architect",  level: "Para/Story", battleLevel: 4, subject: "Literacy", emoji: "📜", component: (p) => <SentenceArchitect {...p} /> },
+  { id: "chaudakhadi",      title: "चौदाखडी Chart",       level: "Letter",     battleLevel: 1, subject: "Literacy", emoji: "क", tag: "Marathi", component: (p) => <Chaudakhadi {...p} /> },
+  { id: "story-reader",     title: "Story Reader",        level: "Story",      battleLevel: 4, subject: "Literacy", emoji: "📚", component: (p) => <StoryReader {...p} /> },
+  { id: "number-line",      title: "Number Line",         level: "1-9",        battleLevel: 1, subject: "Math",     emoji: "📏", component: (p) => <NumberLine {...p} /> },
+  { id: "math-mania-market",title: "🛒 Math Mania Market", level: "Operations", battleLevel: 4, subject: "Math",     emoji: "🛒", tag: "Ultimate", component: (p) => <MathManiaMarket {...p} /> },
 ];
 
 const GAMES: Item[] = [
@@ -98,6 +107,7 @@ const GAMES: Item[] = [
   { id: "g-river",    title: "Number River",       level: "Operations",  battleLevel: 4, subject: "Numeracy", emoji: "🌊", component: (p) => <NumberRiver {...p} /> },
   { id: "g-clock",    title: "Clock Reader",       level: "Life Skills", battleLevel: 0, subject: "Bonus",    emoji: "🕐", component: (p) => <ClockReader {...p} /> },
   { id: "g-sorting",  title: "Sorting Hat",        level: "Cross-level", battleLevel: 0, subject: "Bonus",    emoji: "🎩", component: (p) => <SortingHat {...p} /> },
+  { id: "g-matra",   title: "Matra Practice",     level: "Word",        battleLevel: 2, subject: "Literacy", emoji: "ि",  tag: "Marathi", component: (p) => <MatraPractice {...p} /> },
 ];
 
 const ALL = [...SIMS, ...GAMES];
