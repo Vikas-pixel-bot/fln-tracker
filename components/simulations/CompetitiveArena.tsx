@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, ReactNode } from 'react';
-import { Timer, Trophy, Users, RotateCcw, Play, Swords, Star, Medal } from 'lucide-react';
+import { Timer, Trophy, Users, RotateCcw, Play, Swords, Star, Medal, X } from 'lucide-react';
 import { cn } from "@/lib/utils";
 
 type GameState = 'waiting' | 'running' | 'finished';
@@ -12,6 +12,7 @@ interface CompetitiveArenaProps {
   duration?: number;
   player1?: { id: string; name: string } | null;
   player2?: { id: string; name: string } | null;
+  onClose?: () => void;
   onGameEnd?: (winner: 'A' | 'B' | 'Draw', scores: { a: number, b: number }) => void;
   children: (props: {
     gameState: GameState;
@@ -27,6 +28,7 @@ export default function CompetitiveArena({
   duration = 60,
   player1,
   player2,
+  onClose,
   onGameEnd,
   children
 }: CompetitiveArenaProps) {
@@ -86,12 +88,22 @@ export default function CompetitiveArena({
               <Timer className="w-8 h-8" />
               <span className="text-4xl font-black font-mono tracking-tighter w-12">{timeLeft}s</span>
            </div>
-           <button 
-              onClick={startGame}
-              className="p-5 bg-white text-black hover:bg-blue-500 hover:text-white rounded-[28px] transition-all active:scale-90"
-           >
-              <RotateCcw className="w-6 h-6" />
-           </button>
+           <div className="flex gap-2">
+              <button 
+                 onClick={startGame}
+                 className="p-5 bg-white text-black hover:bg-blue-500 hover:text-white rounded-[28px] transition-all active:scale-90"
+              >
+                 <RotateCcw className="w-6 h-6" />
+              </button>
+              {onClose && (
+                <button 
+                   onClick={onClose}
+                   className="p-5 bg-red-600/20 border border-red-600/50 text-red-500 hover:bg-red-600 hover:text-white rounded-[28px] transition-all active:scale-90"
+                >
+                   <X className="w-6 h-6" />
+                </button>
+              )}
+           </div>
         </div>
       </div>
 

@@ -102,7 +102,7 @@ function PlayerBoard({ color, bundles, sticks, target, feedback, disabled, onBun
   );
 }
 
-export default function TiliBundleDuel({ player1, player2, schoolId, classNum }: any) {
+export default function TiliBundleDuel({ player1, player2, schoolId, classNum, onClose }: any) {
   const [target, setTarget] = useState(newTarget);
   const [aB, setAB] = useState(0); const [aS, setAS] = useState(0);
   const [bB, setBB] = useState(0); const [bS, setBS] = useState(0);
@@ -141,6 +141,7 @@ export default function TiliBundleDuel({ player1, player2, schoolId, classNum }:
       duration={90}
       player1={player1}
       player2={player2}
+      onClose={onClose}
       onGameEnd={handleEnd}
     >
       {({ gameState, addPoint }) => (
@@ -178,3 +179,4 @@ export default function TiliBundleDuel({ player1, player2, schoolId, classNum }:
     </CompetitiveArena>
   );
 }
+

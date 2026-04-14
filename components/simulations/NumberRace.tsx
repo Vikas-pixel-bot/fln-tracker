@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import CompetitiveArena from './CompetitiveArena';
 import { recordBattleResult } from '@/app/actions';
 
-export default function NumberRace({ player1, player2, schoolId, classNum }: any) {
+export default function NumberRace({ player1, player2, schoolId, classNum, onClose }: any) {
   const [numbers, setNumbers] = useState<number[]>([]);
   const [target, setTarget] = useState<number>(0);
   const [lastWinner, setLastWinner] = useState<'A' | 'B' | null>(null);
@@ -49,6 +49,7 @@ export default function NumberRace({ player1, player2, schoolId, classNum }: any
       icon={<span className="text-2xl">🏁</span>}
       player1={player1}
       player2={player2}
+      onClose={onClose}
       onGameEnd={handleEnd}
     >
       {({ addPoint, gameState }) => (
@@ -125,3 +126,4 @@ function NumberSide({ player, color, options, target, onCorrect, disabled }: any
     </div>
   );
 }
+

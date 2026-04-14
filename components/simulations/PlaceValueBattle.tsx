@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import CompetitiveArena from './CompetitiveArena';
 import { recordBattleResult } from '@/app/actions';
 
-export default function PlaceValueBattle({ player1, player2, schoolId, classNum }: any) {
+export default function PlaceValueBattle({ player1, player2, schoolId, classNum, onClose }: any) {
   const [targetNumber, setTargetNumber] = useState<{ h: number; t: number; o: number }>({ h: 0, t: 0, o: 0 });
   const [options, setOptions] = useState<number[]>([]);
   const [lastWinner, setLastWinner] = useState<'A' | 'B' | null>(null);
@@ -54,6 +54,7 @@ export default function PlaceValueBattle({ player1, player2, schoolId, classNum 
       icon={<span className="text-2xl">🏛️</span>}
       player1={player1}
       player2={player2}
+      onClose={onClose}
       onGameEnd={handleEnd}
     >
       {({ addPoint, gameState }) => (
@@ -144,3 +145,4 @@ function PlaceSide({ player, color, options, target, onCorrect, disabled }: any)
     </div>
   );
 }
+

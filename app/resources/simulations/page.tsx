@@ -1,10 +1,11 @@
 "use client";
 import React, { useState } from "react";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Zap, Trophy, Gamepad2, ChevronRight } from "lucide-react";
+import { ArrowLeft, Zap, Trophy, Gamepad2, ChevronRight, Eye, EyeOff, X } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { usePoints } from "@/lib/points-store";
+import { useEffect } from "react";
 
 // Simulations
 import BundleBuilder from "@/components/simulations/BundleBuilder";
@@ -16,6 +17,16 @@ import SentenceArchitect from "@/components/simulations/SentenceArchitect";
 import MathSprint from "@/components/simulations/MathSprint";
 import SoundDuel from "@/components/simulations/SoundDuel";
 import BattleMatchmaker from "@/components/simulations/BattleMatchmaker";
+
+// Restored Missing Sims
+import FractionViz from "@/components/simulations/FractionViz";
+import DigitalAbacus from "@/components/simulations/DigitalAbacus";
+import DivisionSim from "@/components/simulations/DivisionSim";
+import EqualSharing from "@/components/simulations/EqualSharing";
+import MultiplicationSim from "@/components/simulations/MultiplicationSim";
+import RepeatedAddition from "@/components/simulations/RepeatedAddition";
+import SankhyaChakra from "@/components/simulations/SankhyaChakra";
+import TiliBundleDuel from "@/components/simulations/TiliBundleDuel";
 
 // New 2v2 Games
 import LetterFlash from "@/components/simulations/LetterFlash";
@@ -95,6 +106,16 @@ const SIMS: Item[] = [
   { id: "akshar-crush",     title: "🍬 अक्षर कँडी",       level: "Word",       battleLevel: 2, subject: "Literacy", emoji: "🍬", tag: "Marathi",  component: (p) => <AksharCrush {...p} /> },
   { id: "matra-chakra",     title: "🎡 मात्रा चक्र",       level: "Word",       battleLevel: 2, subject: "Literacy", emoji: "🎡", tag: "Marathi",  component: (p) => <MatraChakra {...p} /> },
   { id: "gyansidi",         title: "🐍 ज्ञानशिडी",       level: "Operations", battleLevel: 3, subject: "Mixed",    emoji: "🐍", tag: "Featured", component: (p) => <GyanSidi {...p} /> },
+  
+  // Restored
+  { id: "fraction-viz",     title: "🍰 Fractions Explorer", level: "Operations", battleLevel: 4, subject: "Math",     emoji: "🍰", component: (p) => <FractionViz {...p} /> },
+  { id: "digital-abacus",   title: "🧮 Digital Abacus",    level: "10-99",      battleLevel: 2, subject: "Math",     emoji: "🧮", component: (p) => <DigitalAbacus {...p} /> },
+  { id: "division-sim",     title: "➗ Division Fun",       level: "Operations", battleLevel: 4, subject: "Math",     emoji: "➗", component: (p) => <DivisionSim {...p} /> },
+  { id: "equal-sharing",    title: "🍎 Equal Sharing",      level: "Operations", battleLevel: 3, subject: "Math",     emoji: "🍎", component: (p) => <EqualSharing {...p} /> },
+  { id: "multi-sim",        title: "✖️ Multiplier",         level: "Operations", battleLevel: 4, subject: "Math",     emoji: "✖️", component: (p) => <MultiplicationSim {...p} /> },
+  { id: "repeat-add",       title: "➕ Repeated Addition",  level: "Operations", battleLevel: 3, subject: "Math",     emoji: "➕", component: (p) => <RepeatedAddition {...p} /> },
+  { id: "sankhya-chakra",   title: "☸️ संख्या चक्र",       level: "1-999",      battleLevel: 3, subject: "Math",     emoji: "☸️", component: (p) => <SankhyaChakra {...p} /> },
+  { id: "tili-duel",        title: "🎋 Bundle Duel",        level: "10-99",      battleLevel: 2, subject: "Battle",   emoji: "🎋", component: (p) => <TiliBundleDuel {...p} /> },
 ];
 
 const GAMES: Item[] = [
@@ -123,12 +144,10 @@ const ALL = [...SIMS, ...GAMES];
 
 const SECTIONS = [
   { label: "🎡 New & Featured",      filter: (i: Item) => i.tag === "Featured" || i.tag === "Marathi", accent: "from-amber-400 to-orange-500", glow: "shadow-orange-500/40", ring: "ring-amber-400", active: "bg-gradient-to-r from-amber-400 to-orange-500 text-white" },
-  { label: "⚡ Battle Arena",         filter: (i: Item) => i.subject === "Battle" && i.tag !== "Featured",   accent: "from-orange-500 to-red-500",   glow: "shadow-orange-500/40",  ring: "ring-orange-400",   active: "bg-gradient-to-r from-orange-500 to-red-500 text-white" },
-  { label: "📦 Numeracy Simulations", filter: (i: Item) => i.subject === "Math" && i.tag !== "Featured",     accent: "from-blue-500 to-indigo-600",  glow: "shadow-blue-500/40",    ring: "ring-blue-400",     active: "bg-gradient-to-r from-blue-500 to-indigo-600 text-white" },
-  { label: "📜 Literacy Simulations", filter: (i: Item) => i.subject === "Literacy" && SIMS.some(s => s.id === i.id) && i.tag !== "Featured", accent: "from-violet-500 to-purple-600", glow: "shadow-violet-500/40", ring: "ring-violet-400", active: "bg-gradient-to-r from-violet-500 to-purple-600 text-white" },
-  { label: "🎮 Literacy Games",       filter: (i: Item) => i.subject === "Literacy" && GAMES.some(g => g.id === i.id) && i.tag !== "Featured", accent: "from-green-500 to-teal-500",   glow: "shadow-green-500/40",   ring: "ring-green-400",    active: "bg-gradient-to-r from-green-500 to-teal-500 text-white" },
-  { label: "🔢 Numeracy Games",       filter: (i: Item) => i.subject === "Numeracy" && i.tag !== "Featured", accent: "from-cyan-500 to-blue-500",    glow: "shadow-cyan-500/40",    ring: "ring-cyan-400",     active: "bg-gradient-to-r from-cyan-500 to-blue-500 text-white" },
-  { label: "🎁 Bonus",                filter: (i: Item) => (i.subject === "Bonus" || i.subject === "Mixed") && i.tag !== "Featured",    accent: "from-pink-500 to-rose-500",    glow: "shadow-pink-500/40",    ring: "ring-pink-400",     active: "bg-gradient-to-r from-pink-500 to-rose-500 text-white" },
+  { label: "⚡ Battle Arena",         filter: (i: Item) => i.subject === "Battle",   accent: "from-orange-500 to-red-500",   glow: "shadow-orange-500/40",  ring: "ring-orange-400",   active: "bg-gradient-to-r from-orange-500 to-red-500 text-white" },
+  { label: "📦 Numeracy Simulations", filter: (i: Item) => i.subject === "Math" || i.subject === "Numeracy",     accent: "from-blue-500 to-indigo-600",  glow: "shadow-blue-500/40",    ring: "ring-blue-400",     active: "bg-gradient-to-r from-blue-500 to-indigo-600 text-white" },
+  { label: "📜 Literacy Simulations", filter: (i: Item) => i.subject === "Literacy", accent: "from-violet-500 to-purple-600", glow: "shadow-violet-500/40", ring: "ring-violet-400", active: "bg-gradient-to-r from-violet-500 to-purple-600 text-white" },
+  { label: "🎁 Bonus",                filter: (i: Item) => (i.subject === "Bonus" || i.subject === "Mixed"),    accent: "from-pink-500 to-rose-500",    glow: "shadow-pink-500/40",    ring: "ring-pink-400",     active: "bg-gradient-to-r from-pink-500 to-rose-500 text-white" },
 ];
 
 export default function SimulationsPage() {
@@ -140,6 +159,21 @@ export default function SimulationsPage() {
   const [activeId, setActiveId] = useState("gyansidi");
   const [showMatchmaker, setShowMatchmaker] = useState(false);
   const [battleContext, setBattleContext] = useState<any>(null);
+  const [hiddenIds, setHiddenIds] = useState<string[]>([]);
+
+  // Load hidden IDs from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('arcade_hidden_sims');
+    if (saved) setHiddenIds(JSON.parse(saved));
+  }, []);
+
+  const toggleVisibility = (id: string) => {
+    const next = hiddenIds.includes(id) 
+      ? hiddenIds.filter(x => x !== id) 
+      : [...hiddenIds, id];
+    setHiddenIds(next);
+    localStorage.setItem('arcade_hidden_sims', JSON.stringify(next));
+  };
 
   const active = ALL.find(s => s.id === activeId)!;
   const activeSection = SECTIONS.find(s => s.filter(active)) ?? SECTIONS[0];
@@ -151,6 +185,11 @@ export default function SimulationsPage() {
     }
     setActiveId(id);
     setBattleContext(null);
+  };
+
+  const closeArena = () => {
+    setBattleContext(null);
+    setShowMatchmaker(false);
   };
 
   return (
@@ -188,7 +227,9 @@ export default function SimulationsPage() {
         {/* Sidebar */}
         <div className="space-y-3 max-h-[80vh] overflow-y-auto pr-1">
           {SECTIONS.map(section => {
-            const items = ALL.filter(section.filter);
+            const items = ALL.filter(section.filter).filter(i => isAdmin || !hiddenIds.includes(i.id));
+            if (items.length === 0) return null;
+            
             return (
               <div key={section.label} className="space-y-1.5">
                 <p className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg bg-gradient-to-r ${section.accent} bg-clip-text text-transparent`}>
@@ -196,26 +237,43 @@ export default function SimulationsPage() {
                 </p>
                 {items.map(item => {
                   const isActive = item.id === activeId;
+                  const isHidden = hiddenIds.includes(item.id);
                   return (
-                    <button key={item.id} onClick={() => handleSimSelect(item.id)}
-                      className={cn(
-                        "w-full px-3 py-2.5 rounded-2xl text-left transition-all duration-200 flex items-center gap-3 group",
-                        isActive
-                          ? `${section.active} shadow-lg ${section.glow}`
-                          : "bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300"
-                      )}>
-                      <span className="text-xl shrink-0">{item.emoji}</span>
-                      <div className="min-w-0 flex-1">
-                        <p className={cn("font-bold text-sm truncate leading-tight", isActive ? "text-white" : "")}>{item.title}</p>
-                        <p className={cn("text-[10px] font-semibold truncate", isActive ? "text-white/70" : "text-slate-400")}>Lvl: {item.level}</p>
-                      </div>
-                      {item.tag && (
-                        <span className={cn("text-[9px] font-black px-1.5 py-0.5 rounded-md shrink-0", isActive ? "bg-white/20 text-white" : "bg-orange-100 text-orange-600")}>
-                          {item.tag}
-                        </span>
+                    <div key={item.id} className="group relative">
+                      <button onClick={() => handleSimSelect(item.id)}
+                        className={cn(
+                          "w-full px-3 py-2.5 rounded-2xl text-left transition-all duration-200 flex items-center gap-3",
+                          isActive
+                            ? `${section.active} shadow-lg ${section.glow}`
+                            : "bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300",
+                          isHidden && "opacity-50 grayscale-[0.5]"
+                        )}>
+                        <span className="text-xl shrink-0">{item.emoji}</span>
+                        <div className="min-w-0 flex-1">
+                          <p className={cn("font-bold text-sm truncate leading-tight", isActive ? "text-white" : "")}>{item.title}</p>
+                          <p className={cn("text-[10px] font-semibold truncate", isActive ? "text-white/70" : "text-slate-400")}>Lvl: {item.level}</p>
+                        </div>
+                        {item.tag && !isHidden && (
+                          <span className={cn("text-[9px] font-black px-1.5 py-0.5 rounded-md shrink-0", isActive ? "bg-white/20 text-white" : "bg-orange-100 text-orange-600")}>
+                            {item.tag}
+                          </span>
+                        )}
+                        {isHidden && (
+                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded-md shrink-0 bg-slate-200 text-slate-500">HIDDEN</span>
+                        )}
+                        <ChevronRight className={cn("w-3.5 h-3.5 shrink-0 transition-all", isActive ? "text-white translate-x-0.5" : "opacity-0 group-hover:opacity-40")} />
+                      </button>
+
+                      {/* Admin Toggle */}
+                      {isAdmin && (
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); toggleVisibility(item.id); }}
+                          className="absolute -right-1 top-1/2 -translate-y-1/2 z-20 p-2 text-slate-400 hover:text-blue-500 bg-white/10 backdrop-blur-md rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all"
+                        >
+                          {isHidden ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
                       )}
-                      <ChevronRight className={cn("w-3.5 h-3.5 shrink-0 transition-all", isActive ? "text-white translate-x-0.5" : "opacity-0 group-hover:opacity-40")} />
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -245,7 +303,8 @@ export default function SimulationsPage() {
               player1: battleContext?.p1, 
               player2: battleContext?.p2,
               schoolId: battleContext?.schoolId,
-              classNum: battleContext?.classNum
+              classNum: battleContext?.classNum,
+              onClose: closeArena
             })}
           </div>
 

@@ -14,7 +14,7 @@ const MARATHI_SENTENCES = [
   { sentence: 'मुले मैदानावर {blank} आहेत.', correct: 'खेळत', others: ['रडत', 'झोपत', 'बसून'] }
 ];
 
-export default function SentenceFill({ player1, player2, schoolId, classNum }: any) {
+export default function SentenceFill({ player1, player2, schoolId, classNum, onClose }: any) {
   const [currentSentence, setCurrentSentence] = useState<any>(null);
   const [options, setOptions] = useState<string[]>([]);
   const [lastWinner, setLastWinner] = useState<'A' | 'B' | null>(null);
@@ -51,6 +51,7 @@ export default function SentenceFill({ player1, player2, schoolId, classNum }: a
       icon={<span className="text-2xl">📝</span>}
       player1={player1}
       player2={player2}
+      onClose={onClose}
       onGameEnd={handleEnd}
     >
       {({ addPoint, gameState }) => (
@@ -129,3 +130,4 @@ function classNameForButton(color: 'blue' | 'red') {
       : 'bg-red-600 hover:bg-red-500 shadow-xl'
   } text-white`;
 }
+

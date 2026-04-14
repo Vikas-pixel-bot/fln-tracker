@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import CompetitiveArena from './CompetitiveArena';
 import { recordBattleResult } from '@/app/actions';
 
-export default function MathDuel({ player1, player2, schoolId, classNum }: any) {
+export default function MathDuel({ player1, player2, schoolId, classNum, onClose }: any) {
   const [problem, setProblem] = useState<any>(null);
   const [options, setOptions] = useState<number[]>([]);
   const [lastWinner, setLastWinner] = useState<'A' | 'B' | null>(null);
@@ -58,6 +58,7 @@ export default function MathDuel({ player1, player2, schoolId, classNum }: any) 
       icon={<span className="text-2xl">⚡</span>}
       player1={player1}
       player2={player2}
+      onClose={onClose}
       onGameEnd={handleEnd}
     >
       {({ addPoint, gameState }) => (
@@ -139,3 +140,4 @@ function classNameForMathButton(color: 'blue' | 'red') {
       : 'bg-red-600 hover:bg-red-500 shadow-xl'
   } text-white`;
 }
+

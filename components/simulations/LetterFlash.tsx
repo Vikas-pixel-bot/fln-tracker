@@ -10,7 +10,7 @@ const MARATHI_LETTERS = [
   'प', 'ph', 'ब', 'भ', 'म', 'य', 'र', 'ल', 'व', 'श', 'ष', 'स', 'ह', 'ळ', 'क्ष', 'ज्ञ'
 ];
 
-export default function LetterFlash({ player1, player2, schoolId, classNum }: any) {
+export default function LetterFlash({ player1, player2, schoolId, classNum, onClose }: any) {
   const [currentLetter, setCurrentLetter] = useState('');
   const [options, setOptions] = useState<string[]>([]);
   const [lastWinner, setLastWinner] = useState<'A' | 'B' | null>(null);
@@ -48,6 +48,7 @@ export default function LetterFlash({ player1, player2, schoolId, classNum }: an
       icon={<span className="text-2xl">अ</span>}
       player1={player1}
       player2={player2}
+      onClose={onClose}
       onGameEnd={handleEnd}
     >
       {({ addPoint, gameState }) => (

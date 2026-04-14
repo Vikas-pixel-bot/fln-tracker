@@ -23,7 +23,7 @@ const MARATHI_WORDS = [
 
 const CATEGORIES = ['प्राणी', 'खाद्यपदार्थ', 'वस्तू', 'निसर्ग', 'ठिकाण', 'वाहन', 'फूल', 'फळ', 'भाजी', 'पेय', 'जल'];
 
-export default function WordRace({ player1, player2, schoolId, classNum }: any) {
+export default function WordRace({ player1, player2, schoolId, classNum, onClose }: any) {
   const [currentWord, setCurrentWord] = useState<any>(null);
   const [options, setOptions] = useState<string[]>([]);
   const [lastWinner, setLastWinner] = useState<'A' | 'B' | null>(null);
@@ -61,6 +61,7 @@ export default function WordRace({ player1, player2, schoolId, classNum }: any) 
       icon={<span className="text-2xl">📖</span>}
       player1={player1}
       player2={player2}
+      onClose={onClose}
       onGameEnd={handleEnd}
     >
       {({ addPoint, gameState }) => (
@@ -138,3 +139,4 @@ function CategorySide({ player, color, options, target, onCorrect, disabled }: a
     </div>
   );
 }
+

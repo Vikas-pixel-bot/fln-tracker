@@ -22,7 +22,7 @@ function generateProblem(): { t: string; options: string[] } {
   return { t, options: [t, ...others].sort(() => 0.5 - Math.random()) };
 }
 
-export default function SoundDuel({ player1, player2, schoolId, classNum }: any) {
+export default function SoundDuel({ player1, player2, schoolId, classNum, onClose }: any) {
   const [probA, setProbA] = useState(generateProblem);
   const [probB, setProbB] = useState(generateProblem);
   const [feedbackA, setFeedbackA] = useState<'idle' | 'success' | 'error'>('idle');
@@ -81,6 +81,7 @@ export default function SoundDuel({ player1, player2, schoolId, classNum }: any)
       duration={60}
       player1={player1}
       player2={player2}
+      onClose={onClose}
       onGameEnd={handleEnd}
     >
       {({ gameState, addPoint }) => (
@@ -192,3 +193,4 @@ export default function SoundDuel({ player1, player2, schoolId, classNum }: any)
     </CompetitiveArena>
   );
 }
+

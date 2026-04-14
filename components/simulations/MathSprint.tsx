@@ -17,7 +17,7 @@ function generateProblem(): Problem {
   return { q, a, options };
 }
 
-export default function MathSprint({ player1, player2, schoolId, classNum }: any) {
+export default function MathSprint({ player1, player2, schoolId, classNum, onClose }: any) {
   const [probA, setProbA] = useState<Problem>(generateProblem());
   const [probB, setProbB] = useState<Problem>(generateProblem());
   const [feedbackA, setFeedbackA] = useState<'idle' | 'success' | 'error'>('idle');
@@ -45,6 +45,7 @@ export default function MathSprint({ player1, player2, schoolId, classNum }: any
       duration={60}
       player1={player1}
       player2={player2}
+      onClose={onClose}
       onGameEnd={handleEnd}
     >
       {({ gameState, addPoint }) => (
@@ -128,3 +129,4 @@ export default function MathSprint({ player1, player2, schoolId, classNum }: any
     </CompetitiveArena>
   );
 }
+
