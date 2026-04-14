@@ -48,6 +48,7 @@ import StoryReader from "@/components/simulations/StoryReader";
 import Chaudakhadi from "@/components/simulations/Chaudakhadi";
 import NumberLine from "@/components/simulations/NumberLine";
 import MathManiaMarket from "@/components/simulations/MathManiaMarket";
+import VachanPravas from "@/components/simulations/VachanPravas";
 
 type Item = {
   id: string;
@@ -86,6 +87,7 @@ const SIMS: Item[] = [
   { id: "story-reader",     title: "Story Reader",        level: "Story",      battleLevel: 4, subject: "Literacy", emoji: "📚", component: (p) => <StoryReader {...p} /> },
   { id: "number-line",      title: "Number Line",         level: "1-9",        battleLevel: 1, subject: "Math",     emoji: "📏", component: (p) => <NumberLine {...p} /> },
   { id: "math-mania-market",title: "🛒 Math Mania Market", level: "Operations", battleLevel: 4, subject: "Math",     emoji: "🛒", tag: "Ultimate", component: (p) => <MathManiaMarket {...p} /> },
+  { id: "vachan-pravas",    title: "📖 Vachan Pravas",    level: "Story",      battleLevel: 4, subject: "Literacy", emoji: "📖", tag: "Ultimate", component: (p) => <VachanPravas {...p} /> },
 ];
 
 const GAMES: Item[] = [

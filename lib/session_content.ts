@@ -321,6 +321,7 @@ export const CLASS_3_4_LANGUAGE_PLAN: SessionPlan = {
             "Go over answers as a class — discuss any mistakes"
           ],
           materials: ["Bal Library Worksheet", "Pencil"],
+          simulationId: "vachan-pravas",
           daySpecific: 2
         }
       ]

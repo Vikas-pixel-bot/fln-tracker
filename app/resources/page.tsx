@@ -68,6 +68,7 @@ import EqualSharing from "@/components/simulations/EqualSharing";
 import Chaudakhadi from "@/components/simulations/Chaudakhadi";
 import NumberLine from "@/components/simulations/NumberLine";
 import MathManiaMarket from "@/components/simulations/MathManiaMarket";
+import VachanPravas from "@/components/simulations/VachanPravas";
 
 const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "bundle-builder": BundleBuilder,
@@ -115,6 +116,7 @@ const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "chaudakhadi": Chaudakhadi,
   "number-line": NumberLine,
   "math-mania-market": MathManiaMarket,
+  "vachan-pravas": VachanPravas,
 };
 
 interface BattleContext {

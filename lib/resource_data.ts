@@ -132,5 +132,14 @@ export const SIMULATIONS: Resource[] = [
     description: "Ultimate Math Mania — Earn rupees by solving math challenges, then spend them in a full Marathi marketplace across 6 unlockable stalls.",
     id: "math-mania-market",
     link: "/resources/simulations"
+  },
+  {
+    title: "📖 Vachan Pravas",
+    category: "Simulation",
+    level: "Para/Story",
+    tags: ["Ultimate", "Marathi", "4 Worlds"],
+    description: "Ultimate Marathi Literacy Quest — Journey through 4 worlds (Letters → Words → Sentences → Stories) earning pearls across 24 challenges.",
+    id: "vachan-pravas",
+    link: "/resources/simulations"
   }
 ];
