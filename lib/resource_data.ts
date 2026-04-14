@@ -123,5 +123,14 @@ export const SIMULATIONS: Resource[] = [
     description: "2v2 Literacy Battle: Match the sound to the correct letter faster than the other team.",
     id: "SoundDuel",
     link: "/resources/simulations"
+  },
+  {
+    title: "🛒 Math Mania Market",
+    category: "Simulation",
+    level: "Operations",
+    tags: ["Ultimate", "Marketplace", "All Operations"],
+    description: "Ultimate Math Mania — Earn rupees by solving math challenges, then spend them in a full Marathi marketplace across 6 unlockable stalls.",
+    id: "math-mania-market",
+    link: "/resources/simulations"
   }
 ];

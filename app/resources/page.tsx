@@ -67,6 +67,7 @@ import FractionViz from "@/components/simulations/FractionViz";
 import EqualSharing from "@/components/simulations/EqualSharing";
 import Chaudakhadi from "@/components/simulations/Chaudakhadi";
 import NumberLine from "@/components/simulations/NumberLine";
+import MathManiaMarket from "@/components/simulations/MathManiaMarket";
 
 const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "bundle-builder": BundleBuilder,
@@ -113,6 +114,7 @@ const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "equal-sharing": EqualSharing,
   "chaudakhadi": Chaudakhadi,
   "number-line": NumberLine,
+  "math-mania-market": MathManiaMarket,
 };
 
 interface BattleContext {

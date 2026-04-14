@@ -484,7 +484,7 @@ export const CLASS_3_4_MATHS_PLAN: SessionPlan = {
             "Teacher observes and asks probing questions to each group"
           ],
           materials: ["Word Problem Cards", "Blackboard for group presentations", "Slates"],
-          simulationId: "g-market"
+          simulationId: "math-mania-market"
         },
         {
           name: "टिली-बंडल द्वंद्व",
