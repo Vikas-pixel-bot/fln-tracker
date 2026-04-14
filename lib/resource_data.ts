@@ -150,5 +150,23 @@ export const SIMULATIONS: Resource[] = [
     description: "Ultimate Marathi Literacy Quest — Journey through 4 worlds (Letters → Words → Sentences → Stories) earning pearls across 24 challenges.",
     id: "vachan-pravas",
     link: "/resources/simulations"
+  },
+  {
+    title: "🎡 मात्रा चक्र (Matra Chakra)",
+    category: "Simulation",
+    level: "Word",
+    tags: ["Marathi", "Literacy", "Matra"],
+    description: "Interactive spinning wheel game for Marathi matra pairing. Pair consonants with the correct matra sound.",
+    id: "matra-chakra",
+    link: "/resources/simulations"
+  },
+  {
+    title: "🐍 ज्ञानशिडी (GyanSidi)",
+    category: "Simulation",
+    level: "Operations",
+    tags: ["Featured", "Mixed", "Board Game"],
+    description: "Indian Village themed Snakes & Ladders with a twist: answer challenges to avoid snakes and climb ladders!",
+    id: "gyansidi",
+    link: "/resources/simulations"
   }
 ];

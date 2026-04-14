@@ -2,15 +2,20 @@
 import { useState, useEffect } from 'react';
 import { Plus, Minus, RotateCcw, Package, Info, CheckCircle2, ChevronRight, ArrowDown } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { usePoints } from '@/lib/points-store';
+import GameHeader from '@/components/games/GameHeader';
 
 type NumberState = { tens: number; ones: number };
 
 export default function AdditionMaster() {
+  const { addXP } = usePoints();
   const [num1, setNum1] = useState<NumberState>({ tens: 1, ones: 7 });
   const [num2, setNum2] = useState<NumberState>({ tens: 0, ones: 5 });
   const [step, setStep] = useState<'setup' | 'add_ones' | 're_bundle' | 'add_tens' | 'completed'>('setup');
   const [combinedOnes, setCombinedOnes] = useState(0);
   const [combinedTens, setCombinedTens] = useState(0);
+  const [sessionTotal, setSessionTotal] = useState(0);
+  const [sessionScore, setSessionScore] = useState(0);
 
   const reset = () => {
     setNum1({ tens: Math.floor(Math.random() * 3) + 1, ones: Math.floor(Math.random() * 9) + 1 });
@@ -34,10 +39,16 @@ export default function AdditionMaster() {
   const finalize = () => {
     setCombinedTens(prev => prev + num1.tens + num2.tens);
     setStep('completed');
+    addXP(25); // 25 XP per addition completed
+    setSessionScore(s => s + 1);
+    setSessionTotal(t => t + 1);
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-[48px] border border-slate-100 dark:border-slate-800 shadow-2xl p-10 max-w-5xl mx-auto overflow-hidden relative min-h-[700px]">
+    <div className="space-y-4">
+      <GameHeader title="बेरीज मास्टर (Addition Master)" score={sessionScore} total={sessionTotal} />
+      
+      <div className="bg-white dark:bg-slate-900 rounded-[48px] border border-slate-100 dark:border-slate-800 shadow-2xl p-10 max-w-5xl mx-auto overflow-hidden relative min-h-[700px]">
       
       {/* HUD Header */}
       <div className="flex items-center justify-between mb-12">
@@ -161,8 +172,9 @@ export default function AdditionMaster() {
                   )}
                </div>
             </div>
-         </div>
-      </div>
+          </div>
+       </div>
+    </div>
     </div>
   );
 }

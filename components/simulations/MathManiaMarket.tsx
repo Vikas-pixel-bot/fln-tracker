@@ -5,6 +5,8 @@ import {
   ChevronRight, CheckCircle2, Lock, Star, Coins,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { usePoints } from '@/lib/points-store';
+import GameHeader from '@/components/games/GameHeader';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Item { id: string; name: string; emoji: string; price: number; }
@@ -284,7 +286,7 @@ function ChallengeCard({ chal, onAnswer, isCheckout = false }: {
 
 // ── Earn Phase ─────────────────────────────────────────────────────────────────
 function EarnPhase({ onEarn, correct, total }: {
-  onEarn: (reward: number, correct: boolean) => void; correct: number; total: number;
+  onEarn: (reward: number, correct: boolean, difficulty?: Challenge['difficulty']) => void; correct: number; total: number;
 }) {
   const [chal, setChal] = useState<Challenge>(makeChallenge);
   const [streak, setStreak] = useState(0);
@@ -296,7 +298,7 @@ function EarnPhase({ onEarn, correct, total }: {
       const total = chal.reward + bonus;
       setLastReward(total);
       setStreak(s => s + 1);
-      onEarn(total, true);
+      onEarn(total, true, chal.difficulty);
     } else {
       setLastReward(0);
       setStreak(0);
@@ -614,6 +616,7 @@ function ResultPhase({ cart, wallet, correct, total, paid: paidAmount, changeCor
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 export default function MathManiaMarket() {
+  const { addXP } = usePoints();
   const [phase, setPhase] = useState<Phase>('earn');
   const [wallet, setWallet] = useState(0);
   const [cart, setCart] = useState<Map<string, CartEntry>>(new Map());
@@ -625,8 +628,12 @@ export default function MathManiaMarket() {
   const cartCount = Array.from(cart.values()).reduce((s, e) => s + e.qty, 0);
   const cartTotal = Array.from(cart.values()).reduce((s, e) => s + e.item.price * e.qty, 0);
 
-  function onEarn(reward: number, isCorrect: boolean) {
-    if (isCorrect) setWallet(w => w + reward);
+  function onEarn(reward: number, isCorrect: boolean, difficulty: Challenge['difficulty'] = 'easy') {
+    if (isCorrect) {
+      setWallet(w => w + reward);
+      const xpLevels: Record<Challenge['difficulty'], number> = { easy: 5, medium: 10, hard: 15, expert: 25 };
+      addXP(xpLevels[difficulty]);
+    }
     setTotal(t => t + 1);
     if (isCorrect) setCorrect(c => c + 1);
   }
@@ -658,6 +665,7 @@ export default function MathManiaMarket() {
     setChangeCorrect(isCorrect);
     if (isCorrect) {
       setCorrect(c => c + 1);
+      addXP(20); // Bonus for correct checkout
     }
     setTotal(t => t + 1);
     setTimeout(() => setPhase('result'), 800);
@@ -681,7 +689,10 @@ export default function MathManiaMarket() {
     : 100;
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-[24px] sm:rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-2xl overflow-hidden max-w-3xl mx-auto">
+    <div className="space-y-4">
+      <GameHeader title="गणिताचा बाजार (Math Market)" score={correct} total={total} />
+      
+      <div className="bg-white dark:bg-slate-900 rounded-[24px] sm:rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-2xl overflow-hidden max-w-3xl mx-auto">
       {/* Hero Banner */}
       <div className="bg-gradient-to-r from-[#E8232A] via-orange-500 to-amber-400 px-5 py-5 text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 20% 50%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
@@ -749,6 +760,7 @@ export default function MathManiaMarket() {
           />
         )}
       </div>
+    </div>
     </div>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
+import { usePoints } from "@/lib/points-store";
+import GameHeader from "@/components/games/GameHeader";
 import { cn } from "@/lib/utils";
 
 // ─── Matra Categories ─────────────────────────────────────────────────────────
@@ -122,6 +124,7 @@ function dropAndFill(g: Cell[][], matched: Set<string>): Cell[][] {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function AksharCrush({ onExit }: { onExit?: () => void }) {
+  const { addXP } = usePoints();
   const [grid, setGrid] = useState<Cell[][]>(mkGrid);
   const [selected, setSelected] = useState<[number, number] | null>(null);
   const [flash, setFlash] = useState<Set<string>>(new Set());
@@ -141,7 +144,9 @@ export default function AksharCrush({ onExit }: { onExit?: () => void }) {
       if (!matched.size) break;
       chain++;
       setCombo(chain);
-      setScore(s => s + matched.size * 10 * chain);
+      const points = matched.size * 10 * chain;
+      setScore(s => s + points);
+      addXP(Math.ceil(points / 10)); // 1 XP per 10 points
       setFlash(matched);
       await sleep(400);
       g = dropAndFill(g, matched);
@@ -215,26 +220,8 @@ export default function AksharCrush({ onExit }: { onExit?: () => void }) {
 
   return (
     <div className="flex flex-col items-center gap-3 p-3 pb-8 select-none" style={{ touchAction: "none" }}>
-      {/* HUD */}
-      <div className="flex items-center justify-between w-full max-w-sm px-2">
-        <div className="text-center min-w-[64px]">
-          <div className="text-[10px] uppercase tracking-wide text-slate-400">गुण</div>
-          <div className="text-2xl font-bold text-slate-800">{score}</div>
-        </div>
-        <div className="flex flex-col items-center">
-          <div className="text-sm font-bold text-slate-700">🍬 अक्षर कँडी</div>
-          <div className={cn("text-xs font-bold text-orange-500 transition-opacity duration-200", combo > 1 ? "opacity-100 animate-bounce" : "opacity-0")}>
-            {combo}x कॉम्बो!
-          </div>
-        </div>
-        <div className="text-center min-w-[64px]">
-          <div className="text-[10px] uppercase tracking-wide text-slate-400">चाली</div>
-          <div className={cn("text-2xl font-bold", moves <= 5 ? "text-red-500 animate-pulse" : "text-slate-800")}>
-            {moves}
-          </div>
-        </div>
-      </div>
-
+      <GameHeader title="अक्षर कँडी (Akshar Crush)" score={score} total={moves} />
+      
       {/* Matra legend */}
       <div className="flex gap-1 flex-wrap justify-center max-w-sm">
         {CATS.map((cat, i) => (

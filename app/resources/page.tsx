@@ -70,6 +70,8 @@ import NumberLine from "@/components/simulations/NumberLine";
 import MathManiaMarket from "@/components/simulations/MathManiaMarket";
 import VachanPravas from "@/components/simulations/VachanPravas";
 import AksharCrush from "@/components/simulations/AksharCrush";
+import MatraChakra from "@/components/simulations/MatraChakra";
+import GyanSidi from "@/components/simulations/GyanSidi";
 
 const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "bundle-builder": BundleBuilder,
@@ -119,6 +121,8 @@ const SIM_COMPONENTS: Record<string, React.ComponentType<any>> = {
   "math-mania-market": MathManiaMarket,
   "vachan-pravas": VachanPravas,
   "akshar-crush": AksharCrush,
+  "matra-chakra": MatraChakra,
+  "gyansidi": GyanSidi,
 };
 
 interface BattleContext {

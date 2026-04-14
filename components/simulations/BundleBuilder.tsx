@@ -2,8 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Plus, Minus, RotateCcw, Package, Info, CheckCircle2 } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import { usePoints } from '@/lib/points-store';
+import GameHeader from '@/components/games/GameHeader';
 
 export default function BundleBuilder() {
+  const { addXP } = usePoints();
   const [sticks, setSticks] = useState(0);
   const [bundles, setBundles] = useState(0);
   const [showTieHint, setShowTieHint] = useState(false);
@@ -24,6 +27,7 @@ export default function BundleBuilder() {
     setBundles(prev => prev + 1);
     setSticks(0);
     setShowTieHint(false);
+    addXP(10); // 10 XP per bundle tied
   };
 
   const reset = () => {
@@ -33,7 +37,10 @@ export default function BundleBuilder() {
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-[48px] border border-slate-100 dark:border-slate-800 shadow-2xl p-8 max-w-4xl mx-auto overflow-hidden relative">
+    <div className="space-y-4">
+      <GameHeader title="काड्या आणि गट्टे (Sticks & Bundles)" score={bundles} total={bundles + (sticks > 0 ? 1 : 0)} />
+      
+      <div className="bg-white dark:bg-slate-900 rounded-[48px] border border-slate-100 dark:border-slate-800 shadow-2xl p-8 max-w-4xl mx-auto overflow-hidden relative">
       
       {/* HUD Header */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-12">
@@ -135,6 +142,7 @@ export default function BundleBuilder() {
                   Use this digital tool for demonstrating place value to a group of students in the field. Ideal for showing that <span className="text-white font-bold">10 units</span> are equivalent to <span className="text-white font-bold">1 ten</span>.
                </p>
             </div>
+         </div>
          </div>
       </div>
     </div>

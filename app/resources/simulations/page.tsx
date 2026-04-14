@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { ArrowLeft, Zap, Trophy, Gamepad2, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { usePoints } from "@/lib/points-store";
 
 // Simulations
 import BundleBuilder from "@/components/simulations/BundleBuilder";
@@ -50,6 +51,8 @@ import NumberLine from "@/components/simulations/NumberLine";
 import MathManiaMarket from "@/components/simulations/MathManiaMarket";
 import VachanPravas from "@/components/simulations/VachanPravas";
 import AksharCrush from "@/components/simulations/AksharCrush";
+import MatraChakra from "@/components/simulations/MatraChakra";
+import GyanSidi from "@/components/simulations/GyanSidi";
 
 type Item = {
   id: string;
@@ -90,6 +93,8 @@ const SIMS: Item[] = [
   { id: "math-mania-market",title: "🛒 Math Mania Market", level: "Operations", battleLevel: 4, subject: "Math",     emoji: "🛒", tag: "Ultimate", component: (p) => <MathManiaMarket {...p} /> },
   { id: "vachan-pravas",    title: "📖 Vachan Pravas",    level: "Story",      battleLevel: 4, subject: "Literacy", emoji: "📖", tag: "Ultimate", component: (p) => <VachanPravas {...p} /> },
   { id: "akshar-crush",     title: "🍬 अक्षर कँडी",       level: "Word",       battleLevel: 2, subject: "Literacy", emoji: "🍬", tag: "Marathi",  component: (p) => <AksharCrush {...p} /> },
+  { id: "matra-chakra",     title: "🎡 मात्रा चक्र",       level: "Word",       battleLevel: 2, subject: "Literacy", emoji: "🎡", tag: "Marathi",  component: (p) => <MatraChakra {...p} /> },
+  { id: "gyansidi",         title: "🐍 ज्ञानशिडी",       level: "Operations", battleLevel: 3, subject: "Mixed",    emoji: "🐍", tag: "Featured", component: (p) => <GyanSidi {...p} /> },
 ];
 
 const GAMES: Item[] = [
@@ -117,25 +122,27 @@ const GAMES: Item[] = [
 const ALL = [...SIMS, ...GAMES];
 
 const SECTIONS = [
-  { label: "⚡ Battle Arena",         filter: (i: Item) => i.subject === "Battle",   accent: "from-orange-500 to-red-500",   glow: "shadow-orange-500/40",  ring: "ring-orange-400",   active: "bg-gradient-to-r from-orange-500 to-red-500 text-white" },
-  { label: "📦 Numeracy Simulations", filter: (i: Item) => i.subject === "Math",     accent: "from-blue-500 to-indigo-600",  glow: "shadow-blue-500/40",    ring: "ring-blue-400",     active: "bg-gradient-to-r from-blue-500 to-indigo-600 text-white" },
-  { label: "📜 Literacy Simulations", filter: (i: Item) => i.subject === "Literacy" && SIMS.some(s => s.id === i.id), accent: "from-violet-500 to-purple-600", glow: "shadow-violet-500/40", ring: "ring-violet-400", active: "bg-gradient-to-r from-violet-500 to-purple-600 text-white" },
-  { label: "🎮 Literacy Games",       filter: (i: Item) => i.subject === "Literacy" && GAMES.some(g => g.id === i.id), accent: "from-green-500 to-teal-500",   glow: "shadow-green-500/40",   ring: "ring-green-400",    active: "bg-gradient-to-r from-green-500 to-teal-500 text-white" },
-  { label: "🔢 Numeracy Games",       filter: (i: Item) => i.subject === "Numeracy", accent: "from-cyan-500 to-blue-500",    glow: "shadow-cyan-500/40",    ring: "ring-cyan-400",     active: "bg-gradient-to-r from-cyan-500 to-blue-500 text-white" },
-  { label: "🎁 Bonus",                filter: (i: Item) => i.subject === "Bonus",    accent: "from-pink-500 to-rose-500",    glow: "shadow-pink-500/40",    ring: "ring-pink-400",     active: "bg-gradient-to-r from-pink-500 to-rose-500 text-white" },
+  { label: "🎡 New & Featured",      filter: (i: Item) => i.tag === "Featured" || i.tag === "Marathi", accent: "from-amber-400 to-orange-500", glow: "shadow-orange-500/40", ring: "ring-amber-400", active: "bg-gradient-to-r from-amber-400 to-orange-500 text-white" },
+  { label: "⚡ Battle Arena",         filter: (i: Item) => i.subject === "Battle" && i.tag !== "Featured",   accent: "from-orange-500 to-red-500",   glow: "shadow-orange-500/40",  ring: "ring-orange-400",   active: "bg-gradient-to-r from-orange-500 to-red-500 text-white" },
+  { label: "📦 Numeracy Simulations", filter: (i: Item) => i.subject === "Math" && i.tag !== "Featured",     accent: "from-blue-500 to-indigo-600",  glow: "shadow-blue-500/40",    ring: "ring-blue-400",     active: "bg-gradient-to-r from-blue-500 to-indigo-600 text-white" },
+  { label: "📜 Literacy Simulations", filter: (i: Item) => i.subject === "Literacy" && SIMS.some(s => s.id === i.id) && i.tag !== "Featured", accent: "from-violet-500 to-purple-600", glow: "shadow-violet-500/40", ring: "ring-violet-400", active: "bg-gradient-to-r from-violet-500 to-purple-600 text-white" },
+  { label: "🎮 Literacy Games",       filter: (i: Item) => i.subject === "Literacy" && GAMES.some(g => g.id === i.id) && i.tag !== "Featured", accent: "from-green-500 to-teal-500",   glow: "shadow-green-500/40",   ring: "ring-green-400",    active: "bg-gradient-to-r from-green-500 to-teal-500 text-white" },
+  { label: "🔢 Numeracy Games",       filter: (i: Item) => i.subject === "Numeracy" && i.tag !== "Featured", accent: "from-cyan-500 to-blue-500",    glow: "shadow-cyan-500/40",    ring: "ring-cyan-400",     active: "bg-gradient-to-r from-cyan-500 to-blue-500 text-white" },
+  { label: "🎁 Bonus",                filter: (i: Item) => (i.subject === "Bonus" || i.subject === "Mixed") && i.tag !== "Featured",    accent: "from-pink-500 to-rose-500",    glow: "shadow-pink-500/40",    ring: "ring-pink-400",     active: "bg-gradient-to-r from-pink-500 to-rose-500 text-white" },
 ];
 
 export default function SimulationsPage() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'admin';
   const userSchoolId = (session?.user as any)?.schoolId ?? undefined;
+  const { xp, level } = usePoints();
 
-  const [activeId, setActiveId] = useState("bundle-builder");
+  const [activeId, setActiveId] = useState("gyansidi");
   const [showMatchmaker, setShowMatchmaker] = useState(false);
   const [battleContext, setBattleContext] = useState<any>(null);
 
   const active = ALL.find(s => s.id === activeId)!;
-  const activeSection = SECTIONS.find(s => s.filter(active)) ?? SECTIONS[1];
+  const activeSection = SECTIONS.find(s => s.filter(active)) ?? SECTIONS[0];
 
   const handleSimSelect = (id: string) => {
     const item = ALL.find(i => i.id === id);
@@ -169,9 +176,9 @@ export default function SimulationsPage() {
             </div>
           </div>
           <div className="flex gap-3 flex-wrap">
-            <StatBadge icon="🎮" label="Total Tools" value={ALL.length} color="from-blue-500 to-indigo-600" />
-            <StatBadge icon="⭐" label="Simulations" value={SIMS.length} color="from-orange-500 to-red-500" />
-            <StatBadge icon="🏆" label="Games" value={GAMES.length} color="from-green-500 to-teal-500" />
+            <StatBadge icon="⚡" label="Your XP" value={xp} color="from-amber-400 to-orange-500" shadow="shadow-orange-500/40" />
+            <StatBadge icon="🆙" label="Level" value={level} color="from-indigo-500 to-blue-600" shadow="shadow-indigo-500/40" />
+            <StatBadge icon="🎮" label="Tools" value={ALL.length} color="from-slate-700 to-slate-800" />
           </div>
         </div>
       </div>
@@ -276,9 +283,9 @@ export default function SimulationsPage() {
   );
 }
 
-function StatBadge({ icon, label, value, color }: { icon: string; label: string; value: number; color: string }) {
+function StatBadge({ icon, label, value, color, shadow }: { icon: string; label: string; value: number | string; color: string; shadow?: string }) {
   return (
-    <div className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r ${color} shadow-lg text-white`}>
+    <div className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-r ${color} ${shadow} shadow-lg text-white`}>
       <span className="text-xl">{icon}</span>
       <div>
         <p className="text-xs font-semibold text-white/70">{label}</p>
