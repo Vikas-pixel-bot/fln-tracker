@@ -274,49 +274,49 @@ function MissionControl() {
     )}>
       {/* ── HUD ── */}
       <div className={cn(
-        "bg-slate-900 rounded-[40px] border border-slate-800 shadow-2xl relative overflow-hidden",
-        isFocusMode ? "p-4 rounded-3xl" : "p-8"
+        "bg-slate-900 rounded-[28px] sm:rounded-[40px] border border-slate-800 shadow-2xl relative overflow-hidden",
+        isFocusMode ? "p-3 sm:p-4 rounded-2xl" : "p-4 sm:p-8"
       )}>
         <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-indigo-600/5" />
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="flex items-center gap-6">
+        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-8">
+          <div className="flex items-center gap-3 sm:gap-6 w-full sm:w-auto">
             <div className={cn(
-              "rounded-[32px] flex items-center justify-center shadow-2xl transition-all",
+              "rounded-2xl sm:rounded-[32px] flex items-center justify-center shadow-2xl transition-all shrink-0",
               isTimerRunning ? "bg-orange-500 animate-pulse shadow-orange-500/20" : "bg-slate-800",
-              isFocusMode ? "w-12 h-12 rounded-xl" : "w-20 h-20"
+              isFocusMode ? "w-10 h-10" : "w-12 h-12 sm:w-20 sm:h-20"
             )}>
-              <Clock className={cn("text-white", isFocusMode ? "w-6 h-6" : "w-10 h-10")} />
+              <Clock className={cn("text-white", isFocusMode ? "w-5 h-5" : "w-6 h-6 sm:w-10 sm:h-10")} />
             </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-full text-[10px] font-black uppercase tracking-widest">Daily Mission Flow</span>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 mb-0.5 sm:mb-1">
+                <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-500/10 text-blue-400 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest">Daily Mission Flow</span>
                 {isTimerRunning && <span className="flex h-2 w-2 rounded-full bg-orange-500 animate-ping" />}
               </div>
-              <h1 className={cn("font-black text-white tracking-tighter", isFocusMode ? "text-xl" : "text-4xl")}>
+              <h1 className={cn("font-black text-white tracking-tighter truncate", isFocusMode ? "text-base sm:text-xl" : "text-xl sm:text-4xl")}>
                 {step === 'setup' ? "Ready for Action?" : `Class ${classNum}${subject ? ` — ${subject === 'maths' ? 'Maths' : 'Language'}` : ''}${selectedGroupIdx !== null && sessionPlan ? ` · ${sessionPlan.groups[selectedGroupIdx].name}` : ''}`}
               </h1>
             </div>
           </div>
           {step !== 'setup' && (
-            <div className={cn("flex items-center gap-5 bg-black/20 rounded-[32px] border border-white/5", isFocusMode ? "p-3 px-5 rounded-2xl gap-3" : "p-6")}>
+            <div className={cn("flex items-center gap-3 sm:gap-5 bg-black/20 rounded-2xl sm:rounded-[32px] border border-white/5 w-full sm:w-auto", isFocusMode ? "p-2 px-3 sm:p-3 sm:px-5 gap-2 sm:gap-3" : "p-3 sm:p-6")}>
               <div className="text-center">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Elapsed</p>
-                <p className={cn("font-black text-white font-mono", isFocusMode ? "text-2xl" : "text-4xl")}>{formatTime(elapsed)}</p>
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Elapsed</p>
+                <p className={cn("font-black text-white font-mono", isFocusMode ? "text-lg sm:text-2xl" : "text-2xl sm:text-4xl")}>{formatTime(elapsed)}</p>
               </div>
-              <div className="h-8 w-px bg-white/10" />
+              <div className="h-6 sm:h-8 w-px bg-white/10" />
               <div className="text-center">
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Done</p>
-                <p className={cn("font-black text-emerald-500", isFocusMode ? "text-2xl" : "text-4xl")}>{totalCompleted}/{totalActivities}</p>
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Done</p>
+                <p className={cn("font-black text-emerald-500", isFocusMode ? "text-lg sm:text-2xl" : "text-2xl sm:text-4xl")}>{totalCompleted}/{totalActivities}</p>
               </div>
               {hasDayToggle && step === 'session' && (
                 <>
-                  <div className="h-8 w-px bg-white/10" />
+                  <div className="h-6 sm:h-8 w-px bg-white/10" />
                   <div className="flex flex-col items-center gap-1">
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Day</p>
+                    <p className="text-[9px] sm:text-[10px] font-black text-slate-500 uppercase tracking-widest">Day</p>
                     <div className="flex gap-1">
                       {([1, 2] as const).map(d => (
                         <button key={d} onClick={() => setDayNum(d)}
-                          className={cn("w-10 h-10 rounded-xl font-black text-sm transition-all",
+                          className={cn("w-8 h-8 sm:w-10 sm:h-10 rounded-xl font-black text-sm transition-all",
                             dayNum === d ? "bg-indigo-500 text-white" : "bg-slate-700 text-slate-400 hover:bg-slate-600")}>
                           {d}
                         </button>
@@ -327,15 +327,15 @@ function MissionControl() {
               )}
               {step === 'session' && (
                 <>
-                  <div className="h-8 w-px bg-white/10" />
+                  <div className="h-6 sm:h-8 w-px bg-white/10" />
                   <button onClick={() => setIsTimerRunning(!isTimerRunning)}
-                    className={cn("w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                    className={cn("w-10 h-10 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all",
                       isTimerRunning ? "bg-white/10 text-white" : "bg-orange-500 text-white")}>
-                    {isTimerRunning ? <Clock className="w-5 h-5" /> : <Play className="w-5 h-5 fill-current" />}
+                    {isTimerRunning ? <Clock className="w-4 h-4 sm:w-5 sm:h-5" /> : <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />}
                   </button>
                   <button onClick={() => setIsFocusMode(!isFocusMode)}
-                    className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-400 hover:text-white">
-                    {isFocusMode ? <Minimize2 className="w-6 h-6" /> : <Maximize2 className="w-6 h-6" />}
+                    className="p-1.5 sm:p-2 hover:bg-white/10 rounded-xl transition-all text-slate-400 hover:text-white">
+                    {isFocusMode ? <Minimize2 className="w-5 h-5 sm:w-6 sm:h-6" /> : <Maximize2 className="w-5 h-5 sm:w-6 sm:h-6" />}
                   </button>
                 </>
               )}
@@ -352,14 +352,14 @@ function MissionControl() {
 
       {/* ── SETUP ── */}
       {step === 'setup' && (
-        <div className="flex-1 flex flex-col items-center justify-center space-y-12 py-12">
-          <div className="text-center max-w-2xl space-y-4">
-            <h2 className="text-5xl font-black text-slate-900 dark:text-white leading-[1.1] tracking-tighter">Initiate Today&apos;s 90-Minute Flow</h2>
-            <p className="text-slate-500 text-xl font-medium">Select your class and subject to begin the guided pedagogical sequence.</p>
+        <div className="flex-1 flex flex-col items-center justify-center space-y-6 sm:space-y-12 py-6 sm:py-12">
+          <div className="text-center max-w-2xl space-y-3 sm:space-y-4 px-2">
+            <h2 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white leading-[1.1] tracking-tighter">Initiate Today&apos;s 90-Minute Flow</h2>
+            <p className="text-slate-500 text-base sm:text-xl font-medium">Select your class and subject to begin the guided pedagogical sequence.</p>
           </div>
-          <div className="bg-white dark:bg-slate-900 p-10 rounded-[48px] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl space-y-8">
+          <div className="bg-white dark:bg-slate-900 p-5 sm:p-10 rounded-[28px] sm:rounded-[48px] shadow-2xl border border-slate-100 dark:border-slate-800 w-full max-w-2xl space-y-6 sm:space-y-8">
             {/* School + Teacher */}
-            <div className="grid grid-cols-2 gap-4 pb-8 border-b border-slate-100 dark:border-slate-800">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pb-6 sm:pb-8 border-b border-slate-100 dark:border-slate-800">
               <div className="space-y-3">
                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">School Name</p>
                 {isAdmin ? (
@@ -393,10 +393,10 @@ function MissionControl() {
             {/* Class 1–4 */}
             <div className="space-y-3">
               <p className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Classroom</p>
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-4 gap-2 sm:gap-3">
                 {[1,2,3,4].map(n => (
                   <button key={n} onClick={() => { setClassNum(n); setSubject(null); }}
-                    className={cn("h-14 rounded-2xl font-black text-xl transition-all",
+                    className={cn("h-12 sm:h-14 rounded-2xl font-black text-lg sm:text-xl transition-all",
                       classNum === n ? "bg-blue-600 text-white shadow-xl scale-105" : "bg-slate-50 dark:bg-slate-800 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700")}>
                     {n}
                   </button>
@@ -512,8 +512,8 @@ function MissionControl() {
                 if (sessionPlan) setSelectedDetail({ groupIdx: activeGroupIdx, actIdx: 0 });
               }}
               disabled={!classNum || (classNum >= 3 && !subject) || !teacherName || !schoolName || !sessionPlan || (needsGroupPick && selectedGroupIdx === null)}
-              className="w-full py-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black rounded-3xl text-2xl shadow-2xl flex items-center justify-center gap-4 group transition-all transform hover:scale-105 disabled:opacity-40 disabled:scale-100">
-              {needsGroupPick && selectedGroupIdx === null ? 'SELECT A GROUP ABOVE' : 'INITIATE SESSION'} <Play className="w-8 h-8 fill-current group-hover:scale-110 transition-transform" />
+              className="w-full py-4 sm:py-6 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black rounded-2xl sm:rounded-3xl text-lg sm:text-2xl shadow-2xl flex items-center justify-center gap-3 sm:gap-4 group transition-all transform hover:scale-105 disabled:opacity-40 disabled:scale-100">
+              {needsGroupPick && selectedGroupIdx === null ? 'SELECT A GROUP ABOVE' : 'INITIATE SESSION'} <Play className="w-6 h-6 sm:w-8 sm:h-8 fill-current group-hover:scale-110 transition-transform" />
             </button>
           </div>
         </div>
@@ -525,9 +525,10 @@ function MissionControl() {
           {isSingleGroup ? (
             /* Single group layout — Class 1-2 OR teacher picked one group from Class 3-4 */
             <div className="flex flex-col flex-1 min-h-0 gap-4">
-              <div className="flex gap-6 flex-1 min-h-0">
-                {/* Sidebar */}
-                <div className="w-72 shrink-0 bg-slate-50 dark:bg-slate-900/60 rounded-[32px] border border-slate-100 dark:border-slate-800 overflow-y-auto p-4 space-y-2">
+              <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 flex-1 min-h-0">
+                {/* Sidebar — horizontal scrollable strip on mobile, vertical panel on desktop */}
+                <div className="sm:w-72 sm:shrink-0 bg-slate-50 dark:bg-slate-900/60 rounded-[24px] sm:rounded-[32px] border border-slate-100 dark:border-slate-800 overflow-x-auto sm:overflow-x-visible sm:overflow-y-auto p-3 sm:p-4">
+                  <div className="flex sm:flex-col gap-2 min-w-max sm:min-w-0">
                   {/* Group badge for Class 3+ */}
                   {selectedGroupIdx !== null && (() => {
                     const grp = sessionPlan.groups[activeGroupIdx];
@@ -566,19 +567,20 @@ function MissionControl() {
                       </button>
                     );
                   })}
+                  </div>
                 </div>
                 {/* Detail panel */}
                 <div className="flex-1 bg-white dark:bg-slate-900 rounded-[32px] border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col min-h-0">
                   {selectedActivity ? (
                     <>
-                      <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
-                        <div className="space-y-1">
+                      <div className="p-4 sm:p-8 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-3 sm:gap-4">
+                        <div className="space-y-1 min-w-0">
                           <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">{selectedActivity.duration} minutes</span>
-                          <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{selectedActivity.name}</h3>
+                          <h3 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">{selectedActivity.name}</h3>
                           {selectedActivity.marathiName && selectedActivity.marathiName !== selectedActivity.name && (
-                            <p className="text-lg text-slate-500 font-medium">{selectedActivity.marathiName}</p>
+                            <p className="text-sm sm:text-lg text-slate-500 font-medium">{selectedActivity.marathiName}</p>
                           )}
-                          <p className="text-slate-500 mt-2">{selectedActivity.description}</p>
+                          <p className="text-slate-500 mt-1 sm:mt-2 text-sm sm:text-base">{selectedActivity.description}</p>
                         </div>
                         <button
                           onClick={() => { const ri = sessionPlan.groups[activeGroupIdx].activities.indexOf(selectedActivity); toggleComplete(activeGroupIdx, ri); }}
@@ -605,10 +607,10 @@ function MissionControl() {
                       ) : selectedActivity.name === "The Battle Arena" ? (
                         <div className="flex-1 flex flex-col items-center justify-center gap-6 p-8">
                           <div className="w-24 h-24 bg-orange-100 dark:bg-orange-950/30 rounded-3xl flex items-center justify-center text-orange-600"><Swords className="w-12 h-12" /></div>
-                          <button onClick={() => setShowMatchmaker(true)} className="px-10 py-5 bg-orange-500 text-white font-black rounded-2xl shadow-lg hover:scale-105 transition-all text-lg">OPEN MATCHMAKER</button>
+                          <button onClick={() => setShowMatchmaker(true)} className="w-full sm:w-auto px-6 sm:px-10 py-4 sm:py-5 bg-orange-500 text-white font-black rounded-2xl shadow-lg hover:scale-105 transition-all text-base sm:text-lg">OPEN MATCHMAKER</button>
                         </div>
                       ) : (
-                        <div className="flex-1 overflow-y-auto p-8 space-y-8">
+                        <div className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 sm:space-y-8">
                           <div className="space-y-4">
                             <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[4px]">Step-by-Step Instructions</h4>
                             <ol className="space-y-3">
@@ -644,16 +646,16 @@ function MissionControl() {
                 </div>
               </div>
               {/* Next / Finish for single-group (always present) */}
-              <div className="flex justify-end gap-4 pb-2">
+              <div className="flex justify-end gap-3 pb-2">
                 {getNextDetail() ? (
                   <button onClick={() => setSelectedDetail(getNextDetail())}
-                    className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl shadow-xl flex items-center gap-3 hover:scale-105 transition-all">
-                    NEXT ACTIVITY <ChevronRight className="w-6 h-6" />
+                    className="flex-1 sm:flex-none px-5 sm:px-10 py-3 sm:py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-2xl sm:rounded-3xl shadow-xl flex items-center justify-center gap-2 sm:gap-3 hover:scale-105 transition-all text-sm sm:text-base">
+                    NEXT ACTIVITY <ChevronRight className="w-5 h-5" />
                   </button>
                 ) : (
                   <button onClick={() => setStep('summary')}
-                    className="px-10 py-5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black rounded-3xl shadow-xl flex items-center gap-3 hover:scale-105 transition-all">
-                    FINISH SESSION <CheckCircle2 className="w-6 h-6" />
+                    className="flex-1 sm:flex-none px-5 sm:px-10 py-3 sm:py-5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black rounded-2xl sm:rounded-3xl shadow-xl flex items-center justify-center gap-2 sm:gap-3 hover:scale-105 transition-all text-sm sm:text-base">
+                    FINISH SESSION <CheckCircle2 className="w-5 h-5" />
                   </button>
                 )}
               </div>
@@ -661,7 +663,7 @@ function MissionControl() {
           ) : (
             /* Dual group (Class 3–4): two columns + shared detail panel */
             <div className="flex flex-col gap-6 flex-1 min-h-0">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {sessionPlan.groups.map((group, gi) => {
                   const clr = GROUP_COLORS[group.color] || GROUP_COLORS.blue;
                   const visible = getVisibleActivities(group);
@@ -769,16 +771,16 @@ function MissionControl() {
                 </div>
               )}
 
-              <div className="flex justify-end gap-4">
+              <div className="flex justify-end gap-3">
                 {getNextDetail() ? (
                   <button onClick={() => setSelectedDetail(getNextDetail())}
-                    className="px-10 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-3xl shadow-xl flex items-center gap-3 hover:scale-105 transition-all">
-                    NEXT ACTIVITY <ChevronRight className="w-6 h-6" />
+                    className="flex-1 sm:flex-none px-5 sm:px-10 py-3 sm:py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black rounded-2xl sm:rounded-3xl shadow-xl flex items-center justify-center gap-2 sm:gap-3 hover:scale-105 transition-all text-sm sm:text-base">
+                    NEXT ACTIVITY <ChevronRight className="w-5 h-5" />
                   </button>
                 ) : (
                   <button onClick={() => setStep('summary')}
-                    className="px-10 py-5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black rounded-3xl shadow-xl flex items-center gap-3 hover:scale-105 transition-all">
-                    FINISH SESSION <CheckCircle2 className="w-6 h-6" />
+                    className="flex-1 sm:flex-none px-5 sm:px-10 py-3 sm:py-5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black rounded-2xl sm:rounded-3xl shadow-xl flex items-center justify-center gap-2 sm:gap-3 hover:scale-105 transition-all text-sm sm:text-base">
+                    FINISH SESSION <CheckCircle2 className="w-5 h-5" />
                   </button>
                 )}
               </div>
@@ -804,7 +806,7 @@ function MissionControl() {
               <div className="w-24 h-24 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-3xl flex items-center justify-center shadow-2xl mx-auto mb-6">
                 <CheckCircle2 className="w-12 h-12 text-white" />
               </div>
-              <h2 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter italic">Mission Accomplishment Report</h2>
+              <h2 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tighter italic">Mission Accomplishment Report</h2>
               <div className="flex flex-wrap items-center justify-center gap-3 text-sm font-bold text-slate-500">
                 <span className="px-4 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl">{schoolName}</span>
                 <span className="px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 rounded-xl">Trainer: {teacherName}</span>
@@ -819,53 +821,55 @@ function MissionControl() {
               const clr = GROUP_COLORS[group.color] || GROUP_COLORS.blue;
               const visible = getVisibleActivities(group);
               return (
-                <div key={gi} className={cn("rounded-[40px] border overflow-hidden shadow-xl", clr.border)}>
-                  <div className={cn("px-8 py-5 flex items-center gap-3", clr.bg)}>
-                    <div className={cn("w-3 h-3 rounded-full", clr.badge)} />
-                    <h3 className={cn("font-black text-lg", clr.text)}>{group.name}</h3>
-                    {group.marathiName && <span className="text-sm text-slate-400 ml-2">{group.marathiName}</span>}
+                <div key={gi} className={cn("rounded-[28px] sm:rounded-[40px] border overflow-hidden shadow-xl", clr.border)}>
+                  <div className={cn("px-5 sm:px-8 py-4 sm:py-5 flex items-center gap-3 flex-wrap", clr.bg)}>
+                    <div className={cn("w-3 h-3 rounded-full shrink-0", clr.badge)} />
+                    <h3 className={cn("font-black text-base sm:text-lg", clr.text)}>{group.name}</h3>
+                    {group.marathiName && <span className="text-xs sm:text-sm text-slate-400">{group.marathiName}</span>}
                     <span className="ml-auto text-xs font-bold text-slate-500">{group.subtitle}</span>
                   </div>
-                  <table className="w-full bg-white dark:bg-slate-900">
-                    <thead className="bg-slate-50 dark:bg-slate-800/50">
-                      <tr>
-                        <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Activity</th>
-                        <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Duration</th>
-                        <th className="p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {visible.map((act, ai) => {
-                        const realIdx = group.activities.indexOf(act);
-                        const done = completedActivities.has(`${gi}-${realIdx}`);
-                        return (
-                          <tr key={ai} className="border-t border-slate-100 dark:border-slate-800">
-                            <td className="p-6">
-                              <p className="font-black">{act.name}</p>
-                              {act.marathiName && act.marathiName !== act.name && <p className="text-xs text-slate-400">{act.marathiName}</p>}
-                            </td>
-                            <td className="p-6 font-mono text-slate-500">{act.duration}m</td>
-                            <td className="p-6">
-                              {done
-                                ? <span className="flex items-center gap-1.5 text-emerald-600 font-bold text-sm"><CheckCircle2 className="w-4 h-4" /> Done</span>
-                                : <span className="text-slate-400 text-sm">—</span>}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+                  <div className="overflow-x-auto">
+                    <table className="w-full bg-white dark:bg-slate-900 min-w-[360px]">
+                      <thead className="bg-slate-50 dark:bg-slate-800/50">
+                        <tr>
+                          <th className="p-4 sm:p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Activity</th>
+                          <th className="p-4 sm:p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Duration</th>
+                          <th className="p-4 sm:p-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-left">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {visible.map((act, ai) => {
+                          const realIdx = group.activities.indexOf(act);
+                          const done = completedActivities.has(`${gi}-${realIdx}`);
+                          return (
+                            <tr key={ai} className="border-t border-slate-100 dark:border-slate-800">
+                              <td className="p-4 sm:p-6">
+                                <p className="font-black text-sm sm:text-base">{act.name}</p>
+                                {act.marathiName && act.marathiName !== act.name && <p className="text-xs text-slate-400">{act.marathiName}</p>}
+                              </td>
+                              <td className="p-4 sm:p-6 font-mono text-slate-500 text-sm">{act.duration}m</td>
+                              <td className="p-4 sm:p-6">
+                                {done
+                                  ? <span className="flex items-center gap-1.5 text-emerald-600 font-bold text-sm"><CheckCircle2 className="w-4 h-4" /> Done</span>
+                                  : <span className="text-slate-400 text-sm">—</span>}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               );
             })}
-            <div className="flex justify-center gap-6 pt-4">
+            <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-6 pt-4">
               <button onClick={handleFinishAndLog} disabled={isLogging || logSuccess}
-                className={cn("px-12 py-6 font-black rounded-3xl shadow-2xl hover:scale-105 transition-all text-xl flex items-center gap-3",
+                className={cn("flex-1 sm:flex-none px-6 sm:px-12 py-4 sm:py-6 font-black rounded-2xl sm:rounded-3xl shadow-2xl hover:scale-105 transition-all text-base sm:text-xl flex items-center justify-center gap-3",
                   logSuccess ? "bg-emerald-500 text-white cursor-default" : "bg-slate-900 dark:bg-white text-white dark:text-slate-900")}>
-                {logSuccess ? <><CheckCircle2 className="w-6 h-6" /> LOGGED SUCCESSFULLY</> : isLogging ? "LOGGING..." : "FINISH & LOG"}
+                {logSuccess ? <><CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" /> LOGGED SUCCESSFULLY</> : isLogging ? "LOGGING..." : "FINISH & LOG"}
               </button>
               <button onClick={resetSession}
-                className="px-12 py-6 bg-white dark:bg-slate-800 font-black rounded-3xl shadow-xl hover:scale-105 transition-all text-xl border border-slate-100 dark:border-slate-700">
+                className="flex-1 sm:flex-none px-6 sm:px-12 py-4 sm:py-6 bg-white dark:bg-slate-800 font-black rounded-2xl sm:rounded-3xl shadow-xl hover:scale-105 transition-all text-base sm:text-xl border border-slate-100 dark:border-slate-700">
                 NEW MISSION
               </button>
             </div>
@@ -896,7 +900,7 @@ export default function ResourcesPage() {
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black uppercase tracking-widest">
           <GraduationCap className="w-4 h-4" /> Implementation Corner
         </div>
-        <h1 className="text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+        <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
           Classroom <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 underline decoration-blue-500/30">Action Hub</span>
         </h1>
         <p className="text-lg text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -912,7 +916,7 @@ export default function ResourcesPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
-                "flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-black transition-all whitespace-nowrap",
+                "flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all whitespace-nowrap",
                 activeTab === tab.id 
                   ? "bg-white dark:bg-slate-700 text-blue-600 dark:text-blue-400 shadow-md shadow-blue-900/5" 
                   : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
