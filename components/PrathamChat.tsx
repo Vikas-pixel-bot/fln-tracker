@@ -111,12 +111,27 @@ export default function PrathamChat() {
   }
 
   return (
-    <div className="fixed bottom-8 right-8 z-[200] flex flex-col items-end">
+    <>
+      {/* Mobile backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-[198] sm:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+    <div className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-[200] flex flex-col items-end">
       {/* Chat Panel */}
       {isOpen && (
         <div
-          className="mb-4 w-[360px] md:w-[460px] bg-white dark:bg-slate-900 rounded-[28px] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col"
-          style={{ maxHeight: "calc(100dvh - 140px)" }}
+          className={[
+            "bg-white dark:bg-slate-900 shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col",
+            // Mobile: full-width bottom sheet
+            "fixed inset-x-0 bottom-0 z-[199] rounded-t-[28px] h-[92dvh]",
+            // Desktop: floating card above FAB
+            "sm:relative sm:inset-auto sm:bottom-auto sm:z-auto sm:mb-4 sm:w-[360px] md:w-[460px] sm:rounded-[28px] sm:h-auto",
+          ].join(" ")}
+          style={{ maxHeight: "calc(100dvh - 100px)" }}
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-[#E8232A] to-[#c41e24] px-5 py-4 flex items-center gap-3 relative overflow-hidden shrink-0">
@@ -230,7 +245,7 @@ export default function PrathamChat() {
         }`}
       >
         {!isOpen && (
-          <span className="text-white text-sm font-black tracking-wide pl-1 hidden md:inline">
+          <span className="text-white text-sm font-black tracking-wide pl-1 hidden sm:inline">
             Ask Pratham!
           </span>
         )}
@@ -241,5 +256,6 @@ export default function PrathamChat() {
         </div>
       </button>
     </div>
+    </>
   );
 }
