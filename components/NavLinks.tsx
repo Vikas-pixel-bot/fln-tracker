@@ -26,7 +26,7 @@ export default function NavLinks({ userRole }: { userRole: string }) {
       
       {/* Dashboards */}
       <div className="group relative py-2">
-        <Link href="/dashboard" className="text-gray-500 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 text-sm font-medium transition-colors">
+        <Link href="/dashboards" className="text-gray-500 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 text-sm font-medium transition-colors">
           {t('Dashboards')}
         </Link>
         <NavTooltip 

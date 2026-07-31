@@ -19,7 +19,7 @@ interface Props {
 }
 
 const NAV_LINKS = [
-  { href: "/dashboard", label: "Dashboards", icon: BarChart3 },
+  { href: "/dashboards", label: "Dashboards", icon: BarChart3 },
   { href: "/resources", label: "Classroom Implementation", icon: GraduationCap },
   { href: "/assessments/live", label: "Record Score", icon: ClipboardPlus, highlight: true },
 ];
