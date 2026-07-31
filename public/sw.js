@@ -1,4 +1,4 @@
-const CACHE_NAME = "fln-pwa-v2";
+const CACHE_NAME = "fln-pwa-v3";
 const OFFLINE_URL = "/";
 
 // Core routes and assets needed immediately offline
