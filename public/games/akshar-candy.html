@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Akshar Candy - FLN Offline Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Fredoka', cursive, sans-serif; user-select: none; }
+    body {
+      background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      color: white;
+    }
+    .header {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(10px);
+      padding: 15px 25px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .prompt-box {
+      background: white;
+      color: #831843;
+      padding: 20px 40px;
+      border-radius: 25px;
+      font-size: 28px;
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .candy-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+      width: 100%;
+      max-width: 600px;
+    }
+    .candy-card {
+      aspect-ratio: 1;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      transition: all 0.2s;
+    }
+    .candy-card:hover { transform: scale(1.05); }
+    .candy-card:active { transform: scale(0.95); }
+    
+    .c-pink { background: linear-gradient(135deg, #f472b6, #db2777); }
+    .c-blue { background: linear-gradient(135deg, #60a5fa, #2563eb); }
+    .c-purple { background: linear-gradient(135deg, #c084fc, #9333ea); }
+    .c-amber { background: linear-gradient(135deg, #fbbf24, #d97706); }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>🍭 Akshar Candy</h1>
+    <div style="font-size: 20px; font-weight: 700;">Score: <span id="score">0</span> 🍬</div>
+  </div>
+
+  <div class="prompt-box">
+    Find Letter: <span id="targetAkshar" style="color: #ec4899; font-size: 40px;">म</span>
+  </div>
+
+  <div class="candy-grid" id="grid"></div>
+
+  <script>
+    const akshars = ['क', 'म', 'ल', 'र', 'स', 'न', 'त', 'ब', 'प', 'ग'];
+    const colors = ['c-pink', 'c-blue', 'c-purple', 'c-amber'];
+    let target = '';
+    let score = 0;
+
+    function audioChime(correct) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = correct ? 659.25 : 220;
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3);
+      } catch(e){}
+    }
+
+    function generateBoard() {
+      target = akshars[Math.floor(Math.random() * akshars.length)];
+      document.getElementById('targetAkshar').innerText = target;
+
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+
+      let items = [target];
+      while(items.length < 8) {
+        let rand = akshars[Math.floor(Math.random() * akshars.length)];
+        items.push(rand);
+      }
+      items.sort(() => Math.random() - 0.5);
+
+      items.forEach(char => {
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const btn = document.createElement('div');
+        btn.className = `candy-card ${color}`;
+        btn.innerText = char;
+        btn.onclick = () => selectCandy(char);
+        grid.appendChild(btn);
+      });
+    }
+
+    function selectCandy(char) {
+      if(char === target) {
+        audioChime(true);
+        score += 10;
+        document.getElementById('score').innerText = score;
+        generateBoard();
+      } else {
+        audioChime(false);
+      }
+    }
+
+    window.onload = generateBoard;
+  </script>
+</body>
+</html>

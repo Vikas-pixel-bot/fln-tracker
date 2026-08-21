@@ -1,7 +1,16 @@
 "use client";
 import React, { useState } from "react";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Zap, Trophy, Gamepad2, ChevronRight, Eye, EyeOff, X, RefreshCw, Share2, Check, ShoppingBag } from "lucide-react";
+import { ArrowLeft, Zap, Trophy, Gamepad2, ChevronRight, Eye, EyeOff, X, RefreshCw, Share2, Check, ShoppingBag, Download } from "lucide-react";
+
+function getGameDownloadPath(id: string): string {
+  const cleanId = id.toLowerCase().replace(/_/g, '-');
+  if (cleanId.includes('market')) return '/games/math-mania-market.html';
+  if (cleanId.includes('candy') || cleanId.includes('akshar')) return '/games/akshar-candy.html';
+  if (cleanId.includes('duel') || cleanId.includes('battle') || cleanId.includes('race')) return '/games/student-vs-student.html';
+  if (cleanId.includes('story')) return '/games/story-reader.html';
+  return '/games/math-mania-market.html';
+}
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { usePoints } from "@/lib/points-store";
@@ -321,9 +330,20 @@ function SimulationsContent() {
                 <span className="bg-black/20 px-2 py-0.5 rounded text-[11px] font-black tracking-widest uppercase shadow-sm">{active.subject}</span>
               </div>
             </div>
-            <div className="hidden sm:flex items-center gap-2 bg-white/20 rounded-2xl px-4 py-2 backdrop-blur-sm shadow-inner shrink-0">
-               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,1)]" />
-               <span className="text-sm font-black tracking-widest text-white/90">LIVE</span>
+            <div className="flex items-center gap-2 shrink-0">
+              <a
+                href={getGameDownloadPath(active.id)}
+                download
+                className="flex items-center gap-2 bg-white/20 hover:bg-white/30 text-white rounded-2xl px-4 py-2 text-xs font-black backdrop-blur-sm shadow-md transition-all active:scale-95"
+                title="Download single-file HTML game for offline play"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden md:inline">Download HTML</span>
+              </a>
+              <div className="hidden sm:flex items-center gap-2 bg-white/20 rounded-2xl px-4 py-2 backdrop-blur-sm shadow-inner">
+                 <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shadow-[0_0_8px_rgba(74,222,128,1)]" />
+                 <span className="text-sm font-black tracking-widest text-white/90">LIVE</span>
+              </div>
             </div>
           </div>
 

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student v/s Student - FLN Battle Duel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Fredoka', cursive, sans-serif; user-select: none; }
+    body {
+      background: #0f172a;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .question-banner {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      padding: 20px;
+      text-align: center;
+      font-size: 32px;
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      z-index: 10;
+    }
+    .battle-arena {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .player-side {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      gap: 20px;
+    }
+    .p1-side { background: linear-gradient(135deg, #1e3a8a, #3b82f6); }
+    .p2-side { background: linear-gradient(135deg, #831843, #ec4899); }
+
+    .player-title { font-size: 28px; font-weight: 700; }
+    .player-score { font-size: 48px; font-weight: 700; }
+
+    .opt-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      width: 100%;
+      max-width: 300px;
+    }
+    .opt-btn {
+      background: rgba(255,255,255,0.2);
+      border: 2px solid rgba(255,255,255,0.4);
+      color: white;
+      font-size: 28px;
+      font-weight: 700;
+      padding: 20px;
+      border-radius: 16px;
+      cursor: pointer;
+      backdrop-filter: blur(5px);
+      transition: transform 0.1s;
+    }
+    .opt-btn:active { transform: scale(0.9); }
+  </style>
+</head>
+<body>
+
+  <div class="question-banner">
+    Solve: <span id="qText">5 + 7 = ?</span>
+  </div>
+
+  <div class="battle-arena">
+    <!-- Player 1 -->
+    <div class="player-side p1-side">
+      <div class="player-title">👦 Player 1</div>
+      <div class="player-score" id="p1Score">0</div>
+      <div class="opt-grid" id="p1Opts"></div>
+    </div>
+
+    <!-- Player 2 -->
+    <div class="player-side p2-side">
+      <div class="player-title">👧 Player 2</div>
+      <div class="player-score" id="p2Score">0</div>
+      <div class="opt-grid" id="p2Opts"></div>
+    </div>
+  </div>
+
+  <script>
+    let p1Points = 0;
+    let p2Points = 0;
+    let correctAnswer = 0;
+
+    function nextQuestion() {
+      const a = Math.floor(Math.random() * 20) + 1;
+      const b = Math.floor(Math.random() * 20) + 1;
+      correctAnswer = a + b;
+      document.getElementById('qText').innerText = `${a} + ${b} = ?`;
+
+      let options = [correctAnswer];
+      while(options.length < 4) {
+        let wrong = correctAnswer + (Math.floor(Math.random() * 10) - 5);
+        if(wrong > 0 && !options.includes(wrong)) options.push(wrong);
+      }
+      options.sort(() => Math.random() - 0.5);
+
+      renderOpts('p1Opts', options, 1);
+      renderOpts('p2Opts', options, 2);
+    }
+
+    function renderOpts(elementId, opts, player) {
+      const container = document.getElementById(elementId);
+      container.innerHTML = opts.map(val => `
+        <button class="opt-btn" onclick="buzz(${player}, ${val})">${val}</button>
+      `).join('');
+    }
+
+    function buzz(player, val) {
+      if(val === correctAnswer) {
+        if(player === 1) p1Points++;
+        else p2Points++;
+
+        document.getElementById('p1Score').innerText = p1Points;
+        document.getElementById('p2Score').innerText = p2Points;
+
+        if(p1Points >= 5) { alert('🎉 Player 1 Wins!'); p1Points = 0; p2Points = 0; }
+        else if(p2Points >= 5) { alert('🎉 Player 2 Wins!'); p1Points = 0; p2Points = 0; }
+
+        nextQuestion();
+      }
+    }
+
+    window.onload = nextQuestion;
+  </script>
+</body>
+</html>

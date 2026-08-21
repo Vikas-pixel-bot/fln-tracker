@@ -1,6 +1,6 @@
 "use client";
 
-import { X, Users, ListChecks, Swords, Zap } from "lucide-react";
+import { X, Users, ListChecks, Swords, Zap, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAudience, type Item } from "@/lib/sim-data";
 
@@ -13,6 +13,15 @@ type GameDetailPanelProps = {
 
 const DEFAULT_ACCENT = { accent: "from-slate-600 to-slate-800", glow: "shadow-slate-500/40" };
 
+function getHtmlGamePath(id: string): string {
+  const cleanId = id.toLowerCase().replace(/_/g, '-');
+  if (cleanId.includes('market')) return '/games/math-mania-market.html';
+  if (cleanId.includes('candy') || cleanId.includes('akshar')) return '/games/akshar-candy.html';
+  if (cleanId.includes('duel') || cleanId.includes('battle') || cleanId.includes('race')) return '/games/student-vs-student.html';
+  if (cleanId.includes('story')) return '/games/story-reader.html';
+  return '/games/math-mania-market.html';
+}
+
 // Hotstar/Netflix-style "more info" panel — opens beside (desktop) or below
 // (mobile) the game grid so browsing isn't interrupted. Shows the same
 // instructions the pre-game intro screen used to show, plus who the game is
@@ -21,6 +30,7 @@ export default function GameDetailPanel({ item, accent = DEFAULT_ACCENT, onStart
   if (!item) return null;
 
   const isBattle = item.subject === "Battle";
+  const htmlPath = getHtmlGamePath(item.id);
 
   return (
     <>
@@ -84,7 +94,7 @@ export default function GameDetailPanel({ item, accent = DEFAULT_ACCENT, onStart
         </div>
 
         {/* CTA — extra bottom padding on mobile clears the "Ask Pratham" chat FAB */}
-        <div className="shrink-0 px-4 pt-4 pb-24 sm:pb-4 border-t border-slate-100 dark:border-slate-800">
+        <div className="shrink-0 px-4 pt-4 pb-24 sm:pb-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
           <button
             onClick={onStart}
             className={cn(
@@ -98,6 +108,14 @@ export default function GameDetailPanel({ item, accent = DEFAULT_ACCENT, onStart
               <>Start Game <Zap fill="white" className="w-5 h-5" /></>
             )}
           </button>
+
+          <a
+            href={htmlPath}
+            download
+            className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black rounded-2xl shadow-md transition-all flex items-center justify-center gap-2 active:scale-[0.98] text-sm"
+          >
+            <Download className="w-4 h-4" /> Download Offline Game (.html)
+          </a>
         </div>
       </div>
     </>

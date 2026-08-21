@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Mania Market - FLN Offline Game</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+      --accent: #f59e0b;
+      --card-bg: rgba(255, 255, 255, 0.95);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Fredoka', cursive, sans-serif; user-select: none; }
+    body {
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: #1e293b;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .header {
+      width: 100%;
+      max-width: 900px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(10px);
+      padding: 15px 25px;
+      border-radius: 20px;
+      color: white;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.2);
+      margin-bottom: 20px;
+    }
+    .title { font-size: 28px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .stats { display: flex; gap: 15px; font-size: 18px; font-weight: 600; }
+    .stat-badge { background: rgba(0,0,0,0.3); padding: 8px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); }
+    
+    .game-container {
+      width: 100%;
+      max-width: 900px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    @media(max-width: 768px) {
+      .game-container { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .customer-box {
+      background: #fef3c7;
+      border: 2px dashed #f59e0b;
+      border-radius: 16px;
+      padding: 15px;
+      text-align: center;
+    }
+    .customer-avatar { font-size: 48px; margin-bottom: 5px; }
+    .speech-bubble { font-size: 20px; font-weight: 700; color: #78350f; }
+
+    .items-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .item-card {
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .item-card:hover { transform: translateY(-3px); border-color: #3b82f6; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    .item-icon { font-size: 36px; }
+    .item-name { font-size: 16px; font-weight: 600; color: #475569; }
+    .item-price { font-size: 18px; font-weight: 700; color: #059669; }
+
+    .currency-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .note-btn {
+      background: #10b981;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.1s;
+    }
+    .note-btn:active { transform: scale(0.95); }
+
+    .answer-display {
+      background: #ecfdf5;
+      border: 2px solid #10b981;
+      padding: 15px;
+      border-radius: 16px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: 700;
+      color: #065f46;
+    }
+
+    .btn-submit {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 16px;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+      transition: background 0.2s;
+    }
+    .btn-submit:hover { background: #2563eb; }
+    .btn-reset { background: #ef4444; margin-top: 5px; }
+
+    .feedback-overlay {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: white;
+      padding: 30px;
+      border-radius: 30px;
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+      z-index: 100;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .feedback-overlay.active { transform: translate(-50%, -50%) scale(1); }
+    .feedback-icon { font-size: 64px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="title">🛒 Math Mania Market</div>
+    <div class="stats">
+      <div class="stat-badge">Coins: <span id="score">0</span> 🪙</div>
+      <div class="stat-badge">Round: <span id="round">1</span>/10</div>
+    </div>
+  </div>
+
+  <div class="game-container">
+    <!-- Left: Shop Shelf & Customer -->
+    <div class="card">
+      <div class="customer-box">
+        <div class="customer-avatar" id="avatar">👧</div>
+        <div class="speech-bubble" id="speech">"I want to buy 1 Apple and 1 Mango!"</div>
+      </div>
+
+      <div style="font-weight: 700; color: #64748b;">AVAILABLE ITEMS:</div>
+      <div class="items-grid" id="itemsGrid">
+        <!-- Items inserted by JS -->
+      </div>
+    </div>
+
+    <!-- Right: Cash Register -->
+    <div class="card">
+      <div style="font-weight: 700; color: #64748b;">PAYMENT REGISTER:</div>
+      
+      <div class="answer-display">
+        Paid: ₹<span id="paidVal">0</span>
+      </div>
+
+      <div class="currency-section">
+        <button class="note-btn" onclick="addMoney(1)">+ ₹1</button>
+        <button class="note-btn" onclick="addMoney(5)">+ ₹5</button>
+        <button class="note-btn" onclick="addMoney(10)">+ ₹10</button>
+        <button class="note-btn" onclick="addMoney(20)">+ ₹20</button>
+        <button class="note-btn" onclick="addMoney(50)">+ ₹50</button>
+      </div>
+
+      <button class="btn-submit" onclick="checkAnswer()">CHECK PAYMENT ✅</button>
+      <button class="btn-submit btn-reset" onclick="resetPayment()">CLEAR 🔄</button>
+    </div>
+  </div>
+
+  <!-- Feedback Overlay -->
+  <div class="feedback-overlay" id="feedback">
+    <div class="feedback-icon" id="feedbackEmoji">🎉</div>
+    <h2 id="feedbackTitle" style="font-size: 28px; margin: 10px 0;">Correct!</h2>
+    <p id="feedbackText" style="color: #64748b; font-size: 18px;">You calculated the exact change!</p>
+    <button class="btn-submit" style="margin-top: 15px;" onclick="nextRound()">NEXT CUSTOMER ➡️</button>
+  </div>
+
+  <script>
+    const items = [
+      { name: 'Apple 🍎', price: 10 },
+      { name: 'Mango 🥭', price: 20 },
+      { name: 'Banana 🍌', price: 5 },
+      { name: 'Pencil ✏️', price: 15 },
+      { name: 'Notebook 📓', price: 30 }
+    ];
+
+    let currentOrder = [];
+    let targetTotal = 0;
+    let currentPaid = 0;
+    let score = 0;
+    let round = 1;
+
+    function audioChime(correct) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = correct ? 587.33 : 220;
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.4);
+      } catch(e){}
+    }
+
+    function initGame() {
+      // Populate items grid
+      const grid = document.getElementById('itemsGrid');
+      grid.innerHTML = items.map(item => `
+        <div class="item-card">
+          <div class="item-name">${item.name}</div>
+          <div class="item-price">₹${item.price}</div>
+        </div>
+      `).join('');
+
+      loadRound();
+    }
+
+    function loadRound() {
+      currentPaid = 0;
+      document.getElementById('paidVal').innerText = '0';
+      document.getElementById('round').innerText = round;
+
+      // Pick 2 random items
+      const i1 = items[Math.floor(Math.random() * items.length)];
+      let i2 = items[Math.floor(Math.random() * items.length)];
+      while(i2 === i1) { i2 = items[Math.floor(Math.random() * items.length)]; }
+
+      currentOrder = [i1, i2];
+      targetTotal = i1.price + i2.price;
+
+      const avatars = ['👧', '👦', '👵', '👴', '👩‍🦱'];
+      document.getElementById('avatar').innerText = avatars[Math.floor(Math.random() * avatars.length)];
+      document.getElementById('speech').innerText = `"Please give me ${i1.name} and ${i2.name}!"`;
+    }
+
+    function addMoney(amount) {
+      currentPaid += amount;
+      document.getElementById('paidVal').innerText = currentPaid;
+    }
+
+    function resetPayment() {
+      currentPaid = 0;
+      document.getElementById('paidVal').innerText = '0';
+    }
+
+    function checkAnswer() {
+      const fb = document.getElementById('feedback');
+      if(currentPaid === targetTotal) {
+        score += 10;
+        document.getElementById('score').innerText = score;
+        audioChime(true);
+        document.getElementById('feedbackEmoji').innerText = '🎉';
+        document.getElementById('feedbackTitle').innerText = 'Exact Amount!';
+        document.getElementById('feedbackText').innerText = `Awesome! Total cost was ₹${targetTotal}`;
+      } else {
+        audioChime(false);
+        document.getElementById('feedbackEmoji').innerText = '❌';
+        document.getElementById('feedbackTitle').innerText = 'Incorrect!';
+        document.getElementById('feedbackText').innerText = `Total cost was ₹${targetTotal}, but you gave ₹${currentPaid}`;
+      }
+      fb.classList.add('active');
+    }
+
+    function nextRound() {
+      document.getElementById('feedback').classList.remove('active');
+      round++;
+      if(round > 10) {
+        alert(`Game Over! Final Score: ${score} Coins!`);
+        round = 1;
+        score = 0;
+        document.getElementById('score').innerText = score;
+      }
+      loadRound();
+    }
+
+    window.onload = initGame;
+  </script>
+</body>
+</html>

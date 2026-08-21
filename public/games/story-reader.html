@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Story Reader Game - FLN Offline Game</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Fredoka', cursive, sans-serif; }
+    body {
+      background: #fdf4ff;
+      color: #3b0764;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+      background: white;
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+    .story-title { font-size: 32px; font-weight: 700; color: #a855f7; margin-bottom: 15px; }
+    .story-text { font-size: 22px; line-height: 1.6; color: #475569; margin-bottom: 30px; }
+    
+    .quiz-box {
+      background: #faf5ff;
+      border: 2px solid #e9d5ff;
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .quiz-title { font-size: 20px; font-weight: 700; color: #7e22ce; margin-bottom: 15px; }
+    .opt-btn {
+      display: block;
+      width: 100%;
+      text-align: left;
+      background: white;
+      border: 2px solid #d8b4fe;
+      padding: 12px 20px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .opt-btn:hover { background: #f3e8ff; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="story-title" id="title">📖 Raju and His Blue Kite</div>
+    <div class="story-text" id="text">
+      Raju loved flying kites in the evening. One sunny day, he made a bright blue kite with colorful ribbons. 
+      He ran fast across the green field, and the blue kite soared high into the sky!
+    </div>
+
+    <div class="quiz-box">
+      <div class="quiz-title">❓ Quick Quiz: What color was Raju's kite?</div>
+      <button class="opt-btn" onclick="check(true)">A) Bright Blue 🟦</button>
+      <button class="opt-btn" onclick="check(false)">B) Red 🟥</button>
+      <button class="opt-btn" onclick="check(false)">C) Yellow 🟨</button>
+    </div>
+  </div>
+
+  <script>
+    function check(correct) {
+      if(correct) {
+        alert("🎉 Correct! You are a great story reader!");
+      } else {
+        alert("❌ Try reading the story once more!");
+      }
+    }
+  </script>
+</body>
+</html>
