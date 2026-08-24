@@ -4,13 +4,9 @@ import { useSession } from "next-auth/react";
 import { ArrowLeft, Zap, Trophy, Gamepad2, ChevronRight, Eye, EyeOff, X, RefreshCw, Share2, Check, ShoppingBag, Download } from "lucide-react";
 
 function getGameDownloadPath(id: string): string {
-  const cleanId = id.toLowerCase().replace(/_/g, '-');
-  if (cleanId.includes('market')) return '/games/math-mania-market.html';
-  if (cleanId.includes('candy') || cleanId.includes('akshar')) return '/games/akshar-candy.html';
-  if (cleanId.includes('duel') || cleanId.includes('battle') || cleanId.includes('race')) return '/games/student-vs-student.html';
-  if (cleanId.includes('story')) return '/games/story-reader.html';
-  return '/games/math-mania-market.html';
+  return `/api/download-game?id=${encodeURIComponent(id)}`;
 }
+
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { usePoints } from "@/lib/points-store";

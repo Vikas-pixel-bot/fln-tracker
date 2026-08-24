@@ -1323,7 +1323,7 @@ export default function ResourcesPage() {
                        {art.tags?.map(t => <span key={t} className="text-[10px] font-bold text-slate-400 bg-slate-50 dark:bg-slate-850 px-3 py-1 rounded-full">#{t}</span>)}
                     </div>
                     <a 
-                      href={art.link}
+                      href={`/api/download-manual?file=${encodeURIComponent(art.link.replace(/^\/?(manuals\/)?/, ''))}`}
                       download
                       target="_blank"
                       rel="noopener noreferrer"

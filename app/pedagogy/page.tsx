@@ -17,11 +17,12 @@ import {
   Sparkles,
   Search,
   BookOpenCheck,
-  Globe
+  Globe,
+  Download
 } from "lucide-react";
 import WarliMotif from "@/components/warli/WarliMotif";
 
-type TabId = "philosophy" | "levels" | "flow" | "activities" | "materials" | "role" | "presence";
+type TabId = "philosophy" | "levels" | "flow" | "activities" | "materials" | "role" | "manuals";
 
 export default function PedagogyPage() {
   const [activeTab, setActiveTab] = useState<TabId>("philosophy");
@@ -34,6 +35,7 @@ export default function PedagogyPage() {
     { id: "activities", label: "Classroom Activities", icon: Users },
     { id: "materials", label: "Manipulatives Map", icon: Wrench },
     { id: "role", label: "Teacher & Assessment", icon: GraduationCap },
+    { id: "manuals", label: "TaRL Manuals & PDFs", icon: Download },
   ];
 
   return (
@@ -542,6 +544,106 @@ export default function PedagogyPage() {
                   <p className="leading-relaxed text-slate-400 dark:text-slate-500 italic mt-2">
                     Learning snapshots are recorded at Baseline, Midline, and Endline terms to track cohort growth velocity.
                   </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB: Manuals */}
+          {activeTab === "manuals" && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="bg-white dark:bg-slate-950 p-8 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-100/30 dark:shadow-none space-y-6">
+                <div>
+                  <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2 flex items-center gap-3">
+                    <Download className="w-6 h-6 text-amber-500" /> TaRL & Pedagogy Manual Downloads
+                  </h2>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    Download official Teaching at the Right Level (TaRL) instructional manuals, activity charts, workbooks, and story cards for offline field usage.
+                  </p>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-4 pt-2">
+                  {[
+                    {
+                      title: "Level 1 Marathi Math Manual (TaRL)",
+                      desc: "Teacher manual outlining sticks-and-bundles methods and place value charts in Marathi.",
+                      size: "31.5 MB · PDF",
+                      file: "Level 1, MAR Math Manual.pdf"
+                    },
+                    {
+                      title: "Level 1 Marathi Language Manual (TaRL)",
+                      desc: "Comprehensive pedagogical guide for teaching foundational Marathi letters, words, and simple sentences.",
+                      size: "15.3 MB · PDF",
+                      file: "Level 1, MAR Language.pdf"
+                    },
+                    {
+                      title: "Level 2 Marathi Language & Math Manual",
+                      desc: "Integrated manual for Class 3-5 Marathi reading camp sessions and mathematical operations.",
+                      size: "15.3 MB · PDF",
+                      file: "Level 2, MAR Language & Math.pdf"
+                    },
+                    {
+                      title: "Level 2 Hindi Language & Math Manual",
+                      desc: "Integrated manual for advanced Hindi reading comprehension and intermediate operations.",
+                      size: "1.8 MB · PDF",
+                      file: "Level 2, HIN Language & Math.pdf"
+                    },
+                    {
+                      title: "Gatividhi Chart (Activity Roadmap)",
+                      desc: "Large-format activity roadmap mapping daily tasks and teaching steps across learning levels.",
+                      size: "57.6 MB · PDF",
+                      file: "Gatividhi Chart.pdf"
+                    },
+                    {
+                      title: "Aao Gayen Sune Banayen (Std. 1-2)",
+                      desc: "Activity handbook containing stories, songs, and conversational prompts for Class 1-2.",
+                      size: "176.6 MB · PDF",
+                      file: "Aao Gayen Sune Banayen Std. 1-2_HG_2022-23.pdf"
+                    },
+                    {
+                      title: "Aao Khele (Let's Play)",
+                      desc: "Compendium of physical and conversational learning games designed for camp warm-ups.",
+                      size: "6.3 MB · PDF",
+                      file: "Aao Khele (2).pdf"
+                    },
+                    {
+                      title: "Anuched Pustika (Paragraph Booklet)",
+                      desc: "Structured compilation of paragraphs and simple texts for decoding practice and checks.",
+                      size: "44.2 MB · PDF",
+                      file: "Anuched Pustika.pdf"
+                    },
+                    {
+                      title: "Class 3-5 Level 1 Math Worksheets",
+                      desc: "Foundational math worksheets covering number recognition (1-99) and simple operations.",
+                      size: "8.0 MB · PDF",
+                      file: "Class 3-5, Level 1, Math Worksheet.pdf"
+                    },
+                    {
+                      title: "Class 3-5 Level 2 Math Worksheets",
+                      desc: "Intermediate worksheets targeting subtraction with borrowing and basic multiplication.",
+                      size: "93.8 MB · PDF",
+                      file: "Class 3-5, Level 2, Math Worksheet.pdf"
+                    },
+                  ].map((item, idx) => (
+                    <div key={idx} className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex flex-col justify-between space-y-4 hover:border-amber-400 transition-all">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-extrabold text-slate-900 dark:text-white text-sm">{item.title}</h4>
+                          <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 px-2 py-0.5 rounded-md">{item.size}</span>
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">{item.desc}</p>
+                      </div>
+                      <a 
+                        href={`/api/download-manual?file=${encodeURIComponent(item.file)}`}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="self-start inline-flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-black text-xs rounded-xl shadow transition-all"
+                      >
+                        <Download className="w-4 h-4" /> Download PDF Manual
+                      </a>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

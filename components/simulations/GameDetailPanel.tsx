@@ -14,13 +14,9 @@ type GameDetailPanelProps = {
 const DEFAULT_ACCENT = { accent: "from-slate-600 to-slate-800", glow: "shadow-slate-500/40" };
 
 function getHtmlGamePath(id: string): string {
-  const cleanId = id.toLowerCase().replace(/_/g, '-');
-  if (cleanId.includes('market')) return '/games/math-mania-market.html';
-  if (cleanId.includes('candy') || cleanId.includes('akshar')) return '/games/akshar-candy.html';
-  if (cleanId.includes('duel') || cleanId.includes('battle') || cleanId.includes('race')) return '/games/student-vs-student.html';
-  if (cleanId.includes('story')) return '/games/story-reader.html';
-  return '/games/math-mania-market.html';
+  return `/api/download-game?id=${encodeURIComponent(id)}`;
 }
+
 
 // Hotstar/Netflix-style "more info" panel — opens beside (desktop) or below
 // (mobile) the game grid so browsing isn't interrupted. Shows the same

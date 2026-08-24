@@ -378,53 +378,106 @@ export default function CatchupPage() {
           {activeTab === "manuals" && (
             <div className="space-y-6 animate-fade-in">
               <div className="bg-white dark:bg-slate-950 p-8 rounded-[32px] border border-slate-100 dark:border-slate-800 shadow-xl shadow-slate-100/30 dark:shadow-none">
-                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Teaching Manuals</h2>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Teaching Manuals & PDF Downloads</h2>
                 <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-8">
-                  Access the complete 48-day lesson plans for Mathematics and Marathi directly through these interactive flipbooks.
+                  Access the complete 48-day lesson plans and TaRL pedagogical manuals via interactive flipbooks or direct PDF downloads for offline classroom use.
                 </p>
 
-                <div className="grid sm:grid-cols-2 gap-6">
-                  {/* Maths Manual */}
-                  <a 
-                    href="https://heyzine.com/flip-book/681071e52c.html" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="group flex flex-col rounded-3xl overflow-hidden border-2 border-slate-100 dark:border-slate-800 hover:border-amber-400 transition-all shadow-sm hover:shadow-xl bg-slate-50 dark:bg-slate-900 h-64 relative"
-                  >
-                    <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-md text-amber-500 group-hover:scale-110 transition-transform">
-                      <ExternalLink className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 p-6 flex flex-col justify-end relative z-10">
+                {/* Flipbooks Grid */}
+                <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-400 mb-4">Interactive Digital Flipbooks</h3>
+                <div className="grid sm:grid-cols-2 gap-6 mb-10">
+                  {/* Maths Manual Flipbook */}
+                  <div className="group flex flex-col rounded-3xl overflow-hidden border-2 border-slate-100 dark:border-slate-800 hover:border-amber-400 transition-all shadow-sm hover:shadow-xl bg-slate-50 dark:bg-slate-900 p-6 relative justify-between">
+                    <div>
                       <div className="w-12 h-12 rounded-2xl bg-amber-500 flex items-center justify-center text-white mb-4 shadow-lg shadow-amber-500/30">
                         <TrendingUp className="w-6 h-6" />
                       </div>
                       <h3 className="text-xl font-black text-slate-900 dark:text-white">Mathematics Manual</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-bold">48 Days Catch-up Course</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-bold">48 Days Catch-up Course (Flipbook)</p>
                     </div>
-                    {/* Decorative background */}
-                    <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all pointer-events-none" />
-                  </a>
+                    <div className="flex flex-wrap gap-2 mt-6 relative z-10">
+                      <a 
+                        href="https://heyzine.com/flip-book/681071e52c.html" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-2"
+                      >
+                        <ExternalLink className="w-4 h-4" /> Open Flipbook
+                      </a>
+                      <a 
+                        href="/api/download-manual?file=Level%201%2C%20MAR%20Math%20Manual.pdf"
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs rounded-xl shadow transition-all flex items-center gap-2"
+                      >
+                        <BookOpen className="w-4 h-4" /> Download PDF
+                      </a>
+                    </div>
+                  </div>
 
-                  {/* Marathi Manual */}
-                  <a 
-                    href="https://heyzine.com/flip-book/764579235d.html" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="group flex flex-col rounded-3xl overflow-hidden border-2 border-slate-100 dark:border-slate-800 hover:border-orange-400 transition-all shadow-sm hover:shadow-xl bg-slate-50 dark:bg-slate-900 h-64 relative"
-                  >
-                    <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-md text-orange-500 group-hover:scale-110 transition-transform">
-                      <ExternalLink className="w-4 h-4" />
-                    </div>
-                    <div className="flex-1 p-6 flex flex-col justify-end relative z-10">
+                  {/* Marathi Manual Flipbook */}
+                  <div className="group flex flex-col rounded-3xl overflow-hidden border-2 border-slate-100 dark:border-slate-800 hover:border-orange-400 transition-all shadow-sm hover:shadow-xl bg-slate-50 dark:bg-slate-900 p-6 relative justify-between">
+                    <div>
                       <div className="w-12 h-12 rounded-2xl bg-orange-500 flex items-center justify-center text-white mb-4 shadow-lg shadow-orange-500/30">
                         <BookOpen className="w-6 h-6" />
                       </div>
                       <h3 className="text-xl font-black text-slate-900 dark:text-white">Marathi Manual</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-bold">48 Days Catch-up Course</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-bold">48 Days Catch-up Course (Flipbook)</p>
                     </div>
-                    {/* Decorative background */}
-                    <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-orange-500/10 rounded-full blur-2xl group-hover:bg-orange-500/20 transition-all pointer-events-none" />
-                  </a>
+                    <div className="flex flex-wrap gap-2 mt-6 relative z-10">
+                      <a 
+                        href="https://heyzine.com/flip-book/764579235d.html" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow transition-all flex items-center gap-2"
+                      >
+                        <ExternalLink className="w-4 h-4" /> Open Flipbook
+                      </a>
+                      <a 
+                        href="/api/download-manual?file=Level%201%2C%20MAR%20Language.pdf"
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs rounded-xl shadow transition-all flex items-center gap-2"
+                      >
+                        <BookOpen className="w-4 h-4" /> Download PDF
+                      </a>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Direct PDF Download List */}
+                <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-400 mb-4">Direct TaRL Manual Downloads (PDF)</h3>
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {[
+                    { name: "Level 1 Marathi Math Manual (TaRL)", file: "Level 1, MAR Math Manual.pdf", size: "31.5 MB" },
+                    { name: "Level 1 Marathi Language Manual (TaRL)", file: "Level 1, MAR Language.pdf", size: "15.3 MB" },
+                    { name: "Level 2 Marathi Language & Math Manual", file: "Level 2, MAR Language & Math.pdf", size: "15.3 MB" },
+                    { name: "Level 2 Hindi Language & Math Manual", file: "Level 2, HIN Language & Math.pdf", size: "1.8 MB" },
+                    { name: "Gatividhi Chart (Activity Roadmap)", file: "Gatividhi Chart.pdf", size: "57.6 MB" },
+                    { name: "Class 3-5 Level 1 Math Worksheets", file: "Class 3-5, Level 1, Math Worksheet.pdf", size: "8.0 MB" },
+                    { name: "Class 3-5 Level 2 Math Worksheets", file: "Class 3-5, Level 2, Math Worksheet.pdf", size: "93.8 MB" },
+                    { name: "Class 3-5 Word Problem Cards", file: "Class 3-5, Word Problem Card.pdf", size: "1.9 MB" },
+                    { name: "Basic Stories Level 1 Booklet", file: "Basic Stories  1.pdf", size: "42.4 MB" },
+                    { name: "Anuched Pustika (Paragraph Booklet)", file: "Anuched Pustika.pdf", size: "44.2 MB" },
+                  ].map((m, i) => (
+                    <div key={i} className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4 hover:border-amber-400 transition-all">
+                      <div>
+                        <p className="font-extrabold text-slate-900 dark:text-white text-xs">{m.name}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{m.size} · PDF</p>
+                      </div>
+                      <a 
+                        href={`/api/download-manual?file=${encodeURIComponent(m.file)}`}
+                        download
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-[11px] rounded-xl shadow transition-all shrink-0 flex items-center gap-1.5"
+                      >
+                        Download PDF
+                      </a>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
