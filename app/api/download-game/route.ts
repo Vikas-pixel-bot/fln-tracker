@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ALL, Item } from "@/lib/sim-data";
+import path from "path";
+import fs from "fs";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -34,14 +36,50 @@ export async function GET(req: NextRequest) {
     } as Item;
   }
 
-  const htmlContent = generateSingleFileHtmlGame(game);
-  const safeFilename = game.title.replace(/[^a-zA-Z0-9\u0900-\u097F -]/g, "").trim().replace(/\s+/g, "_") || "FLN_Offline_Game";
+  let htmlContent = "";
+
+  // 1. Check if a pre-crafted static HTML game exists in public/games/
+  const gamesDir = path.join(process.cwd(), "public", "games");
+  const possibleNames = [
+    `${id}.html`,
+    `${id.replace(/^g-/, "")}.html`,
+    `${id.replace(/_/g, "-")}.html`,
+    `${game.id}.html`
+  ];
+
+  let foundPath: string | null = null;
+  if (fs.existsSync(gamesDir)) {
+    for (const name of possibleNames) {
+      const p = path.join(gamesDir, name);
+      if (fs.existsSync(p)) {
+        foundPath = p;
+        break;
+      }
+    }
+  }
+
+  if (foundPath) {
+    try {
+      htmlContent = fs.readFileSync(foundPath, "utf-8");
+    } catch (err) {
+      console.error("Error reading static game file:", err);
+    }
+  }
+
+  // 2. If no static HTML file exists, generate single-file HTML dynamically
+  if (!htmlContent) {
+    htmlContent = generateSingleFileHtmlGame(game);
+  }
+
+  // 3. Ensure ASCII filename for Content-Disposition header to avoid Node ByteString error (character code > 255)
+  const asciiTitle = game.title.replace(/[^a-zA-Z0-9 -]/g, "").trim().replace(/\s+/g, "_") || "FLN_Offline_Game";
+  const utf8Filename = encodeURIComponent(game.title);
 
   return new NextResponse(htmlContent, {
     status: 200,
     headers: {
       "Content-Type": "text/html; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${safeFilename}.html"`,
+      "Content-Disposition": `attachment; filename="${asciiTitle}.html"; filename*=UTF-8''${utf8Filename}.html`,
     },
   });
 }
