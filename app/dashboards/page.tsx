@@ -1,13 +1,16 @@
 import Link from "next/link";
-import { getActiveExternalDashboards } from "@/app/actions/dashboards";
+import { getActiveExternalDashboards, getDashboardHeaderConfig } from "@/app/actions/dashboards";
 import { ArrowLeft, ExternalLink, Activity } from "lucide-react";
 
 export const metadata = {
-  title: "Public Dashboards | Adhigam",
+  title: "Program Implementation Dashboards | Adhigam",
 };
 
 export default async function PublicDashboardsPage() {
-  const dashboards = await getActiveExternalDashboards();
+  const [dashboards, headerConfig] = await Promise.all([
+    getActiveExternalDashboards(),
+    getDashboardHeaderConfig(),
+  ]);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -26,16 +29,51 @@ export default async function PublicDashboardsPage() {
               <ArrowLeft className="w-4 h-4" /> Back to Home
             </Link>
           </div>
-          <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-500 text-xs font-bold uppercase tracking-widest mb-6">
-              <Activity className="w-4 h-4" /> Real-time Analytics
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            {/* Heading & Text */}
+            <div className="lg:col-span-7">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-500 text-xs font-bold uppercase tracking-widest mb-6">
+                <Activity className="w-4 h-4" /> Real-time Analytics
+              </div>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 dark:text-white mb-6 leading-tight">
+                Program <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500">Implementation</span> Dashboards
+              </h1>
+              <p className="text-lg text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
+                {headerConfig.description}
+              </p>
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 dark:text-white mb-6 leading-tight">
-              Ecosystem <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-500">Dashboards</span>
-            </h1>
-            <p className="text-lg text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
-              These dashboards are to track the progress of माझी शाळा, माझा स्वाभिमान program being implemented in 500 Ashramschools of Tribal Development Department, Maharashtra for the holistic development of Ashramschools.
-            </p>
+
+            {/* Side Image next to Heading */}
+            {headerConfig.imageUrl && (
+              <div className="lg:col-span-5 relative">
+                {headerConfig.linkUrl ? (
+                  <a href={headerConfig.linkUrl} target="_blank" rel="noreferrer" className="group block">
+                    <div className="relative rounded-3xl overflow-hidden border-2 border-amber-500/20 dark:border-amber-500/30 shadow-2xl shadow-amber-500/10 group-hover:shadow-amber-500/20 transition-all duration-300 group-hover:-translate-y-1">
+                      <img 
+                        src={headerConfig.imageUrl} 
+                        alt={headerConfig.title} 
+                        className="w-full h-64 sm:h-72 object-cover group-hover:scale-105 transition-transform duration-500" 
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent flex items-end p-6">
+                        <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 bg-amber-500/80 backdrop-blur-md px-3 py-1.5 rounded-full">
+                          Open Dashboard <ExternalLink className="w-3.5 h-3.5" />
+                        </span>
+                      </div>
+                    </div>
+                  </a>
+                ) : (
+                  <div className="relative rounded-3xl overflow-hidden border-2 border-slate-200 dark:border-slate-800 shadow-2xl shadow-slate-200/50 dark:shadow-none">
+                    <img 
+                      src={headerConfig.imageUrl} 
+                      alt={headerConfig.title} 
+                      className="w-full h-64 sm:h-72 object-cover" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent" />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -105,3 +143,4 @@ export default async function PublicDashboardsPage() {
     </div>
   );
 }
+
