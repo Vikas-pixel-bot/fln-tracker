@@ -88,7 +88,7 @@ export default async function PublicDashboardsPage() {
               <p className="text-slate-500 mt-2">New analytical dashboards will be published here soon.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
               {dashboards.map((dashboard, index) => (
                 <a
                   key={dashboard.id}
@@ -99,7 +99,7 @@ export default async function PublicDashboardsPage() {
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   {/* Image Header with Glassmorphism Overlay */}
-                  <div className="relative h-56 overflow-hidden bg-slate-100 dark:bg-slate-800">
+                  <div className="relative h-48 sm:h-52 overflow-hidden bg-slate-100 dark:bg-slate-800">
                     {dashboard.imageUrl ? (
                       <img 
                         src={dashboard.imageUrl} 
@@ -121,8 +121,8 @@ export default async function PublicDashboardsPage() {
                   </div>
 
                   {/* Content Section */}
-                  <div className="flex-1 p-8 flex flex-col">
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-amber-500 transition-colors">
+                  <div className="flex-1 p-6 sm:p-7 flex flex-col">
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-amber-500 transition-colors">
                       {dashboard.title}
                     </h3>
                     <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-6 flex-1">
